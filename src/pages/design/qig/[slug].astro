@@ -1,0 +1,172 @@
+---
+import { render } from 'astro:content';
+import QigLayout from '../../../layouts/QigLayout.astro';
+import QigArt from '../../../components/QigArt.astro';
+import { FIRST_PUBLISHED, QIG_BASE, QIG_NAME, getNav, pageUrl, type NavSection, type QigPage } from '../../../lib/qig';
+
+export async function getStaticPaths() {
+  const nav = await getNav();
+  return [
+    ...nav.map((section) => ({ params: { slug: section.id }, props: { kind: 'section' as const, sectionId: section.id } })),
+    ...nav.flatMap((section) =>
+      section.pages.map((page) => ({ params: { slug: page.id }, props: { kind: 'page' as const, sectionId: section.id, page } })),
+    ),
+  ];
+}
+
+type Props = { kind: 'section'; sectionId: string; page?: undefined } | { kind: 'page'; sectionId: string; page: QigPage };
+
+const { kind, sectionId, page } = Astro.props;
+const nav = await getNav();
+const section = nav.find((s) => s.id === sectionId) as NavSection;
+const sectionCrumbs = [
+  { label: 'QIG', href: QIG_BASE },
+  { label: section.title, href: pageUrl(section.id) },
+];
+
+/** Summaries are one line of Markdown: code spans and links only. */
+const inlineMarkdown = (text: string) =>
+  text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2">$1</a>');
+
+let Content: Awaited<ReturnType<typeof render>>['Content'] | null = null;
+let prev: QigPage | undefined;
+let next: QigPage | undefined;
+if (page) {
+  ({ Content } = await render(page));
+  const i = section.pages.findIndex((p) => p.id === page.id);
+  prev = section.pages[i - 1];
+  next = section.pages[i + 1];
+}
+---
+
+{
+  kind === 'section' ? (
+    <QigLayout
+      title={`${section.title} | ${QIG_NAME}`}
+      description={section.summary}
+      current={section.id}
+      crumbs={sectionCrumbs.slice(0, 1).concat({ label: section.title })}
+    >
+      <div class="article-hero">
+        <QigArt seed={section.id} colors={section.colors} />
+      </div>
+      <div class="overview">
+        <header class="overview-head">
+          <p class="eyebrow">
+            <a href={QIG_BASE}>{QIG_NAME}</a>
+          </p>
+          <h1 class="title">{section.title}</h1>
+          <p class="lede">{section.summary}</p>
+        </header>
+        {section.groups.map((group) => (
+          <section>
+            {group.title && <h2 class="section-title">{group.title}</h2>}
+            <ul class="cards">
+              {group.pages.map((p) => (
+                <li>
+                  <a class="card" href={pageUrl(p.id)}>
+                    <QigArt seed={p.id} colors={section.colors} ratio={1.9} />
+                    <div class="card-body">
+                      <h3 class="card-title">{p.data.title}</h3>
+                      {p.data.summary && <p class="card-text">{p.data.summary}</p>}
+                    </div>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
+      </div>
+    </QigLayout>
+  ) : (
+    page && Content && (
+      <QigLayout
+        title={`${page.data.title} | ${QIG_NAME}`}
+        description={page.data.summary ?? section.summary}
+        current={page.id}
+        crumbs={[...sectionCrumbs, { label: page.data.title }]}
+      >
+        <article class="article">
+          <figure class="article-hero">
+            <QigArt seed={page.id} colors={section.colors} />
+          </figure>
+          <header class="article-head">
+            <p class="eyebrow">
+              <a href={pageUrl(section.id)}>{section.title}</a>
+              {page.data.group && <span> · {page.data.group}</span>}
+            </p>
+            <h1>{page.data.title}</h1>
+            {page.data.summary && <p class="lede" set:html={inlineMarkdown(page.data.summary)} />}
+          </header>
+          <div class="prose">
+            <Content />
+          </div>
+          <footer class="article-foot">
+            {(prev || next) && (
+              <>
+                <h2>Keep reading</h2>
+                <ul class="related">
+                  {prev && (
+                    <li>
+                      <a href={pageUrl(prev.id)}>
+                        <span class="k">Previous</span>
+                        <span class="t">{prev.data.title}</span>
+                      </a>
+                    </li>
+                  )}
+                  {next && (
+                    <li>
+                      <a href={pageUrl(next.id)}>
+                        <span class="k">Next</span>
+                        <span class="t">{next.data.title}</span>
+                      </a>
+                    </li>
+                  )}
+                  <li>
+                    <a href={pageUrl(section.id)}>
+                      <span class="k">All of</span>
+                      <span class="t">{section.title}</span>
+                    </a>
+                  </li>
+                </ul>
+              </>
+            )}
+            {page.id !== 'whats-new' && (
+              <>
+                <h2>Change log</h2>
+                <table class="changelog">
+                  <thead>
+                    <tr>
+                      <th scope="col">Date</th>
+                      <th scope="col">Changes</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>{FIRST_PUBLISHED}</td>
+                      <td>First published.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </>
+            )}
+          </footer>
+        </article>
+      </QigLayout>
+    )
+  )
+}
+
+<style>
+  .title {
+    margin: 0;
+    font-size: clamp(36px, 5vw, 48px);
+    line-height: 1.08;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+  }
+</style>

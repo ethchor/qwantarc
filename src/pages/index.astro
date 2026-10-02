@@ -1,0 +1,515 @@
+---
+import Base from '../layouts/Base.astro';
+
+// Locally the guidelines are served by this same dev server; in production they live on the subdomain.
+const DEV_ORIGIN = import.meta.env.DEV ? '' : 'https://developer.qwantarc.com';
+const QIG_URL = `${DEV_ORIGIN}/design/qig`;
+const TAGLINE = 'Everything we build, from cognition to comfort, follows the intelligent arc — Qwantarc.';
+
+const arc = [
+  {
+    word: 'Cognition',
+    title: 'Systems that think ahead',
+    text: 'Software that understands the work: data, models and on-device intelligence that take the routine off people’s hands.',
+  },
+  {
+    word: 'Craft',
+    title: 'One way of building',
+    text: 'Every product follows one set of interface guidelines, so each tool feels familiar from the first click.',
+  },
+  {
+    word: 'Comfort',
+    title: 'Calm in daily use',
+    text: 'Fast, dependable experiences that fit into the day instead of interrupting it, wherever the work happens.',
+  },
+];
+
+---
+
+<Base title="Qwantarc" description={TAGLINE} origin="https://qwantarc.com" themeColor="#000000" fonts="lexend">
+  <header class="nav">
+    <a class="nav-brand" href="/">Qwantarc</a>
+    <nav aria-label="Primary">
+      <a href="#arc">Approach</a>
+      <a href="#design">Design</a>
+      <a class="nav-cta" href={`${DEV_ORIGIN}/design`}>Developer</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero" aria-labelledby="hero-title">
+      <svg class="hero-arc" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+        <defs>
+          <linearGradient id="arc-grad" x1="0" x2="1" y1="0" y2="0">
+            <stop offset="0" stop-color="#6155f5"></stop>
+            <stop offset="0.5" stop-color="#0088ff"></stop>
+            <stop offset="1" stop-color="#ffb340"></stop>
+          </linearGradient>
+          <radialGradient id="arc-glow" cx="0.5" cy="1.15" r="0.75">
+            <stop offset="0" stop-color="#1e6ef4" stop-opacity="0.32"></stop>
+            <stop offset="1" stop-color="#000" stop-opacity="0"></stop>
+          </radialGradient>
+        </defs>
+        <rect width="1600" height="900" fill="url(#arc-glow)"></rect>
+        <path class="arc-faint" d="M -40 980 A 860 860 0 0 1 1640 980" pathLength="1"></path>
+        <path class="arc-faint" d="M 140 980 A 680 680 0 0 1 1460 980" pathLength="1"></path>
+        <path class="arc-main" d="M 40 980 A 770 770 0 0 1 1560 980" pathLength="1"></path>
+        <circle class="arc-node" cx="1560" cy="980" r="10"></circle>
+      </svg>
+      <div class="hero-copy">
+        <h1 id="hero-title" class="wordmark">Qwantarc</h1>
+        <p class="tagline">{TAGLINE}</p>
+      </div>
+      <a class="scroll-cue" href="#arc" aria-label="Read on">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+      </a>
+    </section>
+
+    <section id="arc" class="block" aria-labelledby="arc-title">
+      <p class="kicker">The intelligent arc</p>
+      <h2 id="arc-title" class="block-title">From cognition<br />to comfort.</h2>
+      <p class="block-lede">
+        Intelligence on one end, ease on the other. Everything we make travels the whole arc: it has to think clearly
+        and feel effortless.
+      </p>
+      <ol class="arc-steps">
+        {
+          arc.map((step) => (
+            <li>
+              <span class="step-word">{step.word}</span>
+              <h3>{step.title}</h3>
+              <p>{step.text}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </section>
+
+
+    <section id="design" class="block design" aria-labelledby="design-title">
+      <p class="kicker">Design</p>
+      <h2 id="design-title" class="block-title">One set of guidelines<br />behind every screen.</h2>
+      <p class="block-lede">
+        Qwantarc Interface Guidelines (QIG) set out the principles, foundations, patterns and components our products are
+        built from. They are open to read.
+      </p>
+      <ul class="principle-chips">
+        <li>Task first</li>
+        <li>People stay in control</li>
+        <li>Clarity over decoration</li>
+        <li>Depth with purpose</li>
+        <li>Trustworthy with data</li>
+      </ul>
+      <a class="cta" href={QIG_URL}>Read the guidelines <span aria-hidden="true">→</span></a>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <span class="foot-brand">Qwantarc</span>
+    <nav aria-label="Footer">
+      <a href={`${DEV_ORIGIN}/design`}>Developer</a>
+      <a href={QIG_URL}>Interface Guidelines</a>
+    </nav>
+    <p>© {new Date().getFullYear()} Qwantarc. All rights reserved.</p>
+  </footer>
+</Base>
+
+<script>
+  // Fade sections in as they scroll into view (skipped under Reduce Motion).
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            e.target.classList.add('is-in');
+            io.unobserve(e.target);
+          }
+        }
+      },
+      { threshold: 0.15 },
+    );
+    document.querySelectorAll('.block').forEach((el) => {
+      el.classList.add('will-reveal');
+      io.observe(el);
+    });
+  }
+</script>
+
+<style is:global>
+  :root {
+    color-scheme: dark;
+    --ink: #fff;
+    --ink-2: rgb(255 255 255 / 0.72);
+    --ink-3: rgb(255 255 255 / 0.48);
+    --line: rgb(255 255 255 / 0.12);
+    --panel: rgb(255 255 255 / 0.05);
+    --blue: #0091ff;
+    --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    margin: 0;
+    background: #000;
+    color: var(--ink);
+    font-family: 'Lexend', system-ui, sans-serif;
+    font-weight: 300;
+    -webkit-font-smoothing: antialiased;
+  }
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+  :focus-visible {
+    outline: 3px solid rgb(0 145 255 / 0.6);
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+</style>
+
+<style>
+  .nav {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    height: 64px;
+    padding: 0 clamp(16px, 4vw, 48px);
+    background: rgb(0 0 0 / 0.55);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 1px solid rgb(255 255 255 / 0.06);
+  }
+  .nav-brand {
+    font-weight: 600;
+    font-size: 19px;
+    letter-spacing: -0.01em;
+  }
+  .nav nav {
+    display: flex;
+    align-items: center;
+    gap: clamp(4px, 2vw, 28px);
+    font-size: 14px;
+    color: var(--ink-2);
+  }
+  .nav nav a {
+    padding: 8px 4px;
+  }
+  .nav nav a:hover {
+    color: var(--ink);
+  }
+  .nav .nav-cta {
+    padding: 8px 16px;
+    border-radius: 999px;
+    background: #fff;
+    color: #000;
+    font-weight: 500;
+  }
+  .nav .nav-cta:hover {
+    color: #000;
+    background: rgb(255 255 255 / 0.86);
+  }
+
+  .hero {
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-height: 100vh;
+    min-height: 100svh;
+    padding: 96px 16px;
+    overflow: hidden;
+    text-align: center;
+  }
+  .hero-arc {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .arc-main {
+    fill: none;
+    stroke: url(#arc-grad);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: draw 2.4s var(--ease) 0.3s forwards;
+    filter: drop-shadow(0 0 18px rgb(0 136 255 / 0.55));
+  }
+  .arc-faint {
+    fill: none;
+    stroke: rgb(255 255 255 / 0.08);
+    stroke-width: 1.5;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: draw 2.8s var(--ease) 0.1s forwards;
+  }
+  .arc-node {
+    fill: #ffb340;
+    opacity: 0;
+    animation: fade 0.6s ease 2.4s forwards;
+  }
+  @keyframes draw {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  @keyframes fade {
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  .hero-copy {
+    position: relative;
+    max-width: 64rem;
+  }
+  .wordmark {
+    margin: 0;
+    font-size: clamp(56px, 13vw, 168px);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    animation: rise 1.2s var(--ease) both;
+  }
+  .tagline {
+    max-width: 46rem;
+    margin: clamp(20px, 3vw, 40px) auto 0;
+    font-size: clamp(16px, 1.7vw, 22px);
+    line-height: 1.6;
+    color: var(--ink);
+    animation: rise 1.2s var(--ease) 0.25s both;
+  }
+  .scroll-cue {
+    position: absolute;
+    bottom: 28px;
+    left: 50%;
+    width: 44px;
+    height: 44px;
+    margin-left: -22px;
+    display: grid;
+    place-items: center;
+    border-radius: 999px;
+    color: var(--ink-3);
+    animation: fade 1s ease 2s both;
+  }
+  .scroll-cue svg {
+    width: 24px;
+    height: 24px;
+  }
+  .scroll-cue:hover {
+    color: var(--ink);
+  }
+
+  .block {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: clamp(80px, 12vw, 160px) clamp(16px, 4vw, 48px) 0;
+  }
+  :global(.will-reveal) {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.9s var(--ease), transform 0.9s var(--ease);
+  }
+  :global(.will-reveal.is-in) {
+    opacity: 1;
+    transform: none;
+  }
+  .kicker {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    background: linear-gradient(90deg, #8e86ff, #0091ff 50%, #ffb340);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    width: fit-content;
+  }
+  .block-title {
+    margin: 14px 0 0;
+    font-size: clamp(36px, 6vw, 72px);
+    font-weight: 600;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+  }
+  .block-lede {
+    max-width: 40rem;
+    margin: 24px 0 0;
+    font-size: clamp(17px, 1.6vw, 21px);
+    line-height: 1.6;
+    color: var(--ink-2);
+  }
+
+  .arc-steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin: 64px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .arc-steps li {
+    position: relative;
+    padding: 28px 28px 32px;
+    border-radius: 26px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+  }
+  .arc-steps li:nth-child(2) {
+    margin-top: -24px;
+    margin-bottom: 24px;
+  }
+  .step-word {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .arc-steps li:nth-child(1) .step-word {
+    color: #8e86ff;
+  }
+  .arc-steps li:nth-child(2) .step-word {
+    color: #3ca5ff;
+  }
+  .arc-steps li:nth-child(3) .step-word {
+    color: #ffb340;
+  }
+  .arc-steps h3 {
+    margin: 14px 0 0;
+    font-size: 24px;
+    font-weight: 500;
+    letter-spacing: -0.015em;
+  }
+  .arc-steps p {
+    margin: 10px 0 0;
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--ink-2);
+  }
+
+  .design {
+    text-align: center;
+  }
+  .design .kicker,
+  .design .block-lede {
+    margin-inline: auto;
+  }
+  .principle-chips {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    max-width: 44rem;
+    margin: 36px auto 0;
+    padding: 0;
+    list-style: none;
+  }
+  .principle-chips li {
+    padding: 10px 18px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    font-size: 15px;
+    color: var(--ink-2);
+  }
+  .cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 48px;
+    margin-top: 40px;
+    padding: 0 26px;
+    border-radius: 999px;
+    background: #fff;
+    color: #000;
+    font-size: 17px;
+    font-weight: 500;
+    transition: transform 0.25s var(--ease);
+  }
+  .cta:hover {
+    transform: translateY(-1px);
+  }
+
+  .foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px 32px;
+    max-width: 1180px;
+    margin: clamp(96px, 14vw, 180px) auto 0;
+    padding: 28px clamp(16px, 4vw, 48px) 40px;
+    border-top: 1px solid var(--line);
+    font-size: 14px;
+    color: var(--ink-3);
+  }
+  .foot-brand {
+    color: var(--ink);
+    font-weight: 600;
+    font-size: 17px;
+  }
+  .foot nav {
+    display: flex;
+    gap: 24px;
+  }
+  .foot nav a:hover {
+    color: var(--ink);
+  }
+  .foot p {
+    margin: 0 0 0 auto;
+  }
+
+  @media (max-width: 860px) {
+    .arc-steps {
+      grid-template-columns: 1fr;
+    }
+    .arc-steps li:nth-child(2) {
+      margin: 0;
+    }
+    .nav nav a:not(.nav-cta) {
+      display: none;
+    }
+    .foot p {
+      margin: 0;
+      width: 100%;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .arc-main,
+    .arc-faint {
+      animation: none;
+      stroke-dashoffset: 0;
+    }
+    .arc-node,
+    .scroll-cue,
+    .wordmark,
+    .tagline {
+      animation: none;
+      opacity: 1;
+    }
+  }
+</style>

@@ -1,0 +1,26 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "astro",
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "redirects": [
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "developer.qwantarc.com" }],
+      "destination": "/design",
+      "permanent": false
+    },
+    {
+      "source": "/design",
+      "has": [{ "type": "host", "value": "(?:www\\.)?qwantarc\\.com" }],
+      "destination": "https://developer.qwantarc.com/design",
+      "permanent": true
+    },
+    {
+      "source": "/design/:path*",
+      "has": [{ "type": "host", "value": "(?:www\\.)?qwantarc\\.com" }],
+      "destination": "https://developer.qwantarc.com/design/:path*",
+      "permanent": true
+    }
+  ]
+}

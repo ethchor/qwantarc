@@ -1,0 +1,19 @@
+{
+  "name": "qwantarc",
+  "private": true,
+  "type": "module",
+  "version": "1.0.0",
+  "description": "qwantarc.com and developer.qwantarc.com, including Qwantarc's Interface Guidelines (QIG).",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "sync:qig": "node scripts/sync-qig.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "astro": "^7.3.5"
+  }
+}

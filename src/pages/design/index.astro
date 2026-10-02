@@ -1,0 +1,173 @@
+---
+import QigLayout from '../../layouts/QigLayout.astro';
+import QigArt from '../../components/QigArt.astro';
+import { QIG_BASE, QIG_NAME, pageUrl } from '../../lib/qig';
+
+const resources = [
+  {
+    href: pageUrl('design-values'),
+    title: 'Design values',
+    text: 'Every colour, material, radius, motion and text-size value, in light and dark.',
+    seed: 'design-values',
+    colors: ['#3a3a3c', '#8e8e93'] as [string, string],
+  },
+  {
+    href: pageUrl('review-checklist'),
+    title: 'Review checklist',
+    text: 'What a reviewer checks on every interface change before it ships.',
+    seed: 'review-checklist',
+    colors: ['#008198', '#30d158'] as [string, string],
+  },
+  {
+    href: pageUrl('whats-new'),
+    title: 'What’s new',
+    text: 'Changes to the guidelines, newest first.',
+    seed: 'whats-new',
+    colors: ['#564ade', '#bf5af2'] as [string, string],
+  },
+];
+---
+
+<QigLayout
+  title="Design | Qwantarc Developer"
+  description="Design resources from Qwantarc: Qwantarc Interface Guidelines, design values and review tools."
+  bare
+  crumbs={[{ label: 'Design' }]}
+>
+  <section class="hub-hero">
+    <QigArt seed="design-hub" colors={['#000000', '#1e6ef4']} ratio={2.2} class="hub-art" />
+    <div class="hub-copy">
+      <p class="hub-eyebrow">Design</p>
+      <h1>Build interfaces people trust.</h1>
+      <p>Guidelines, design values and tools for designing Qwantarc products.</p>
+    </div>
+  </section>
+
+  <div class="overview">
+    <a class="feature" href={QIG_BASE}>
+      <QigArt seed="qwantarc-interface-guidelines" colors={['#0a0a0c', '#1e6ef4']} ratio={1.6} class="feature-art" />
+      <div class="feature-body">
+        <p class="eyebrow">Guidelines</p>
+        <h2>{QIG_NAME}</h2>
+        <p>
+          Principles, foundations, patterns and components for every screen we ship, independent of any platform or
+          framework.
+        </p>
+        <span class="button">Read QIG</span>
+      </div>
+    </a>
+
+    <h2 class="section-title">Resources</h2>
+    <ul class="cards">
+      {
+        resources.map((r) => (
+          <li>
+            <a class="card" href={r.href}>
+              <QigArt seed={r.seed} colors={r.colors} ratio={1.9} />
+              <div class="card-body">
+                <h3 class="card-title">{r.title}</h3>
+                <p class="card-text">{r.text}</p>
+              </div>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</QigLayout>
+
+<style>
+  .hub-hero {
+    position: relative;
+    overflow: hidden;
+    background: #000;
+    color: #fff;
+  }
+  .hub-hero :global(.hub-art) {
+    aspect-ratio: 2.2;
+    min-height: 360px;
+    max-height: 560px;
+    opacity: 0.9;
+  }
+  .hub-hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgb(0 0 0 / 0.72), rgb(0 0 0 / 0.2) 60%, transparent);
+    pointer-events: none;
+  }
+  .hub-copy {
+    position: absolute;
+    z-index: 1;
+    inset: auto 0 0 0;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 32px 56px;
+  }
+  .hub-eyebrow {
+    margin: 0;
+    font-size: 21px;
+    font-weight: 600;
+    color: rgb(255 255 255 / 0.8);
+  }
+  .hub-copy h1 {
+    margin: 6px 0 0;
+    font-size: clamp(40px, 7vw, 80px);
+    line-height: 1.02;
+    font-weight: 700;
+    letter-spacing: -0.035em;
+  }
+  .hub-copy p:last-child {
+    margin: 14px 0 0;
+    max-width: 34ch;
+    font-size: 21px;
+    line-height: 1.38;
+    color: rgb(255 255 255 / 0.86);
+  }
+  .feature {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    margin-top: 56px;
+    overflow: hidden;
+    border-radius: var(--q-radius-2xl);
+    background: var(--q-bg-secondary);
+    color: var(--q-label);
+  }
+  .feature:hover {
+    text-decoration: none;
+  }
+  .feature :global(.feature-art) {
+    height: 100%;
+  }
+  .feature-body {
+    align-self: center;
+    padding: 40px;
+  }
+  .feature-body h2 {
+    margin: 0;
+    font-size: 36px;
+    line-height: 1.1;
+    font-weight: 700;
+    letter-spacing: -0.028em;
+  }
+  .feature-body p:not(.eyebrow) {
+    margin: 14px 0 24px;
+    color: var(--q-label-secondary);
+    font-size: 19px;
+    line-height: 1.42;
+  }
+  @media (max-width: 834px) {
+    .feature {
+      grid-template-columns: 1fr;
+    }
+    .feature :global(.feature-art) {
+      aspect-ratio: 1.9;
+    }
+    .feature-body {
+      padding: 24px;
+    }
+    .hub-copy {
+      padding: 0 16px 32px;
+    }
+  }
+</style>
