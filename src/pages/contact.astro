@@ -39,7 +39,7 @@ const topics = ['Partnership', 'Product', 'Careers', 'Press', 'Something else'];
         </p>
         <div class="direct">
           <p class="direct-label">Or write directly</p>
-          <a class="direct-mail" href={`mailto:${EMAIL}`}>{EMAIL}</a>
+          <p class="direct-mail">{EMAIL}</p>
           <button class="copy" type="button" data-copy={EMAIL}>
             <span data-copy-label>Copy Address</span>
           </button>
@@ -85,21 +85,34 @@ const topics = ['Partnership', 'Product', 'Careers', 'Press', 'Something else'];
           <p class="error" data-error-for="message">Write a short message.</p>
         </div>
 
+        <div class="trap" aria-hidden="true">
+          <label for="website">Website</label>
+          <input id="website" name="website" type="text" tabindex="-1" autocomplete="off" />
+        </div>
+
         <div class="submit-row">
-          <button class="send" type="submit">
-            <span>Write Email</span>
+          <button class="send" type="submit" data-send>
+            <span data-send-label>Send Enquiry</span>
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg>
           </button>
-          <p class="hint">Opens your email app with your message ready to send to {EMAIL}.</p>
+          <p class="hint" data-hint role="status" aria-live="polite">Goes straight to our inbox. We usually reply within two working days.</p>
         </div>
+
       </form>
+
+      <section class="sent" data-sent hidden tabindex="-1" aria-labelledby="sent-title">
+        <p class="n">Sent</p>
+        <h2 id="sent-title" class="sent-title">Thank you<span data-sent-name></span>.</h2>
+        <p class="sent-text">Your message is on its way. We’ll reply to <span data-sent-email></span> soon.</p>
+        <button class="send" type="button" data-again>Send Another</button>
+      </section>
     </div>
   </main>
 
   <footer class="foot">
     <div class="foot-row">
       <span>© {new Date().getFullYear()} Qwantarc</span>
-      <a href={`mailto:${EMAIL}`}>{EMAIL}</a>
+      <span>{EMAIL}</span>
       <a href="/">Back to Qwantarc</a>
     </div>
   </footer>
@@ -126,8 +139,18 @@ const topics = ['Partnership', 'Product', 'Careers', 'Press', 'Something else'];
     (form.elements.namedItem(name) as HTMLInputElement).addEventListener('blur', () => check(name));
   }
 
-  form.addEventListener('submit', (e) => {
+  // The enquiry endpoint lives on qwantarc.com (a Cloudflare Worker); www and previews post to it directly.
+  const ENDPOINT = location.hostname === 'qwantarc.com' ? '/api/enquiry' : 'https://qwantarc.com/api/enquiry';
+  const opened = performance.now();
+  const send = form.querySelector<HTMLButtonElement>('[data-send]')!;
+  const sendLabel = form.querySelector<HTMLElement>('[data-send-label]')!;
+  const hint = form.querySelector<HTMLElement>('[data-hint]')!;
+  const hintText = hint.textContent;
+  const sent = document.querySelector<HTMLElement>('[data-sent]')!;
+
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
+    if (send.disabled) return;
     const results = ['name', 'email', 'message'].map(check);
     if (results.includes(false)) {
       (form.querySelector('[aria-invalid="true"]') as HTMLElement | null)?.focus();
@@ -135,15 +158,48 @@ const topics = ['Partnership', 'Product', 'Careers', 'Press', 'Something else'];
     }
     const data = new FormData(form);
     const get = (k: string) => String(data.get(k) ?? '').trim();
-    const subject = `${get('topic')} enquiry from ${get('name')}${get('company') ? `, ${get('company')}` : ''}`;
-    const body = [
-      get('message'),
-      '',
-      '--',
-      `${get('name')}${get('company') ? `, ${get('company')}` : ''}`,
-      get('email'),
-    ].join('\n');
-    window.location.href = `mailto:${EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    const payload = {
+      topic: get('topic'),
+      name: get('name'),
+      email: get('email'),
+      company: get('company'),
+      message: get('message'),
+      website: get('website'),
+      elapsed: Math.round(performance.now() - opened),
+    };
+
+    send.disabled = true;
+    sendLabel.textContent = 'Sending…';
+    hint.classList.remove('is-error');
+    hint.textContent = hintText;
+    try {
+      const res = await fetch(ENDPOINT, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const out = await res.json().catch(() => ({ ok: false }));
+      if (!res.ok || !out.ok) throw new Error(out.error || 'Couldn’t send right now. Try again in a minute.');
+      document.querySelector('[data-sent-name]')!.textContent = `, ${payload.name.split(' ')[0]}`;
+      document.querySelector('[data-sent-email]')!.textContent = payload.email;
+      form.hidden = true;
+      sent.hidden = false;
+      sent.focus();
+    } catch (err) {
+      const msg = err instanceof Error && err.message !== 'Failed to fetch' ? err.message : 'Couldn’t reach our server. Check your connection and try again.';
+      hint.classList.add('is-error');
+      hint.textContent = `${msg} You can also write to ${EMAIL}.`;
+    } finally {
+      send.disabled = false;
+      sendLabel.textContent = 'Send Enquiry';
+    }
+  });
+
+  document.querySelector('[data-again]')!.addEventListener('click', () => {
+    form.reset();
+    sent.hidden = true;
+    form.hidden = false;
+    (form.elements.namedItem('name') as HTMLInputElement).focus();
   });
 
   const copy = document.querySelector<HTMLButtonElement>('[data-copy]');
@@ -234,15 +290,12 @@ const topics = ['Partnership', 'Product', 'Careers', 'Press', 'Something else'];
     color: var(--bone-3);
   }
   .direct-mail {
-    display: inline-block;
-    margin-top: 8px;
+    margin: 8px 0 0;
+    user-select: all;
     font-family: var(--serif);
     font-style: italic;
     font-size: clamp(28px, 3vw, 40px);
     transition: color 0.3s;
-  }
-  .direct-mail:hover {
-    color: var(--ember);
   }
   .copy {
     display: block;
@@ -413,6 +466,49 @@ const topics = ['Partnership', 'Product', 'Careers', 'Press', 'Something else'];
     font-size: 13px;
     line-height: 1.5;
     color: var(--bone-3);
+  }
+
+  .trap {
+    position: absolute;
+    left: -10000px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+  .hint.is-error {
+    color: #ff7b70;
+  }
+  .send:disabled {
+    opacity: 0.6;
+    cursor: progress;
+  }
+  .form[hidden],
+  .sent[hidden] {
+    display: none;
+  }
+  .sent {
+    align-self: start;
+    padding: clamp(28px, 3vw, 44px);
+    border: 1px solid rgb(255 112 67 / 0.35);
+    border-radius: 28px;
+    background: rgb(18 18 17 / 0.72);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    outline: none;
+  }
+  .sent-title {
+    margin: 14px 0 0;
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(44px, 5vw, 72px);
+    line-height: 1;
+  }
+  .sent-text {
+    margin: 18px 0 28px;
+    font-size: 17px;
+    line-height: 1.6;
+    color: var(--bone-2);
   }
 
   @media (max-width: 900px) {

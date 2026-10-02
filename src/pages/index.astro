@@ -91,18 +91,17 @@ const stages = [
       <p class="hello-n">04</p>
       <h2 id="hello-title" class="hello-title">Say <em>hello.</em></h2>
       <p class="hello-text">Partnerships, products, or just an idea worth building. Write to us and a person reads it.</p>
-      <a class="hello-mail" href={`mailto:${EMAIL}`} data-magnet>
-        <span>{EMAIL}</span>
+      <a class="hello-cta" href="/contact" data-magnet>
+        <span>Start an Enquiry</span>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg>
       </a>
-      <a class="hello-link" href="/contact">Start an enquiry</a>
     </section>
   </main>
 
   <footer class="foot">
     <div class="foot-row">
       <span>© {new Date().getFullYear()} Qwantarc</span>
-      <a href={`mailto:${EMAIL}`}>{EMAIL}</a>
+      <span class="foot-mail">{EMAIL}</span>
       <span>Everything follows the arc.</span>
     </div>
     <p class="foot-mark" aria-hidden="true">Qwantarc</p>
@@ -616,7 +615,7 @@ const stages = [
     line-height: 1.6;
     color: var(--bone-2);
   }
-  .hello-mail {
+  .hello-cta {
     display: inline-flex;
     align-items: center;
     gap: 14px;
@@ -633,34 +632,19 @@ const stages = [
       border-color 0.4s var(--ease);
     will-change: transform;
   }
-  .hello-mail svg {
+  .hello-cta svg {
     width: 0.9em;
     height: 0.9em;
     transition: transform 0.4s var(--ease);
   }
-  .hello-mail:hover {
+  .hello-cta:hover {
     background: var(--ember);
     border-color: var(--ember);
     color: var(--ink);
   }
-  .hello-mail:hover svg {
+  .hello-cta:hover svg {
     transform: translate(3px, -3px);
   }
-  .hello-link {
-    margin-top: 22px;
-    font-size: 15px;
-    color: var(--bone-2);
-    border-bottom: 1px solid var(--line-strong);
-    padding-bottom: 2px;
-    transition:
-      color 0.3s,
-      border-color 0.3s;
-  }
-  .hello-link:hover {
-    color: var(--bone);
-    border-color: var(--ember);
-  }
-
   @media (prefers-reduced-motion: reduce) {
     .pulse {
       animation: none;
