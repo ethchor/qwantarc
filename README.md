@@ -5,15 +5,15 @@ The source for two sites, built as one static [Astro](https://astro.build) proje
 | Host                     | Pages            | What it is                                       |
 | ------------------------ | ---------------- | ------------------------------------------------ |
 | `qwantarc.com`           | `/`              | The brand site                                   |
-| `developer.qwantarc.com` | `/design/**`     | Developer: design hub and Qwantarc Interface Guidelines (QIG) |
+| `developer.qwantarc.com` | `/design/qig/**` | Qwantarc Interface Guidelines (QIG)              |
 
-`vercel.json` sends `developer.qwantarc.com/` to `/design`, and `qwantarc.com/design/**` to the developer host.
+`vercel.json` sends `developer.qwantarc.com/` and `/design` to `/design/qig`, and `qwantarc.com/design/**` to the developer host.
 
 ## Develop
 
 ```bash
 npm install
-npm run dev        # http://localhost:4321 — the brand site at /, the guidelines at /design/qig
+npm run dev        # http://localhost:4321: the brand site at /, the guidelines at /design/qig
 npm run build      # static output in dist/
 ```
 

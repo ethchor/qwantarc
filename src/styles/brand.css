@@ -1,0 +1,140 @@
+/* qwantarc.com: shared by the landing and contact pages. */
+
+:root {
+  color-scheme: dark;
+  --ink: #0a0a09;
+  --bone: #ece9e3;
+  --bone-2: rgb(236 233 227 / 0.62);
+  --bone-3: rgb(236 233 227 / 0.36);
+  --line: rgb(236 233 227 / 0.12);
+  --line-strong: rgb(236 233 227 / 0.24);
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --ember: #ff7043;
+  --sans: 'Lexend', system-ui, sans-serif;
+  --serif: 'Instrument Serif', 'Times New Roman', serif;
+}
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+html {
+  background: var(--ink);
+}
+body {
+  margin: 0;
+  background: var(--ink);
+  color: var(--bone);
+  font-family: var(--sans);
+  font-weight: 300;
+  -webkit-font-smoothing: antialiased;
+}
+::selection {
+  background: var(--ember);
+  color: var(--ink);
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+:focus-visible {
+  outline: 2px solid var(--ember);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+.grain {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  opacity: 0.07;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---- Bar ---- */
+.bar {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px clamp(18px, 3.4vw, 44px);
+  color: var(--bone);
+  pointer-events: none;
+}
+.bar-mark {
+  pointer-events: auto;
+  font-weight: 600;
+  font-size: 17px;
+  letter-spacing: -0.01em;
+}
+.bar-index {
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+  color: var(--bone-3);
+}
+.bar-index [data-index] {
+  color: var(--bone);
+}
+.bar-sep {
+  margin: 0 6px;
+}
+
+/* ---- Footer ---- */
+.foot {
+  position: relative;
+  overflow: hidden;
+  padding: 0 clamp(18px, 3.4vw, 44px);
+  border-top: 1px solid var(--line);
+}
+.foot-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 24px 0;
+  font-size: 13px;
+  color: var(--bone-2);
+}
+.foot-mark {
+  margin: 0 0 -0.2em;
+  font-size: 21vw;
+  font-weight: 700;
+  line-height: 0.8;
+  letter-spacing: -0.05em;
+  text-align: center;
+  white-space: nowrap;
+  background: linear-gradient(180deg, var(--bone) 10%, rgb(236 233 227 / 0.04) 92%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  user-select: none;
+}
+
+
+.bar-end {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+.bar-link {
+  pointer-events: auto;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--bone-2);
+  transition: color 0.3s;
+}
+.bar-link:hover,
+.bar-link[aria-current] {
+  color: var(--bone);
+}
+.foot-row a {
+  color: var(--bone-2);
+  transition: color 0.3s;
+}
+.foot-row a:hover {
+  color: var(--ember);
+}

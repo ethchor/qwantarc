@@ -7,14 +7,20 @@
     {
       "source": "/",
       "has": [{ "type": "host", "value": "developer.qwantarc.com" }],
-      "destination": "/design",
+      "destination": "/design/qig",
+      "permanent": false
+    },
+    {
+      "source": "/design",
+      "has": [{ "type": "host", "value": "developer.qwantarc.com" }],
+      "destination": "/design/qig",
       "permanent": false
     },
     {
       "source": "/design",
       "has": [{ "type": "host", "value": "(?:www\\.)?qwantarc\\.com" }],
-      "destination": "https://developer.qwantarc.com/design",
-      "permanent": true
+      "destination": "https://developer.qwantarc.com/design/qig",
+      "permanent": false
     },
     {
       "source": "/design/:path*",

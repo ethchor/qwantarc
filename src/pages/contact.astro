@@ -1,0 +1,433 @@
+---
+import Base from '../layouts/Base.astro';
+import '../styles/brand.css';
+
+const EMAIL = 'vimu@qwantarc.com';
+const topics = ['Partnership', 'Product', 'Careers', 'Press', 'Something else'];
+---
+
+<Base
+  title="Contact | Qwantarc"
+  description="Write to Qwantarc about partnerships, products, careers or press."
+  origin="https://qwantarc.com"
+  themeColor="#0a0a09"
+  fonts="brand"
+>
+  <div class="grain" aria-hidden="true"></div>
+
+  <header class="bar">
+    <a class="bar-mark" href="/" aria-label="Qwantarc, home">Qwantarc</a>
+    <div class="bar-end">
+      <a class="bar-link" href="/contact" aria-current="page">Contact</a>
+    </div>
+  </header>
+
+  <main class="contact">
+    <svg class="contact-arc" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <path d="M -100 1100 A 1000 900 0 0 1 1700 1100" fill="none" stroke="rgb(236 233 227 / 0.06)"></path>
+      <path d="M 40 1100 A 860 780 0 0 1 1560 1100" fill="none" stroke="rgb(236 233 227 / 0.08)"></path>
+      <path class="contact-ember" d="M 180 1100 A 720 660 0 0 1 1420 1100" fill="none" stroke="#ff7043" pathLength="1"></path>
+    </svg>
+
+    <div class="contact-grid">
+      <section class="contact-intro">
+        <p class="n">Contact</p>
+        <h1 class="contact-title">Start a <em>conversation.</em></h1>
+        <p class="contact-text">
+          Tell us what you have in mind. Every message is read by a person, and we reply to everything that needs an
+          answer.
+        </p>
+        <div class="direct">
+          <p class="direct-label">Or write directly</p>
+          <a class="direct-mail" href={`mailto:${EMAIL}`}>{EMAIL}</a>
+          <button class="copy" type="button" data-copy={EMAIL}>
+            <span data-copy-label>Copy Address</span>
+          </button>
+        </div>
+      </section>
+
+      <form class="form" data-form novalidate>
+        <fieldset class="topics">
+          <legend class="label">What is it about?</legend>
+          <div class="chips">
+            {
+              topics.map((t, i) => (
+                <label class="chip">
+                  <input type="radio" name="topic" value={t} checked={i === 0} />
+                  <span>{t}</span>
+                </label>
+              ))
+            }
+          </div>
+        </fieldset>
+
+        <div class="row">
+          <div class="field">
+            <label class="label" for="name">Name</label>
+            <input id="name" name="name" type="text" autocomplete="name" required placeholder="e.g. Asha Patil" />
+            <p class="error" data-error-for="name">Enter your name.</p>
+          </div>
+          <div class="field">
+            <label class="label" for="email">Email</label>
+            <input id="email" name="email" type="email" autocomplete="email" required placeholder="you@company.com" />
+            <p class="error" data-error-for="email">Enter an email address we can reply to.</p>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="company">Company <span class="opt">(optional)</span></label>
+          <input id="company" name="company" type="text" autocomplete="organization" />
+        </div>
+
+        <div class="field">
+          <label class="label" for="message">Message</label>
+          <textarea id="message" name="message" rows="6" required placeholder="A few lines about what you’d like to build or discuss."></textarea>
+          <p class="error" data-error-for="message">Write a short message.</p>
+        </div>
+
+        <div class="submit-row">
+          <button class="send" type="submit">
+            <span>Write Email</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          </button>
+          <p class="hint">Opens your email app with your message ready to send to {EMAIL}.</p>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <footer class="foot">
+    <div class="foot-row">
+      <span>© {new Date().getFullYear()} Qwantarc</span>
+      <a href={`mailto:${EMAIL}`}>{EMAIL}</a>
+      <a href="/">Back to Qwantarc</a>
+    </div>
+  </footer>
+</Base>
+
+<script>
+  const EMAIL = 'vimu@qwantarc.com';
+  const form = document.querySelector<HTMLFormElement>('[data-form]')!;
+
+  const showError = (name: string, on: boolean) => {
+    const field = form.elements.namedItem(name) as HTMLInputElement;
+    const err = form.querySelector<HTMLElement>(`[data-error-for="${name}"]`)!;
+    err.classList.toggle('is-on', on);
+    field.setAttribute('aria-invalid', String(on));
+    if (on) field.setAttribute('aria-describedby', err.id || (err.id = `${name}-error`));
+  };
+  const check = (name: string) => {
+    const field = form.elements.namedItem(name) as HTMLInputElement;
+    const ok = field.value.trim() !== '' && (field.type !== 'email' || field.checkValidity());
+    showError(name, !ok);
+    return ok;
+  };
+  for (const name of ['name', 'email', 'message']) {
+    (form.elements.namedItem(name) as HTMLInputElement).addEventListener('blur', () => check(name));
+  }
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const results = ['name', 'email', 'message'].map(check);
+    if (results.includes(false)) {
+      (form.querySelector('[aria-invalid="true"]') as HTMLElement | null)?.focus();
+      return;
+    }
+    const data = new FormData(form);
+    const get = (k: string) => String(data.get(k) ?? '').trim();
+    const subject = `${get('topic')} enquiry from ${get('name')}${get('company') ? `, ${get('company')}` : ''}`;
+    const body = [
+      get('message'),
+      '',
+      '--',
+      `${get('name')}${get('company') ? `, ${get('company')}` : ''}`,
+      get('email'),
+    ].join('\n');
+    window.location.href = `mailto:${EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  });
+
+  const copy = document.querySelector<HTMLButtonElement>('[data-copy]');
+  const label = document.querySelector<HTMLElement>('[data-copy-label]');
+  copy?.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(copy.dataset.copy!);
+      label!.textContent = 'Copied';
+    } catch {
+      label!.textContent = 'Select and copy above';
+    }
+    setTimeout(() => (label!.textContent = 'Copy Address'), 2000);
+  });
+</script>
+
+<style>
+  .bar {
+    background: transparent;
+  }
+  .contact {
+    position: relative;
+    min-height: 100vh;
+    overflow: hidden;
+    padding: clamp(120px, 16vh, 180px) clamp(18px, 3.4vw, 44px) 120px;
+  }
+  .contact-arc {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+  .contact-ember {
+    stroke-width: 1.6;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    filter: drop-shadow(0 0 10px rgb(255 112 67 / 0.5));
+    animation: draw 2.4s var(--ease) 0.2s forwards;
+  }
+  @keyframes draw {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  .contact-grid {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 1.1fr;
+    gap: clamp(40px, 6vw, 120px);
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+  .n {
+    margin: 0;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    color: var(--ember);
+  }
+  .contact-title {
+    margin: 16px 0 0;
+    font-size: clamp(52px, 7vw, 112px);
+    font-weight: 300;
+    line-height: 0.98;
+    letter-spacing: -0.04em;
+  }
+  .contact-title em {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    color: var(--ember);
+  }
+  .contact-text {
+    max-width: 34ch;
+    margin: 28px 0 0;
+    font-size: clamp(17px, 1.5vw, 20px);
+    line-height: 1.6;
+    color: var(--bone-2);
+  }
+  .direct {
+    margin-top: 56px;
+    padding-top: 22px;
+    border-top: 1px solid var(--line);
+  }
+  .direct-label {
+    margin: 0;
+    font-size: 13px;
+    color: var(--bone-3);
+  }
+  .direct-mail {
+    display: inline-block;
+    margin-top: 8px;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: clamp(28px, 3vw, 40px);
+    transition: color 0.3s;
+  }
+  .direct-mail:hover {
+    color: var(--ember);
+  }
+  .copy {
+    display: block;
+    margin-top: 12px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--bone-2);
+    font: inherit;
+    font-size: 14px;
+    border-bottom: 1px solid var(--line-strong);
+    cursor: pointer;
+  }
+  .copy:hover {
+    color: var(--bone);
+    border-color: var(--ember);
+  }
+
+  .form {
+    display: grid;
+    gap: 30px;
+    align-content: start;
+    padding: clamp(24px, 3vw, 40px);
+    border: 1px solid var(--line);
+    border-radius: 28px;
+    background: rgb(18 18 17 / 0.72);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  .topics {
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  .label {
+    display: block;
+    margin-bottom: 10px;
+    padding: 0;
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    color: var(--bone-2);
+  }
+  .opt {
+    color: var(--bone-3);
+  }
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .chip input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .chip span {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 0 16px;
+    border-radius: 999px;
+    border: 1px solid var(--line-strong);
+    font-size: 14px;
+    color: var(--bone-2);
+    cursor: pointer;
+    transition:
+      background 0.3s var(--ease),
+      color 0.3s,
+      border-color 0.3s;
+  }
+  .chip span:hover {
+    color: var(--bone);
+    border-color: var(--bone-3);
+  }
+  .chip input:checked + span {
+    background: var(--bone);
+    border-color: var(--bone);
+    color: var(--ink);
+  }
+  .chip input:focus-visible + span {
+    outline: 2px solid var(--ember);
+    outline-offset: 3px;
+  }
+  .row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  .field input,
+  .field textarea {
+    width: 100%;
+    padding: 10px 0 12px;
+    border: 0;
+    border-bottom: 1px solid var(--line-strong);
+    border-radius: 0;
+    background: transparent;
+    color: var(--bone);
+    font: inherit;
+    font-size: 18px;
+    font-weight: 300;
+    transition: border-color 0.3s;
+  }
+  .field textarea {
+    resize: vertical;
+    min-height: 140px;
+    line-height: 1.55;
+  }
+  .field input::placeholder,
+  .field textarea::placeholder {
+    color: var(--bone-3);
+  }
+  .field input:focus,
+  .field textarea:focus {
+    outline: none;
+    border-bottom-color: var(--ember);
+  }
+  .field [aria-invalid='true'] {
+    border-bottom-color: #ff5a4e;
+  }
+  .error {
+    display: none;
+    margin: 8px 0 0;
+    font-size: 13px;
+    color: #ff7b70;
+  }
+  .error.is-on {
+    display: block;
+  }
+  .submit-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px 20px;
+  }
+  .send {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 52px;
+    padding: 0 28px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--bone);
+    color: var(--ink);
+    font: inherit;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition:
+      background 0.3s var(--ease),
+      transform 0.4s var(--ease);
+  }
+  .send svg {
+    width: 18px;
+    height: 18px;
+    transition: transform 0.4s var(--ease);
+  }
+  .send:hover {
+    background: var(--ember);
+  }
+  .send:hover svg {
+    transform: translate(3px, -3px);
+  }
+  .hint {
+    flex: 1 1 220px;
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--bone-3);
+  }
+
+  @media (max-width: 900px) {
+    .contact-grid,
+    .row {
+      grid-template-columns: 1fr;
+    }
+    .direct {
+      margin-top: 36px;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .contact-ember {
+      animation: none;
+      stroke-dashoffset: 0;
+    }
+  }
+</style>

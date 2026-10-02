@@ -5,7 +5,7 @@ interface Props {
   /** Canonical origin for this page. */
   origin?: string;
   themeColor?: string;
-  fonts?: 'inter' | 'lexend' | 'both';
+  fonts?: 'inter' | 'brand';
 }
 
 const {
@@ -18,8 +18,7 @@ const {
 const canonical = new URL(Astro.url.pathname.replace(/\/$/, '') || '/', origin).href;
 const families = {
   inter: 'family=Inter:wght@400;500;600;700',
-  lexend: 'family=Lexend:wght@300;400;500;600;700',
-  both: 'family=Inter:wght@400;500;600;700&family=Lexend:wght@300;400;500;600;700',
+  brand: 'family=Lexend:wght@100..900&family=Instrument+Serif:ital@0;1',
 }[fonts];
 ---
 

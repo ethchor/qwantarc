@@ -7,22 +7,19 @@ import { FIRST_PUBLISHED, QIG_BASE, QIG_NAME, getNav, pageUrl, type NavSection, 
 export async function getStaticPaths() {
   const nav = await getNav();
   return [
-    ...nav.map((section) => ({ params: { slug: section.id }, props: { kind: 'section' as const, sectionId: section.id } })),
-    ...nav.flatMap((section) =>
-      section.pages.map((page) => ({ params: { slug: page.id }, props: { kind: 'page' as const, sectionId: section.id, page } })),
-    ),
+    ...nav.map((section) => ({ params: { slug: section.id }, props: { sectionId: section.id, page: undefined } })),
+    ...nav.flatMap((section) => section.pages.map((page) => ({ params: { slug: page.id }, props: { sectionId: section.id, page } }))),
   ];
 }
 
-type Props = { kind: 'section'; sectionId: string; page?: undefined } | { kind: 'page'; sectionId: string; page: QigPage };
+interface Props {
+  sectionId: string;
+  page?: QigPage;
+}
 
-const { kind, sectionId, page } = Astro.props;
+const { sectionId, page } = Astro.props;
 const nav = await getNav();
 const section = nav.find((s) => s.id === sectionId) as NavSection;
-const sectionCrumbs = [
-  { label: 'QIG', href: QIG_BASE },
-  { label: section.title, href: pageUrl(section.id) },
-];
 
 /** Summaries are one line of Markdown: code spans and links only. */
 const inlineMarkdown = (text: string) =>
@@ -41,38 +38,48 @@ if (page) {
   prev = section.pages[i - 1];
   next = section.pages[i + 1];
 }
+const sectionCrumbs = [
+  { label: 'QIG', href: QIG_BASE },
+  { label: section.title, href: pageUrl(section.id) },
+];
 ---
 
 {
-  kind === 'section' ? (
+  !page ? (
     <QigLayout
       title={`${section.title} | ${QIG_NAME}`}
       description={section.summary}
       current={section.id}
-      crumbs={sectionCrumbs.slice(0, 1).concat({ label: section.title })}
+      crumbs={[{ label: 'QIG', href: QIG_BASE }, { label: section.title }]}
     >
-      <div class="article-hero">
-        <QigArt seed={section.id} colors={section.colors} />
-      </div>
-      <div class="overview">
-        <header class="overview-head">
+      <header class="page-hero is-wide">
+        <QigArt seed={section.id} bend />
+        <div class="page-hero-copy">
           <p class="eyebrow">
-            <a href={QIG_BASE}>{QIG_NAME}</a>
+            <span class="num">{section.num}</span>
+            <a href={QIG_BASE}>Interface Guidelines</a>
           </p>
-          <h1 class="title">{section.title}</h1>
-          <p class="lede">{section.summary}</p>
-        </header>
-        {section.groups.map((group) => (
+          <h1 class="page-title">{section.title}</h1>
+        </div>
+      </header>
+      <div class="overview-body">
+        <p class="lede">{section.summary}</p>
+        {section.groups.map((group, gi) => (
           <section>
-            {group.title && <h2 class="section-title">{group.title}</h2>}
+            {group.title && (
+              <h2 class="section-title">
+                <span class="num">{section.num}.{String(gi + 1).padStart(2, '0')}</span>
+                {group.title}
+              </h2>
+            )}
             <ul class="cards">
               {group.pages.map((p) => (
                 <li>
                   <a class="card" href={pageUrl(p.id)}>
-                    <QigArt seed={p.id} colors={section.colors} ratio={1.9} />
+                    <QigArt seed={p.id} ratio={2} />
                     <div class="card-body">
                       <h3 class="card-title">{p.data.title}</h3>
-                      {p.data.summary && <p class="card-text">{p.data.summary}</p>}
+                      {p.data.summary && <p class="card-text">{p.data.summary.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')}</p>}
                     </div>
                   </a>
                 </li>
@@ -83,7 +90,7 @@ if (page) {
       </div>
     </QigLayout>
   ) : (
-    page && Content && (
+    Content && (
       <QigLayout
         title={`${page.data.title} | ${QIG_NAME}`}
         description={page.data.summary ?? section.summary}
@@ -91,24 +98,27 @@ if (page) {
         crumbs={[...sectionCrumbs, { label: page.data.title }]}
       >
         <article class="article">
-          <figure class="article-hero">
-            <QigArt seed={page.id} colors={section.colors} />
-          </figure>
-          <header class="article-head">
-            <p class="eyebrow">
-              <a href={pageUrl(section.id)}>{section.title}</a>
-              {page.data.group && <span> · {page.data.group}</span>}
-            </p>
-            <h1>{page.data.title}</h1>
-            {page.data.summary && <p class="lede" set:html={inlineMarkdown(page.data.summary)} />}
+          <header class="page-hero">
+            <QigArt seed={page.id} bend />
+            <div class="page-hero-copy">
+              <p class="eyebrow">
+                <span class="num">{section.num}</span>
+                <a href={pageUrl(section.id)}>{section.title}</a>
+                {page.data.group && <span>/ {page.data.group}</span>}
+              </p>
+              <h1 class="page-title">{page.data.title}</h1>
+            </div>
           </header>
-          <div class="prose">
-            <Content />
+          <div class="article-body">
+            {page.data.summary && <p class="lede" set:html={inlineMarkdown(page.data.summary)} />}
+            <div class="prose">
+              <Content />
+            </div>
           </div>
           <footer class="article-foot">
             {(prev || next) && (
               <>
-                <h2>Keep reading</h2>
+                <h2 class="foot-title">Keep reading</h2>
                 <ul class="related">
                   {prev && (
                     <li>
@@ -137,7 +147,7 @@ if (page) {
             )}
             {page.id !== 'whats-new' && (
               <>
-                <h2>Change log</h2>
+                <h2 class="foot-title">Change log</h2>
                 <table class="changelog">
                   <thead>
                     <tr>
@@ -160,13 +170,3 @@ if (page) {
     )
   )
 }
-
-<style>
-  .title {
-    margin: 0;
-    font-size: clamp(36px, 5vw, 48px);
-    line-height: 1.08;
-    font-weight: 700;
-    letter-spacing: -0.03em;
-  }
-</style>

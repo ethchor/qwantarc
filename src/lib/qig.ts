@@ -67,6 +67,8 @@ export interface NavGroup {
 }
 
 export interface NavSection extends Section {
+  /** Two-digit section number, "01" to "05". */
+  num: string;
   groups: NavGroup[];
   pages: QigPage[];
 }
@@ -77,9 +79,10 @@ const byOrder = (a: QigPage, b: QigPage) => a.data.order - b.data.order || byTit
 /** Every section with its pages in sidebar order (components grouped by kind). */
 export async function getNav(): Promise<NavSection[]> {
   const all = await getCollection('qig');
-  return SECTIONS.map((section) => {
+  return SECTIONS.map((section, index) => {
+    const num = String(index + 1).padStart(2, '0');
     const pages = all.filter((p) => p.data.section === section.id).sort(section.ordered ? byOrder : byTitle);
-    if (section.id !== 'components') return { ...section, pages, groups: [{ title: null, pages }] };
+    if (section.id !== 'components') return { ...section, num, pages, groups: [{ title: null, pages }] };
     const groups: NavGroup[] = [];
     for (const page of pages) {
       const title = page.data.group ?? 'Other';
@@ -88,7 +91,7 @@ export async function getNav(): Promise<NavSection[]> {
       group.pages.push(page);
     }
     for (const group of groups) group.pages.sort(byTitle);
-    return { ...section, groups, pages: groups.flatMap((g) => g.pages) };
+    return { ...section, num, groups, pages: groups.flatMap((g) => g.pages) };
   });
 }
 

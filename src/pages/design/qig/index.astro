@@ -11,29 +11,31 @@ const principles = [...(principlesPage?.body ?? '').matchAll(/^## \d+\. (.+)\n\n
   text: m[2],
 }));
 const description =
-  'Qwantarc’s Interface Guidelines (QIG): the principles, foundations, patterns and components behind every Qwantarc product.';
+  'Qwantarc Interface Guidelines (QIG): the principles, foundations, patterns and components behind every Qwantarc product.';
 const start = ['principles', 'rules', 'designing-a-screen', 'colour', 'materials', 'buttons'];
-const featured = start.map((id) => nav.flatMap((s) => s.pages.map((p) => ({ p, s }))).find((x) => x.p.id === id)).filter(Boolean);
+const all = nav.flatMap((s) => s.pages.map((p) => ({ p, s })));
+const featured = start.map((id) => all.find((x) => x.p.id === id)).filter((x) => x !== undefined);
+const strip = (text?: string) => text?.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
 ---
 
 <QigLayout title={QIG_NAME} description={description} current="home" crumbs={[{ label: 'QIG' }]}>
-  <div class="article-hero">
-    <QigArt seed="qwantarc-interface-guidelines" colors={['#0a0a0c', '#1e6ef4']} ratio={2.4} />
-  </div>
-  <div class="overview">
-    <header class="overview-head">
-      <p class="eyebrow">Design</p>
-      <h1 class="title">{QIG_NAME}</h1>
-      <p class="lede">
-        QIG is how Qwantarc designs software people rely on all day. It describes the ideas behind every screen, the
-        foundations they share, the patterns that repeat and the components they are built from, on any platform and in
-        any technology.
-      </p>
-      <div class="actions">
-        <a class="button" href={pageUrl('getting-started')}>Get Started</a>
-        <a class="button is-secondary" href={pageUrl('whats-new')}>What’s New</a>
-      </div>
-    </header>
+  <header class="page-hero is-tall is-wide">
+    <QigArt seed="qwantarc-interface-guidelines" ratio={2.2} bend />
+    <div class="page-hero-copy">
+      <p class="eyebrow"><span class="num">QIG</span> Qwantarc</p>
+      <h1 class="page-title">Interface Guidelines</h1>
+    </div>
+  </header>
+
+  <div class="overview-body">
+    <p class="lede">
+      How Qwantarc designs software people rely on all day: the ideas behind every screen, the foundations they share,
+      the patterns that repeat and the components they’re built from, on any platform and in any technology.
+    </p>
+    <div class="actions">
+      <a class="button" href={pageUrl('getting-started')}>Get Started</a>
+      <a class="button is-secondary" href={pageUrl('whats-new')}>What’s New</a>
+    </div>
 
     <h2 class="section-title">Principles</h2>
     <p class="section-sub">When a rule doesn’t cover a case, these decide it.</p>
@@ -48,20 +50,19 @@ const featured = start.map((id) => nav.flatMap((s) => s.pages.map((p) => ({ p, s
       }
     </ol>
 
-    <h2 class="section-title">Explore the guidelines</h2>
+    <h2 class="section-title">The guidelines</h2>
     <p class="section-sub">{nav.reduce((n, s) => n + s.pages.length, 0)} pages in five sections.</p>
     <ul class="cards is-large">
       {
         nav.map((section) => (
           <li>
             <a class="card" href={pageUrl(section.id)}>
-              <QigArt seed={section.id} colors={section.colors} ratio={1.9} />
+              <QigArt seed={section.id} ratio={2} />
               <div class="card-body">
+                <span class="card-num">{section.num}</span>
                 <h3 class="card-title">{section.title}</h3>
                 <p class="card-text">{section.summary}</p>
-                <p class="card-meta">
-                  {section.pages.length} {section.pages.length === 1 ? 'page' : 'pages'}
-                </p>
+                <p class="card-meta">{section.pages.length} pages</p>
               </div>
             </a>
           </li>
@@ -73,13 +74,16 @@ const featured = start.map((id) => nav.flatMap((s) => s.pages.map((p) => ({ p, s
     <p class="section-sub">The pages most people read first.</p>
     <ul class="cards">
       {
-        featured.map((x) => (
+        featured.map(({ p, s }) => (
           <li>
-            <a class="card" href={pageUrl(x!.p.id)}>
-              <QigArt seed={x!.p.id} colors={x!.s.colors} ratio={1.9} />
+            <a class="card" href={pageUrl(p.id)}>
+              <QigArt seed={p.id} ratio={2} />
               <div class="card-body">
-                <h3 class="card-title">{x!.p.data.title}</h3>
-                {x!.p.data.summary && <p class="card-text">{x!.p.data.summary.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')}</p>}
+                <span class="card-num">
+                  {s.num} / {s.title}
+                </span>
+                <h3 class="card-title">{p.data.title}</h3>
+                {p.data.summary && <p class="card-text">{strip(p.data.summary)}</p>}
               </div>
             </a>
           </li>
@@ -88,13 +92,3 @@ const featured = start.map((id) => nav.flatMap((s) => s.pages.map((p) => ({ p, s
     </ul>
   </div>
 </QigLayout>
-
-<style>
-  .title {
-    margin: 0;
-    font-size: clamp(36px, 5vw, 56px);
-    line-height: 1.05;
-    font-weight: 700;
-    letter-spacing: -0.032em;
-  }
-</style>
