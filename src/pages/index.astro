@@ -51,7 +51,9 @@ const stages = [
         </h1>
       </div>
       <p class="corner corner-l" data-fade>From cognition<br />to comfort</p>
-      <p class="corner corner-r" data-fade>Move to bend the arc<span class="pulse" aria-hidden="true"></span></p>
+      <p class="corner corner-r" data-fade>
+        <span class="hint-mouse">Move to bend the arc</span><span class="hint-touch">Touch to bend the arc</span><span class="pulse" aria-hidden="true"></span>
+      </p>
     </section>
 
     <section class="manifesto" data-section="02" aria-label="What we believe">
@@ -124,7 +126,7 @@ const stages = [
   let W = 0;
   let H = 0;
   let dpr = 1;
-  const pointer = { x: 0, y: 0, tx: 0, ty: 0, active: false };
+  const pointer = { x: 0, y: 0, tx: 0, ty: 0, active: false, touch: false };
   const state = { intro: reduce ? 1 : 0 };
   let arcs: { r: number; n: number }[] = [];
 
@@ -151,6 +153,10 @@ const stages = [
     }
   }
 
+  /** Taps and clicks send a ring outward through the field. */
+  const ripples: { x: number; y: number; t0: number }[] = [];
+  const RIPPLE_LIFE = 1800;
+
   const BONE = '236 233 227';
   const EMBER = '255 112 67';
 
@@ -161,8 +167,14 @@ const stages = [
       pointer.tx = W / 2 + Math.sin(t * 0.00021) * W * 0.32;
       pointer.ty = H * 0.42 + Math.cos(t * 0.00016) * H * 0.18;
     }
-    pointer.x += (pointer.tx - pointer.x) * 0.075;
-    pointer.y += (pointer.ty - pointer.y) * 0.075;
+    const ease = pointer.touch ? 0.14 : 0.075;
+    pointer.x += (pointer.tx - pointer.x) * ease;
+    pointer.y += (pointer.ty - pointer.y) * ease;
+    while (ripples.length && t - ripples[0].t0 > RIPPLE_LIFE) ripples.shift();
+    const rings = ripples.map((rp) => {
+      const age = (t - rp.t0) / 1000;
+      return { x: rp.x, y: rp.y, R: age * Math.max(W, H) * 0.75, amp: 30 * Math.exp(-age * 2.4) };
+    });
 
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, W, H);
@@ -189,6 +201,14 @@ const stages = [
         const f = pull * Math.exp(-(dx * dx + dy * dy) / (2 * sigma * sigma));
         x += dx * f;
         y += dy * f;
+        for (const ring of rings) {
+          const rx = x - ring.x;
+          const ry = y - ring.y;
+          const d = Math.hypot(rx, ry) || 1;
+          const push = ring.amp * Math.exp(-((d - ring.R) ** 2) / 3200);
+          x += (rx / d) * push;
+          y += (ry / d) * push;
+        }
         if (k === 0) ctx.moveTo(x, y);
         else ctx.lineTo(x, y);
       }
@@ -238,26 +258,72 @@ const stages = [
   let mx = 0;
   let my = 0;
 
-  if (finePointer) {
-    hero.addEventListener('pointermove', (e) => {
-      const rect = hero.getBoundingClientRect();
-      pointer.active = true;
-      pointer.tx = e.clientX - rect.left;
-      pointer.ty = e.clientY - rect.top;
-      mx = e.clientX;
-      my = e.clientY;
-    });
-    hero.addEventListener('pointerleave', () => (pointer.active = false));
-  }
-  if (finePointer && !reduce) {
+  const follow = (clientX: number, clientY: number) => {
+    const rect = hero.getBoundingClientRect();
+    pointer.active = true;
+    pointer.tx = clientX - rect.left;
+    pointer.ty = clientY - rect.top;
+    mx = clientX;
+    my = clientY;
+  };
+  const ripple = (clientX: number, clientY: number) => {
+    if (reduce) return;
+    const rect = hero.getBoundingClientRect();
+    ripples.push({ x: clientX - rect.left, y: clientY - rect.top, t0: performance.now() });
+    if (ripples.length > 5) ripples.shift();
+  };
+
+  // Mouse: follow on move, ripple on click.
+  hero.addEventListener('pointermove', (e) => {
+    if (e.pointerType !== 'mouse') return;
+    pointer.touch = false;
+    follow(e.clientX, e.clientY);
+  });
+  hero.addEventListener('pointerleave', (e) => {
+    if (e.pointerType === 'mouse') pointer.active = false;
+  });
+  hero.addEventListener('pointerdown', (e) => {
+    if (e.pointerType === 'mouse') ripple(e.clientX, e.clientY);
+  });
+
+  // Touch: follow the finger (touch events keep firing while the page scrolls), ripple on tap,
+  // then let the field drift again shortly after the finger lifts.
+  let release = 0;
+  hero.addEventListener(
+    'touchstart',
+    (e) => {
+      const t = e.touches[0];
+      clearTimeout(release);
+      pointer.touch = true;
+      follow(t.clientX, t.clientY);
+      ripple(t.clientX, t.clientY);
+    },
+    { passive: true },
+  );
+  hero.addEventListener(
+    'touchmove',
+    (e) => {
+      const t = e.touches[0];
+      follow(t.clientX, t.clientY);
+    },
+    { passive: true },
+  );
+  const lift = () => {
+    clearTimeout(release);
+    release = window.setTimeout(() => (pointer.active = false), 700);
+  };
+  hero.addEventListener('touchend', lift, { passive: true });
+  hero.addEventListener('touchcancel', lift, { passive: true });
+  if (!reduce) {
     const tick = () => {
       if (running) {
+        const reach = Math.min(170, W * 0.24);
         letters.forEach((el, i) => {
           let target = 700;
           if (pointer.active) {
             const b = el.getBoundingClientRect();
             const d = Math.hypot(mx - (b.left + b.width / 2), my - (b.top + b.height / 2));
-            target = 220 + 680 * Math.exp(-(d * d) / (2 * 170 * 170));
+            target = 220 + 680 * Math.exp(-(d * d) / (2 * reach * reach));
           }
           weights[i] += (target - weights[i]) * 0.12;
           el.style.fontVariationSettings = `'wght' ${weights[i].toFixed(0)}`;
@@ -451,9 +517,15 @@ const stages = [
       box-shadow: 0 0 0 12px rgb(255 112 67 / 0);
     }
   }
+  .hint-touch {
+    display: none;
+  }
   @media (pointer: coarse) {
-    .corner-r {
+    .hint-mouse {
       display: none;
+    }
+    .hint-touch {
+      display: inline;
     }
   }
 
