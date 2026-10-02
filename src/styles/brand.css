@@ -146,3 +146,17 @@ a {
     gap: 6px;
   }
 }
+
+.foot-dev {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.foot-dev svg {
+  width: 13px;
+  height: 13px;
+  transition: transform 0.3s var(--ease);
+}
+.foot-dev:hover svg {
+  transform: translate(2px, -2px);
+}
