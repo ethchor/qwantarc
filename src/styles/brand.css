@@ -160,3 +160,12 @@ a {
 .foot-dev:hover svg {
   transform: translate(2px, -2px);
 }
+
+/* The big wordmark is decoration: its tall text box must never cover the footer links. */
+.foot-row {
+  position: relative;
+  z-index: 1;
+}
+.foot-mark {
+  pointer-events: none;
+}
