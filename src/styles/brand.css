@@ -138,3 +138,11 @@ a {
 .foot-row a:hover {
   color: var(--ember);
 }
+
+@media (max-width: 734px) {
+  .foot-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+}

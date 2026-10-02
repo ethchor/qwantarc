@@ -645,6 +645,48 @@ const stages = [
   .hello-cta:hover svg {
     transform: translate(3px, -3px);
   }
+  /* ---- Phones ---- */
+  @media (max-width: 734px) {
+    .mark {
+      font-size: 18.5vw;
+      letter-spacing: -0.05em;
+    }
+    .manifesto {
+      min-height: auto;
+      padding: 24vh 22px;
+    }
+    .manifesto-text {
+      font-size: 11.6vw;
+      line-height: 1.06;
+    }
+    .journey {
+      height: 280vh;
+    }
+    .journey-stick {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 5vh;
+    }
+    .stages {
+      transform: none;
+    }
+    .stage-word {
+      font-size: 19vw;
+    }
+    .journey-svg {
+      order: 2;
+      position: relative;
+      left: auto;
+      bottom: auto;
+      width: 100%;
+      transform: none;
+    }
+    .hello {
+      padding: 16vh 22px 18vh;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .pulse {
       animation: none;
