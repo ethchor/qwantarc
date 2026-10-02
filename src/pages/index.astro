@@ -69,13 +69,7 @@ const stages = [
 
     <section class="journey" data-journey data-section="03" aria-label="The arc">
       <div class="journey-stick">
-        <svg class="journey-svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
-          <path class="track" d="M 140 820 A 700 640 0 0 1 1460 820"></path>
-          <path class="trace" d="M 140 820 A 700 640 0 0 1 1460 820" data-trace></path>
-          <g data-ticks></g>
-          <circle class="probe-halo" r="26" data-halo></circle>
-          <circle class="probe" r="7" data-probe></circle>
-        </svg>
+        <canvas class="journey-canvas" data-journey-canvas aria-hidden="true"></canvas>
         <div class="stages">
           {
             stages.map((s, i) => (
@@ -114,8 +108,9 @@ const stages = [
 <script>
   import { gsap } from 'gsap';
   import { ScrollTrigger } from 'gsap/ScrollTrigger';
+  import { SplitText } from 'gsap/SplitText';
 
-  gsap.registerPlugin(ScrollTrigger);
+  gsap.registerPlugin(ScrollTrigger, SplitText);
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const finePointer = matchMedia('(pointer: fine)').matches;
 
@@ -359,54 +354,286 @@ const stages = [
     );
   }
 
-  /* ---------- Journey: a point travels the arc ---------- */
-  const trace = document.querySelector<SVGPathElement>('[data-trace]')!;
-  const probe = document.querySelector<SVGCircleElement>('[data-probe]')!;
-  const halo = document.querySelector<SVGCircleElement>('[data-halo]')!;
-  const ticks = document.querySelector<SVGGElement>('[data-ticks]')!;
+  /* ---------- Journey: cognition (a network) becomes craft (arcs) becomes comfort (one arc) ---------- */
+  const jStick = document.querySelector<HTMLElement>('.journey-stick')!;
+  const jCanvas = document.querySelector<HTMLCanvasElement>('[data-journey-canvas]')!;
+  const stagesBox = document.querySelector<HTMLElement>('.stages')!;
+  const jx = jCanvas.getContext('2d')!;
   const stageEls = [...document.querySelectorAll<HTMLElement>('[data-stage]')];
-  const len = trace.getTotalLength();
-  const stops = [0.06, 0.5, 0.94];
-  stops.forEach((s) => {
-    const p = trace.getPointAtLength(len * s);
-    const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    c.setAttribute('cx', String(p.x));
-    c.setAttribute('cy', String(p.y));
-    c.setAttribute('r', '4');
-    c.setAttribute('class', 'tick');
-    ticks.appendChild(c);
-  });
-  const tickEls = [...ticks.querySelectorAll('circle')];
-  trace.style.strokeDasharray = `${len}`;
+  const STOPS = [0.08, 0.5, 0.92];
+  const LABELS = ['01 Cognition', '02 Craft', '03 Comfort'];
 
-  let current = -1;
-  function setProgress(p: number) {
-    trace.style.strokeDashoffset = `${len * (1 - p)}`;
-    const pt = trace.getPointAtLength(len * p);
-    for (const el of [probe, halo]) {
-      el.setAttribute('cx', String(pt.x));
-      el.setAttribute('cy', String(pt.y));
-    }
-    tickEls.forEach((t, i) => t.classList.toggle('is-on', p >= stops[i] - 0.01));
-    const idx = p < 0.33 ? 0 : p < 0.72 ? 1 : 2;
-    if (idx !== current) {
-      current = idx;
-      stageEls.forEach((el, i) => el.classList.toggle('is-active', i === idx));
-    }
+  type Particle = { ax: number; ay: number; bx: number; by: number; ca: number; cr: number; u: number; size: number; phase: number };
+  let JW = 0;
+  let JH = 0;
+  let jdpr = 1;
+  let geo = { cx: 0, cy: 0, R: 0 };
+  let parts: Particle[] = [];
+  let progress = reduce ? 1 : 0;
+  const jp = { x: -9999, y: -9999, active: false };
+
+  // Small seeded random so the network looks the same on every visit.
+  let seed = 7;
+  const rnd = () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
+  const gauss = () => Math.sqrt(-2 * Math.log(rnd() + 1e-9)) * Math.cos(2 * Math.PI * rnd());
+
+  function layout() {
+    jdpr = Math.min(window.devicePixelRatio || 1, 2);
+    JW = jStick.clientWidth;
+    JH = jStick.clientHeight;
+    jCanvas.width = JW * jdpr;
+    jCanvas.height = JH * jdpr;
+    const phone = JW < 735;
+    // The dial lives in the space under the stage text: measure where the text ends (the tallest
+    // stage, since they share one cell) and fit the dial, its ticks and its top label below that.
+    const stick = jStick.getBoundingClientRect();
+    const textBottom = stagesBox.getBoundingClientRect().bottom - stick.top;
+    const cy = phone ? JH * 0.92 : JH - 8;
+    const room = (cy - textBottom - 72) / 1.02;
+    const R = Math.max(110, Math.min(phone ? JW * 0.46 : JW * 0.42, room));
+    geo = { cx: JW / 2, cy, R };
+    seed = 7;
+    const N = phone ? 230 : 420;
+    const clusters = Array.from({ length: 7 }, () => {
+      // Keep clusters off the dial's ends, where its labels sit.
+      const a = Math.PI + 0.5 + rnd() * (Math.PI - 1);
+      const r = R * (0.25 + rnd() * 0.55);
+      return { x: geo.cx + Math.cos(a) * r, y: geo.cy + Math.sin(a) * r };
+    });
+    const RINGS = 6;
+    // On phones the final arc stops short of the dial's ends, leaving room for its labels.
+    const edge = phone ? 0.42 : 0.06;
+    parts = Array.from({ length: N }, (_, i) => {
+      const c = clusters[i % clusters.length];
+      const ring = i % RINGS;
+      const slot = Math.floor(i / RINGS);
+      const perRing = Math.ceil(N / RINGS);
+      const ba = Math.PI + 0.1 + ((Math.PI - 0.2) * (slot + 0.5)) / perRing;
+      const br = R * (0.34 + (ring / (RINGS - 1)) * 0.56);
+      const u = i / N;
+      return {
+        ax: c.x + gauss() * R * 0.11,
+        ay: c.y + gauss() * R * 0.09,
+        bx: geo.cx + Math.cos(ba) * br,
+        by: geo.cy + Math.sin(ba) * br,
+        ca: Math.PI + edge + (Math.PI - 2 * edge) * u,
+        cr: R * 0.72 + gauss() * 3,
+        u,
+        size: 0.8 + rnd() * 1.1,
+        phase: rnd() * Math.PI * 2,
+      };
+    });
   }
 
+  const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
+  const ease = (v: number) => (v < 0.5 ? 4 * v * v * v : 1 - (-2 * v + 2) ** 3 / 2);
+  /** How far a particle is through a morph that runs from `from` for `dur`, flowing along the arc. */
+  const morph = (p: number, from: number, dur: number, u: number) => ease(clamp01((p - from - u * 0.1) / dur));
+
+  function drawJourney(t: number) {
+    const { cx, cy, R } = geo;
+    const p = progress;
+    jx.setTransform(jdpr, 0, 0, jdpr, 0, 0);
+    jx.clearRect(0, 0, JW, JH);
+
+    const network = 1 - clamp01((p - 0.18) / 0.2);
+    const craft = Math.exp(-((p - 0.5) ** 2) / 0.012);
+    const comfort = clamp01((p - 0.62) / 0.2);
+
+    // Comfort: a warm light rises behind the final arc.
+    if (comfort > 0) {
+      const g = jx.createRadialGradient(cx, cy - R * 0.72, 0, cx, cy - R * 0.72, R * 1.1);
+      g.addColorStop(0, `rgb(${EMBER} / ${0.22 * comfort})`);
+      g.addColorStop(1, `rgb(${EMBER} / 0)`);
+      jx.fillStyle = g;
+      jx.fillRect(0, 0, JW, JH);
+    }
+
+    // Craft: faint guides for the arcs the particles settle on.
+    if (craft > 0.02) {
+      jx.lineWidth = 1;
+      for (let k = 0; k < 6; k++) {
+        jx.strokeStyle = `rgb(${BONE} / ${0.06 * craft})`;
+        jx.beginPath();
+        jx.arc(cx, cy, R * (0.34 + (k / 5) * 0.56), Math.PI, Math.PI * 2);
+        jx.stroke();
+      }
+    }
+
+    // Particle positions for this frame.
+    const pts = parts.map((q) => {
+      const ab = morph(p, 0.2, 0.22, q.u);
+      const bc = morph(p, 0.6, 0.22, q.u);
+      const drift = reduce ? 0 : 1;
+      const ax = q.ax + Math.sin(t * 0.0006 + q.phase) * 6 * drift;
+      const ay = q.ay + Math.cos(t * 0.0005 + q.phase) * 5 * drift;
+      const breath = reduce ? 0 : Math.sin(t * 0.0012 + q.ca * 3) * 4;
+      const cxp = cx + Math.cos(q.ca) * (q.cr + breath);
+      const cyp = cy + Math.sin(q.ca) * (q.cr + breath);
+      let x = ax + (q.bx - ax) * ab;
+      let y = ay + (q.by - ay) * ab;
+      x += (cxp - x) * bc;
+      y += (cyp - y) * bc;
+      if (jp.active) {
+        const dx = x - jp.x;
+        const dy = y - jp.y;
+        const d = Math.hypot(dx, dy) || 1;
+        const reach = Math.min(130, JW * 0.18);
+        if (d < reach) {
+          const push = (1 - d / reach) ** 2 * 34;
+          x += (dx / d) * push;
+          y += (dy / d) * push;
+        }
+      }
+      return { x, y, q };
+    });
+
+    // Cognition: nearby nodes link up while the network lasts.
+    if (network > 0.02) {
+      const thr = R * 0.13;
+      const thr2 = thr * thr;
+      jx.lineWidth = 0.7;
+      for (let i = 0; i < pts.length; i++) {
+        const a = pts[i];
+        for (let j = i + 1; j < pts.length; j++) {
+          const b = pts[j];
+          const dx = a.x - b.x;
+          const dy = a.y - b.y;
+          const d2 = dx * dx + dy * dy;
+          if (d2 < thr2) {
+            jx.strokeStyle = `rgb(${BONE} / ${(1 - d2 / thr2) * 0.28 * network})`;
+            jx.beginPath();
+            jx.moveTo(a.x, a.y);
+            jx.lineTo(b.x, b.y);
+            jx.stroke();
+          }
+        }
+      }
+    }
+
+    // The particles themselves: bone, warming to ember as they reach comfort.
+    for (const { x, y, q } of pts) {
+      const warm = comfort * (0.4 + 0.6 * Math.sin(q.u * Math.PI));
+      jx.fillStyle = warm > 0.05 ? `rgb(${EMBER} / ${0.45 + warm * 0.5})` : `rgb(${BONE} / 0.75)`;
+      const s = q.size * (1 + comfort * 0.3);
+      jx.fillRect(x - s / 2, y - s / 2, s, s);
+    }
+
+    // The dial: fine ticks along the outer arc, lit as you travel.
+    const TICKS = 96;
+    const outer = R * 1.02;
+    for (let k = 0; k <= TICKS; k++) {
+      const f = k / TICKS;
+      const a = Math.PI + 0.05 + (Math.PI - 0.1) * f;
+      const stop = STOPS.findIndex((s0) => Math.abs(s0 - f) < 0.5 / TICKS);
+      const len = stop >= 0 ? 18 : k % 8 === 0 ? 10 : 5;
+      const lit = f <= p;
+      jx.strokeStyle = lit ? `rgb(${EMBER} / ${stop >= 0 ? 1 : 0.85})` : `rgb(${BONE} / ${stop >= 0 ? 0.35 : 0.14})`;
+      jx.lineWidth = stop >= 0 ? 1.6 : 1;
+      jx.beginPath();
+      jx.moveTo(cx + Math.cos(a) * outer, cy + Math.sin(a) * outer);
+      jx.lineTo(cx + Math.cos(a) * (outer + len), cy + Math.sin(a) * (outer + len));
+      jx.stroke();
+      if (stop >= 0) {
+        // Phones have no room beside the dial, so the end labels sit just below its ends.
+        const phone = JW < 735;
+        const inside = phone && stop !== 1;
+        const lr = inside ? outer : outer + 34;
+        const lx = cx + Math.cos(a) * lr;
+        const ly = cy + Math.sin(a) * lr + (inside ? 24 : 0);
+        jx.font = `400 ${phone ? 10 : 12}px Lexend, system-ui, sans-serif`;
+        jx.textAlign = inside ? (stop === 0 ? 'left' : 'right') : stop === 0 ? 'right' : stop === 2 ? 'left' : 'center';
+        jx.textBaseline = 'middle';
+        jx.fillStyle = lit ? `rgb(${EMBER} / 1)` : `rgb(${BONE} / 0.45)`;
+        jx.fillText(LABELS[stop].toUpperCase(), lx, ly);
+      }
+    }
+    // The head of the dial: where you are on the arc.
+    const ha = Math.PI + 0.05 + (Math.PI - 0.1) * p;
+    const hx = cx + Math.cos(ha) * (outer + 9);
+    const hy = cy + Math.sin(ha) * (outer + 9);
+    jx.fillStyle = `rgb(${BONE} / 1)`;
+    jx.shadowColor = `rgb(${EMBER} / 0.9)`;
+    jx.shadowBlur = 16;
+    jx.beginPath();
+    jx.arc(hx, hy, 4, 0, Math.PI * 2);
+    jx.fill();
+    jx.shadowBlur = 0;
+  }
+
+  // Stage words arrive letter by letter.
+  const words = stageEls.map((el) => SplitText.create(el.querySelector('.stage-word')!, { type: 'chars' }));
+  let current = -1;
+  function showStage(idx: number) {
+    if (idx === current) return;
+    const prev = current;
+    current = idx;
+    stageEls.forEach((el, i) => el.classList.toggle('is-active', i === idx));
+    if (reduce) return;
+    if (prev >= 0) {
+      gsap.to(words[prev].chars, { yPercent: -60, opacity: 0, filter: 'blur(6px)', duration: 0.45, stagger: 0.02, ease: 'power2.in', overwrite: true });
+    }
+    gsap.fromTo(
+      words[idx].chars,
+      { yPercent: 70, rotateX: -80, opacity: 0, filter: 'blur(8px)' },
+      { yPercent: 0, rotateX: 0, opacity: 1, filter: 'blur(0px)', duration: 1, stagger: 0.04, ease: 'expo.out', delay: prev >= 0 ? 0.15 : 0, overwrite: true },
+    );
+  }
+
+  let jRunning = false;
+  let jRaf = 0;
+  const jLoop = (t: number) => {
+    drawJourney(t);
+    jRaf = requestAnimationFrame(jLoop);
+  };
+  layout();
+  document.fonts?.ready.then(() => {
+    layout();
+    drawJourney(performance.now());
+  });
+  new ResizeObserver(() => {
+    layout();
+    drawJourney(performance.now());
+  }).observe(jStick);
+
   if (reduce) {
-    setProgress(1);
+    drawJourney(0);
     stageEls.forEach((el) => el.classList.add('is-active'));
   } else {
-    setProgress(0);
+    words.forEach((w) => gsap.set(w.chars, { opacity: 0 }));
+    showStage(0);
+    new IntersectionObserver(([e]) => {
+      if (e.isIntersecting && !jRunning) {
+        jRunning = true;
+        jRaf = requestAnimationFrame(jLoop);
+      } else if (!e.isIntersecting) {
+        jRunning = false;
+        cancelAnimationFrame(jRaf);
+      }
+    }).observe(jStick);
     ScrollTrigger.create({
       trigger: '[data-journey]',
       start: 'top top',
       end: 'bottom bottom',
-      scrub: 0.8,
-      onUpdate: (self) => setProgress(self.progress),
+      scrub: 0.9,
+      onUpdate: (self) => {
+        progress = self.progress;
+        showStage(progress < 0.36 ? 0 : progress < 0.72 ? 1 : 2);
+      },
     });
+
+    // Particles part around the cursor or a finger.
+    const at = (clientX: number, clientY: number) => {
+      const r = jStick.getBoundingClientRect();
+      jp.x = clientX - r.left;
+      jp.y = clientY - r.top;
+      jp.active = true;
+    };
+    jStick.addEventListener('pointermove', (e) => e.pointerType === 'mouse' && at(e.clientX, e.clientY));
+    jStick.addEventListener('pointerleave', () => (jp.active = false));
+    jStick.addEventListener('touchstart', (e) => at(e.touches[0].clientX, e.touches[0].clientY), { passive: true });
+    jStick.addEventListener('touchmove', (e) => at(e.touches[0].clientX, e.touches[0].clientY), { passive: true });
+    jStick.addEventListener('touchend', () => setTimeout(() => (jp.active = false), 400), { passive: true });
   }
 
   /* ---------- Contact: the email button leans toward the pointer ---------- */
@@ -564,70 +791,39 @@ const stages = [
     height: 100vh;
     height: 100svh;
     display: grid;
-    place-items: center;
+    place-items: start center;
+    padding-top: clamp(76px, 13vh, 150px);
     overflow: hidden;
   }
-  .journey-svg {
+  .journey-canvas {
     position: absolute;
-    left: 50%;
-    bottom: 2vh;
-    width: min(94vw, 1500px);
-    transform: translateX(-50%);
-    overflow: visible;
-  }
-  .track {
-    fill: none;
-    stroke: var(--line);
-    stroke-width: 1.5;
-  }
-  .trace {
-    fill: none;
-    stroke: var(--ember);
-    stroke-width: 2.5;
-    stroke-linecap: round;
-    filter: drop-shadow(0 0 10px rgb(255 112 67 / 0.55));
-  }
-  .journey-svg :global(.tick) {
-    fill: var(--ink);
-    stroke: var(--bone-3);
-    stroke-width: 1.5;
-    transition:
-      fill 0.4s,
-      stroke 0.4s;
-  }
-  .journey-svg :global(.tick.is-on) {
-    fill: var(--ember);
-    stroke: var(--ember);
-  }
-  .probe {
-    fill: var(--bone);
-  }
-  .probe-halo {
-    fill: none;
-    stroke: rgb(236 233 227 / 0.3);
-    stroke-width: 1;
+    inset: 0;
+    width: 100%;
+    height: 100%;
   }
   .stages {
     position: relative;
     display: grid;
     width: min(680px, calc(100vw - 36px));
     text-align: center;
-    transform: translateY(-10vh);
   }
   .stage {
     grid-area: 1 / 1;
+    pointer-events: none;
+  }
+  .stage-n,
+  .stage-text {
     opacity: 0;
-    transform: translateY(18px);
-    filter: blur(6px);
+    transform: translateY(14px);
     transition:
       opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
-      transform 0.7s cubic-bezier(0.16, 1, 0.3, 1),
-      filter 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+      transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
   }
-  .stage.is-active {
+  .stage.is-active .stage-n,
+  .stage.is-active .stage-text {
     opacity: 1;
     transform: none;
-    filter: none;
+    transition-delay: 0.2s;
   }
   .stage-n {
     margin: 0;
@@ -637,11 +833,12 @@ const stages = [
     font-variant-numeric: tabular-nums;
   }
   .stage-word {
+    perspective: 700px;
     margin: 10px 0 0;
     font-family: var(--serif);
     font-style: italic;
     font-weight: 400;
-    font-size: clamp(64px, 11vw, 176px);
+    font-size: clamp(52px, min(11vw, 15vh), 176px);
     line-height: 0.95;
     letter-spacing: -0.02em;
   }
@@ -736,24 +933,10 @@ const stages = [
       height: 280vh;
     }
     .journey-stick {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      gap: 5vh;
-    }
-    .stages {
-      transform: none;
+      padding-top: clamp(72px, 11vh, 120px);
     }
     .stage-word {
-      font-size: 19vw;
-    }
-    .journey-svg {
-      order: 2;
-      position: relative;
-      left: auto;
-      bottom: auto;
-      width: 100%;
-      transform: none;
+      font-size: min(19vw, 12vh);
     }
     .hello {
       padding: 16vh 22px 18vh;
@@ -778,9 +961,11 @@ const stages = [
     }
     .stage {
       grid-area: auto;
+    }
+    .stage-n,
+    .stage-text {
       opacity: 1;
       transform: none;
-      filter: none;
     }
   }
 </style>
