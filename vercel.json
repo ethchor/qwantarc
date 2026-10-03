@@ -27,6 +27,25 @@
       "has": [{ "type": "host", "value": "(?:www\\.)?qwantarc\\.com" }],
       "destination": "https://developer.qwantarc.com/design/:path*",
       "permanent": true
+    },
+    {
+      "source": "/farms",
+      "has": [{ "type": "host", "value": "farms.qwantarc.com" }],
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/farms",
+      "has": [{ "type": "host", "value": "(?:www\\.|developer\\.)?qwantarc\\.com" }],
+      "destination": "https://farms.qwantarc.com/",
+      "permanent": false
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "farms.qwantarc.com" }],
+      "destination": "/farms"
     }
   ]
 }

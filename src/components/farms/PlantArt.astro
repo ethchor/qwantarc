@@ -1,0 +1,17 @@
+---
+import { grow } from '../../lib/farms/flora';
+import { plantSvg } from '../../lib/farms/svg';
+
+interface Props {
+  art: string;
+  seed: number;
+  /** Unique on the page. */
+  id: string;
+  label?: string;
+}
+
+const { art, seed, id, label } = Astro.props;
+const svg = plantSvg(grow(art, seed), { id, label });
+---
+
+<Fragment set:html={svg} />

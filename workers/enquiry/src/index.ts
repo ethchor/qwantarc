@@ -1,7 +1,11 @@
 /**
- * Contact form endpoint for qwantarc.com: POST /api/enquiry with JSON
- * { topic, name, email, company?, message, website (honeypot), elapsed (ms on page) }
- * and the enquiry is mailed to the verified Email Routing destination, with Reply-To set to the sender.
+ * Enquiry endpoint for qwantarc.com and farms.qwantarc.com: POST /api/enquiry with JSON.
+ *
+ * qwantarc.com/contact sends { topic, name, email, company?, message, website (honeypot), elapsed (ms on page) }.
+ * farms.qwantarc.com sends { source: 'farms', topic, plant?, name, phone?, email?, message?, website, elapsed },
+ * where a phone number is as good as an email for replying, and naming a plant is enough of a message.
+ *
+ * Each enquiry is mailed to the verified Email Routing destination, with Reply-To set to the sender's email.
  */
 import { EmailMessage } from 'cloudflare:email';
 
@@ -13,7 +17,9 @@ interface Env {
 }
 
 const TOPICS = ['Partnership', 'Product', 'Careers', 'Press', 'Something else'];
+const FARM_TOPICS = ['Buying a plant', 'Help choosing', 'A bulk order', 'Something else'];
 const EMAIL_RE = /^[^\s@<>()",;:]+@[^\s@<>()",;:]+\.[^\s@<>()",;:]{2,}$/;
+const PHONE_RE = /^\+?[\d\s().-]{7,30}$/;
 
 const json = (body: unknown, status: number, origin?: string) =>
   new Response(JSON.stringify(body), {
@@ -40,6 +46,59 @@ const b64 = (text: string) => {
 };
 const encodeHeader = (text: string) => `=?UTF-8?B?${b64(text)}?=`;
 const wrap76 = (text: string) => text.replace(/.{1,76}/g, '$&\r\n');
+
+interface Letter {
+  fromName: string;
+  subject: string;
+  body: string[];
+  replyTo?: { name: string; email: string };
+}
+
+/** Builds the email for an enquiry, or returns the error to show the sender. */
+function compose(data: Record<string, unknown>): Letter | string {
+  const name = oneLine(data.name, 120);
+  const email = oneLine(data.email, 200);
+  const message = String(data.message ?? '').replace(/\r\n?/g, '\n').trim().slice(0, 8000);
+
+  if (data.source === 'farms') {
+    const topic = FARM_TOPICS.includes(String(data.topic)) ? String(data.topic) : 'Something else';
+    const plant = oneLine(data.plant, 80);
+    const phone = oneLine(data.phone, 40);
+    const phoneOk = PHONE_RE.test(phone) && phone.replace(/\D/g, '').length >= 7;
+    const emailOk = EMAIL_RE.test(email);
+    if (!name || (!phoneOk && !emailOk) || (message.length < 2 && !plant)) {
+      return 'Check your name, a phone number or email, and your message, then send again.';
+    }
+    return {
+      fromName: 'Qwantarc Farms',
+      subject: `Plant enquiry from ${name}${plant ? `: ${plant}` : ''}`,
+      body: [
+        message || `Asking about the ${plant}.`,
+        '',
+        '--',
+        name,
+        ...(phoneOk ? [`Phone: ${phone}`] : []),
+        ...(emailOk ? [email] : []),
+        `Topic: ${topic}`,
+        ...(plant ? [`Plant: ${plant}`] : []),
+        'Sent from farms.qwantarc.com',
+      ],
+      replyTo: emailOk ? { name, email } : undefined,
+    };
+  }
+
+  const topic = TOPICS.includes(String(data.topic)) ? String(data.topic) : 'Something else';
+  const company = oneLine(data.company, 160);
+  if (!name || !EMAIL_RE.test(email) || message.length < 2) {
+    return 'Check your name, email and message, then send again.';
+  }
+  return {
+    fromName: 'Qwantarc Enquiries',
+    subject: `${topic} enquiry from ${name}${company ? `, ${company}` : ''}`,
+    body: [message, '', '--', `${name}${company ? `, ${company}` : ''}`, email, `Topic: ${topic}`, `Sent from qwantarc.com/contact`],
+    replyTo: { name, email },
+  };
+}
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -75,39 +134,22 @@ export default {
     // Bots fill the hidden field or submit instantly; pretend it worked so they move on.
     if (oneLine(data.website, 200) || Number(data.elapsed) < 2500) return json({ ok: true }, 200, okOrigin);
 
-    const topic = TOPICS.includes(String(data.topic)) ? String(data.topic) : 'Something else';
-    const name = oneLine(data.name, 120);
-    const email = oneLine(data.email, 200);
-    const company = oneLine(data.company, 160);
-    const message = String(data.message ?? '').replace(/\r\n?/g, '\n').trim().slice(0, 8000);
+    const letter = compose(data);
+    if (typeof letter === 'string') return json({ ok: false, error: letter }, 422, okOrigin);
 
-    if (!name || !EMAIL_RE.test(email) || message.length < 2) {
-      return json({ ok: false, error: 'Check your name, email and message, then send again.' }, 422, okOrigin);
-    }
-
-    const subject = `${topic} enquiry from ${name}${company ? `, ${company}` : ''}`;
-    const body = [
-      message,
-      '',
-      '--',
-      `${name}${company ? `, ${company}` : ''}`,
-      email,
-      `Topic: ${topic}`,
-      `Sent from qwantarc.com/contact`,
-    ].join('\r\n');
     const domain = env.FROM_ADDRESS.split('@')[1];
     const raw = [
-      `From: ${encodeHeader('Qwantarc Enquiries')} <${env.FROM_ADDRESS}>`,
+      `From: ${encodeHeader(letter.fromName)} <${env.FROM_ADDRESS}>`,
       `To: <${env.TO_ADDRESS}>`,
-      `Reply-To: ${encodeHeader(name)} <${email}>`,
-      `Subject: ${encodeHeader(subject)}`,
+      ...(letter.replyTo ? [`Reply-To: ${encodeHeader(letter.replyTo.name)} <${letter.replyTo.email}>`] : []),
+      `Subject: ${encodeHeader(letter.subject)}`,
       `Date: ${new Date().toUTCString()}`,
       `Message-ID: <${crypto.randomUUID()}@${domain}>`,
       'MIME-Version: 1.0',
       'Content-Type: text/plain; charset=UTF-8',
       'Content-Transfer-Encoding: base64',
       '',
-      wrap76(b64(body)),
+      wrap76(b64(letter.body.join('\r\n'))),
     ].join('\r\n');
 
     try {

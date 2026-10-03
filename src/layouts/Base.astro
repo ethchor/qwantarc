@@ -6,6 +6,10 @@ interface Props {
   origin?: string;
   themeColor?: string;
   fonts?: 'inter' | 'brand';
+  /** When the page is served from another path, such as farms.qwantarc.com/ for /farms. */
+  canonical?: string;
+  icon?: string;
+  siteName?: string;
 }
 
 const {
@@ -14,8 +18,10 @@ const {
   origin = 'https://developer.qwantarc.com',
   themeColor,
   fonts = 'inter',
+  icon = '/favicon.svg',
+  siteName = 'Qwantarc',
 } = Astro.props;
-const canonical = new URL(Astro.url.pathname.replace(/\/$/, '') || '/', origin).href;
+const canonical = Astro.props.canonical ?? new URL(Astro.url.pathname.replace(/\/$/, '') || '/', origin).href;
 const families = {
   inter: 'family=Inter:wght@400;500;600;700',
   brand: 'family=Lexend:wght@100..900&family=Instrument+Serif:ital@0;1',
@@ -30,11 +36,11 @@ const families = {
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href={icon} type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     {themeColor ? <meta name="theme-color" content={themeColor} /> : <meta name="color-scheme" content="light dark" />}
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Qwantarc" />
+    <meta property="og:site_name" content={siteName} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />

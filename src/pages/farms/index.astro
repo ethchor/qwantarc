@@ -1,0 +1,900 @@
+---
+import Base from '../../layouts/Base.astro';
+import PlantArt from '../../components/farms/PlantArt.astro';
+import '../../styles/brand.css';
+import '../../styles/farms.css';
+import { HOURS, LIGHTS, NURSERY, PLACES, PLANTS, WATER, type Plant } from '../../lib/farms/plants';
+
+const TITLE = 'Qwantarc Farms | Plants for the light you have';
+const DESCRIPTION =
+  'Palms, climbers, flowering shrubs, indoor plants and fruit trees. Tell us how much light your space gets and we’ll help you choose.';
+const TOPICS = ['Buying a plant', 'Help choosing', 'A bulk order', 'Something else'];
+
+const pad = (n: number) => String(n).padStart(2, '0');
+const lightRange = (p: Plant) =>
+  p.light[0] === p.light[1] ? LIGHTS[p.light[0] - 1].name : `${LIGHTS[p.light[0] - 1].name} to ${LIGHTS[p.light[1] - 1].name.toLowerCase()}`;
+const placeNames = (p: Plant) => p.places.map((id) => PLACES.find((pl) => pl.id === id)!.name).join(' · ');
+
+// The dial: the sun's path as a semicircle, one stop per kind of light.
+const DIAL = { cx: 200, cy: 212, r: 168 };
+const at = (deg: number, r: number) => {
+  const a = (deg * Math.PI) / 180;
+  return { x: DIAL.cx + Math.cos(a) * r, y: DIAL.cy + Math.sin(a) * r };
+};
+const stopDeg = (i: number) => 180 + ((i + 0.5) / 4) * 180;
+const TICKS = Array.from({ length: 49 }, (_, k) => {
+  const deg = 180 + (k / 48) * 180;
+  const a = at(deg, DIAL.r + 10);
+  const b = at(deg, DIAL.r + (k % 6 === 0 ? 22 : 16));
+  return { deg, x1: a.x, y1: a.y, x2: b.x, y2: b.y };
+});
+const STOPS = LIGHTS.map((l, i) => {
+  const dot = at(stopDeg(i), DIAL.r);
+  const label = at(stopDeg(i), DIAL.r - 36);
+  return { ...l, deg: stopDeg(i), dot, label, anchor: i === 0 ? 'start' : i === 3 ? 'end' : 'middle' };
+});
+const RAYS = Array.from({ length: 8 }, (_, i) => (i * Math.PI) / 4);
+---
+
+<Base
+  title={TITLE}
+  description={DESCRIPTION}
+  origin={NURSERY.origin}
+  canonical={`${NURSERY.origin}/`}
+  themeColor="#0a0a09"
+  fonts="brand"
+  icon="/farms-icon.svg"
+  siteName={NURSERY.name}
+>
+  <div class="grain" aria-hidden="true"></div>
+
+  <header class="bar farm-bar" data-bar>
+    <a class="bar-mark" href="#top" aria-label="Qwantarc Farms, top of the page">Qwantarc <em>Farms</em></a>
+    <nav class="bar-end" aria-label="Sections">
+      <a class="bar-link" href="#plants">Plants</a>
+      <a class="bar-link" href="#ask">Ask</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="day" data-day aria-labelledby="farm-title">
+      <div class="day-stick" data-stick>
+        <canvas class="garden" data-garden aria-hidden="true"></canvas>
+        <div class="hero-copy" data-hero-copy>
+          <p class="n">Qwantarc Farms · Plant nursery</p>
+          <h1 id="farm-title" class="hero-title">Every plant follows the <em>light.</em></h1>
+          <p class="hero-text">Palms, climbers, flowering shrubs, indoor plants and fruit trees, chosen for the light your space actually gets.</p>
+          <div class="hero-actions">
+            <a class="btn is-solid" href="#plants">Find Your Plant</a>
+            <a class="btn" href="#ask">Ask About a Plant</a>
+          </div>
+        </div>
+        <ol class="hours" data-hours aria-label="A day of light">
+          {
+            HOURS.map((h) => (
+              <li class="hour" data-hour>
+                <p class="hour-time">{h.time}</p>
+                <h2 class="hour-word">{h.word}</h2>
+                <p class="hour-text">{h.text}</p>
+              </li>
+            ))
+          }
+        </ol>
+      </div>
+    </section>
+
+    <section class="nursery on-light" id="plants" data-tone-zone="light" aria-labelledby="plants-title">
+      <header class="nursery-head">
+        <p class="n">The nursery</p>
+        <h2 id="plants-title" class="section-title">Now, <em>your</em> light.</h2>
+        <p class="section-text">
+          Drag the sun to the light your space gets, then pick where the plant will live. The ones that will thrive there stay.
+        </p>
+      </header>
+
+      <div class="finder">
+        <div class="dial" data-dial>
+          <svg viewBox="0 0 400 236" role="group" aria-label="How much light your space gets">
+            <defs>
+              <radialGradient id="dial-glow">
+                <stop offset="0" stop-color="#ff7043" stop-opacity="0.45"></stop>
+                <stop offset="1" stop-color="#ff7043" stop-opacity="0"></stop>
+              </radialGradient>
+            </defs>
+            <line class="dial-horizon" x1="6" y1={DIAL.cy} x2="394" y2={DIAL.cy}></line>
+            <path class="dial-track" d={`M ${DIAL.cx - DIAL.r} ${DIAL.cy} A ${DIAL.r} ${DIAL.r} 0 0 1 ${DIAL.cx + DIAL.r} ${DIAL.cy}`}></path>
+            <g aria-hidden="true">
+              {TICKS.map((t) => <line class="dial-tick" data-deg={t.deg} x1={t.x1} y1={t.y1} x2={t.x2} y2={t.y2}></line>)}
+            </g>
+            <g aria-hidden="true">
+              {
+                STOPS.map((s) => (
+                  <g class="dial-stop" data-stop={s.level}>
+                    <circle cx={s.dot.x} cy={s.dot.y} r="5"></circle>
+                    <text x={s.label.x} y={s.label.y} text-anchor={s.anchor} dominant-baseline="middle">
+                      {s.name}
+                    </text>
+                  </g>
+                ))
+              }
+            </g>
+            <g
+              class="dial-sun"
+              data-sun
+              role="slider"
+              tabindex="0"
+              aria-label="Light your space gets"
+              aria-valuemin="0"
+              aria-valuemax="4"
+              aria-valuenow="0"
+              aria-valuetext="Any light"
+              transform={`translate(${DIAL.cx} ${DIAL.cy - DIAL.r})`}
+            >
+              <circle class="dial-glow" r="46"></circle>
+              <g class="dial-rays" data-rays>
+                {RAYS.map((a) => <line x1={Math.cos(a) * 21} y1={Math.sin(a) * 21} x2={Math.cos(a) * 27} y2={Math.sin(a) * 27}></line>)}
+              </g>
+              <circle class="dial-core" r="15"></circle>
+            </g>
+          </svg>
+        </div>
+
+        <div class="finder-side">
+          <div>
+            <p class="light-name" data-light-name>Any light</p>
+            <p class="light-text" data-light-text>Every plant in the nursery, from deep shade to full sun.</p>
+          </div>
+          <fieldset class="places">
+            <legend>Where will it live?</legend>
+            <div class="chips">
+              <label class="chip"><input type="radio" name="place" value="" checked /><span>Anywhere</span></label>
+              {
+                PLACES.map((p) => (
+                  <label class="chip">
+                    <input type="radio" name="place" value={p.id} />
+                    <span>{p.name}</span>
+                  </label>
+                ))
+              }
+            </div>
+          </fieldset>
+          <div class="count-row">
+            <p class="count" data-count aria-live="polite">All {PLANTS.length} plants</p>
+            <button class="reset" type="button" data-reset hidden>Show All</button>
+          </div>
+        </div>
+      </div>
+
+      <ul class="plates" data-plates>
+        {
+          PLANTS.map((p, i) => (
+            <li class="plate" data-plate={p.slug} data-min={p.light[0]} data-max={p.light[1]} data-places={p.places.join(' ')}>
+              <button class="plate-btn" type="button" data-open={p.slug} aria-haspopup="dialog">
+                <span class="plate-top">
+                  <span>No. {pad(i + 1)}</span>
+                  <span>{p.family}</span>
+                </span>
+                <span class="plate-art">
+                  <PlantArt art={p.art} seed={p.seed} id={p.slug} />
+                </span>
+                <span class="plate-latin">{p.latin}</span>
+                <span class="plate-name">{p.name}</span>
+                <span class="plate-meta">
+                  <span class="suns" role="img" aria-label={lightRange(p)}>
+                    {[1, 2, 3, 4].map((l) => (
+                      <i class:list={{ 'is-on': l >= p.light[0] && l <= p.light[1] }} />
+                    ))}
+                  </span>
+                  <span>{WATER[p.water]}</span>
+                </span>
+              </button>
+            </li>
+          ))
+        }
+      </ul>
+      <p class="empty" data-empty hidden>
+        Nothing in the nursery fits that exactly. <a href="#ask">Ask us</a> and we’ll suggest something close.
+      </p>
+    </section>
+
+    <section class="ask" aria-labelledby="ask-title">
+      <div class="dusk" aria-hidden="true">
+        <div class="dusk-sun" data-dusk-sun></div>
+        <div class="dusk-horizon"></div>
+        <!-- The sky darkens halfway down: the bar's tone switches there. -->
+        <i class="tone-mark" data-tone-zone="light"></i>
+        <i class="tone-mark is-dark" data-tone-zone="dark"></i>
+      </div>
+      <div class="ask-grid" id="ask" data-tone-zone="dark">
+        <div class="ask-intro">
+          <p class="n">Ask</p>
+          <h2 id="ask-title" class="ask-title">Ask about a <em>plant.</em></h2>
+          <p class="ask-text">
+            Tell us which plant you have in mind, or describe your space, and we’ll reply with what fits and what it costs.
+          </p>
+          <div class="direct">
+            <div>
+              <p class="direct-label">Or write directly</p>
+              <p class="direct-value">{NURSERY.email}</p>
+            </div>
+            {
+              NURSERY.phone && (
+                <div>
+                  <p class="direct-label">Call</p>
+                  <p class="direct-value">{NURSERY.phone}</p>
+                </div>
+              )
+            }
+            {
+              NURSERY.address && (
+                <div>
+                  <p class="direct-label">Visit{NURSERY.hours && `, ${NURSERY.hours}`}</p>
+                  <p class="direct-value">{NURSERY.address}</p>
+                </div>
+              )
+            }
+            <div class="direct-actions">
+              <button class="btn" type="button" data-copy={NURSERY.email}><span data-copy-label>Copy Address</span></button>
+              {
+                NURSERY.whatsapp && (
+                  <a class="btn" href={`https://wa.me/${NURSERY.whatsapp}`} target="_blank" rel="noopener" data-wa>
+                    WhatsApp
+                  </a>
+                )
+              }
+              {
+                NURSERY.mapUrl && (
+                  <a class="btn" href={NURSERY.mapUrl} target="_blank" rel="noopener">
+                    Directions
+                  </a>
+                )
+              }
+            </div>
+          </div>
+        </div>
+
+        <form class="form" data-form novalidate>
+          <fieldset>
+            <legend class="label">What can we help with?</legend>
+            <div class="chips">
+              {
+                TOPICS.map((t, i) => (
+                  <label class="chip">
+                    <input type="radio" name="topic" value={t} checked={i === 0} />
+                    <span>{t}</span>
+                  </label>
+                ))
+              }
+            </div>
+          </fieldset>
+
+          <div class="field">
+            <label class="label" for="plant">Which plant? <span class="opt">(optional)</span></label>
+            <select id="plant" name="plant">
+              <option value="">Not sure yet</option>
+              {PLANTS.map((p) => <option value={p.name}>{p.name}</option>)}
+            </select>
+          </div>
+
+          <div class="row">
+            <div class="field">
+              <label class="label" for="name">Name</label>
+              <input id="name" name="name" type="text" autocomplete="name" required placeholder="e.g. Asha Patil" />
+              <p class="error" data-error-for="name">Enter your name.</p>
+            </div>
+            <div class="field">
+              <label class="label" for="phone">Phone or WhatsApp</label>
+              <input id="phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="+91 98000 00000" />
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="label" for="email">Email</label>
+            <input id="email" name="email" type="email" autocomplete="email" placeholder="you@example.com" />
+            <p class="error" data-error-for="email">Add a phone number or an email address so we can reply.</p>
+          </div>
+
+          <div class="field">
+            <label class="label" for="message">Message <span class="opt" data-msg-opt>(optional)</span></label>
+            <textarea id="message" name="message" rows="4" placeholder="Where it will live, how many you need, anything else."></textarea>
+            <p class="error" data-error-for="message">Tell us a little about what you’re looking for.</p>
+          </div>
+
+          <div class="trap" aria-hidden="true">
+            <label for="website">Website</label>
+            <input id="website" name="website" type="text" tabindex="-1" autocomplete="off" />
+          </div>
+
+          <div class="submit-row">
+            <button class="btn is-solid" type="submit" data-send>
+              <span data-send-label>Send Enquiry</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+            </button>
+            <p class="hint" data-hint role="status" aria-live="polite">Every message is read by a person.</p>
+          </div>
+        </form>
+
+        <section class="sent" data-sent hidden tabindex="-1" aria-labelledby="sent-title">
+          <p class="n">Sent</p>
+          <h2 id="sent-title" class="sent-title">Thank you<span data-sent-name></span>.</h2>
+          <p class="sent-text">Your message is on its way. We’ll get back to you at <span data-sent-contact></span> soon.</p>
+          <button class="btn is-solid" type="button" data-again>Send Another</button>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot farm-foot">
+    <div class="foot-row">
+      <span>© {new Date().getFullYear()} Qwantarc Farms</span>
+      <span>{NURSERY.email}</span>
+      <a class="foot-dev" href="https://qwantarc.com">Qwantarc<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg></a>
+      <span>Grown toward the light.</span>
+    </div>
+    <p class="foot-mark" aria-hidden="true">Farms</p>
+  </footer>
+
+  <dialog class="sheet" data-sheet aria-labelledby="sheet-title">
+    <button class="sheet-close" type="button" data-close aria-label="Close">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path></svg>
+    </button>
+    <div class="sheet-grid">
+      <div class="sheet-art" data-sheet-art></div>
+      <div class="sheet-body on-light">
+        <div data-sheet-body></div>
+        <div class="sheet-actions">
+          <button class="btn is-solid" type="button" data-ask-plant>Ask About This Plant</button>
+          {
+            NURSERY.whatsapp && (
+              <a class="btn" target="_blank" rel="noopener" data-sheet-wa>
+                WhatsApp
+              </a>
+            )
+          }
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  {
+    PLANTS.map((p, i) => (
+      <template data-sheet-for={p.slug} data-name={p.name}>
+        <p class="sheet-kicker">
+          No. {pad(i + 1)} · {p.family}
+        </p>
+        <p class="sheet-latin">{p.latin}</p>
+        <h2 class="sheet-title" id="sheet-title">
+          {p.name}
+        </h2>
+        {p.aka && <p class="sheet-aka">Also called {p.aka}</p>}
+        <p class="sheet-note">{p.note}</p>
+        <dl class="specs">
+          <div>
+            <dt>Light</dt>
+            <dd>
+              <span class="suns" aria-hidden="true">
+                {[1, 2, 3, 4].map((l) => (
+                  <i class:list={{ 'is-on': l >= p.light[0] && l <= p.light[1] }} />
+                ))}
+              </span>
+              {lightRange(p)}
+            </dd>
+          </div>
+          <div>
+            <dt>Water</dt>
+            <dd>{WATER[p.water]}</dd>
+          </div>
+          <div>
+            <dt>Size</dt>
+            <dd>{p.size}</dd>
+          </div>
+          <div>
+            <dt>Grows well</dt>
+            <dd>{placeNames(p)}</dd>
+          </div>
+        </dl>
+        <h3 class="care-title">Care</h3>
+        <ul class="care">
+          {p.care.map((c) => (
+            <li>{c}</li>
+          ))}
+        </ul>
+      </template>
+    ))
+  }
+</Base>
+
+<script>
+  import { gsap } from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+  import { SplitText } from 'gsap/SplitText';
+  import { Flip } from 'gsap/Flip';
+  import { createGarden } from '../../components/farms/garden';
+  import { LIGHTS, NURSERY } from '../../lib/farms/plants';
+
+  gsap.registerPlugin(ScrollTrigger, SplitText, Flip);
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const finePointer = matchMedia('(pointer: fine)').matches;
+  const root = document.documentElement;
+
+  /* ---------- Tone: the bar follows the page from night to day and back ---------- */
+  const bar = document.querySelector<HTMLElement>('[data-bar]')!;
+  let dayTone = false;
+  let inDay = true;
+  const setTone = (light: boolean) => (root.dataset.tone = light ? 'light' : 'dark');
+  const onScroll = () => bar.classList.toggle('is-scrolled', scrollY > 8);
+  addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
+  /* ---------- The garden and the day ---------- */
+  const stick = document.querySelector<HTMLElement>('[data-stick]')!;
+  const garden = createGarden(document.querySelector<HTMLCanvasElement>('[data-garden]')!, stick, {
+    reduce,
+    onTone: (light) => {
+      dayTone = light;
+      stick.dataset.tone = light ? 'light' : 'dark';
+      if (inDay) setTone(light);
+    },
+  });
+
+  const heroCopy = document.querySelector<HTMLElement>('[data-hero-copy]')!;
+  const hours = [...document.querySelectorAll<HTMLElement>('[data-hour]')];
+  const words = hours.map((h) => SplitText.create(h.querySelector('.hour-word')!, { type: 'chars' }));
+  let current = -1;
+  function showHour(idx: number) {
+    if (idx === current) return;
+    const prev = current;
+    current = idx;
+    hours.forEach((h, i) => h.classList.toggle('is-active', i === idx));
+    if (prev >= 0) {
+      gsap.to(words[prev].chars, { yPercent: -60, opacity: 0, filter: 'blur(6px)', duration: 0.45, stagger: 0.02, ease: 'power2.in', overwrite: true });
+    }
+    if (idx >= 0) {
+      gsap.fromTo(
+        words[idx].chars,
+        { yPercent: 70, rotateX: -80, opacity: 0, filter: 'blur(8px)' },
+        { yPercent: 0, rotateX: 0, opacity: 1, filter: 'blur(0px)', duration: 1, stagger: 0.04, ease: 'expo.out', delay: prev >= 0 ? 0.15 : 0, overwrite: true },
+      );
+    }
+  }
+
+  if (!reduce) {
+    words.forEach((w) => gsap.set(w.chars, { opacity: 0 }));
+    gsap.from(heroCopy.children, { y: 28, opacity: 0, duration: 1.2, ease: 'expo.out', stagger: 0.08, delay: 0.2 });
+    ScrollTrigger.create({
+      trigger: '[data-day]',
+      start: 'top top',
+      end: 'bottom bottom',
+      scrub: 0.8,
+      onUpdate: (self) => {
+        const p = self.progress;
+        garden.state.progress = p;
+        const fade = Math.min(1, p / 0.1);
+        heroCopy.style.opacity = String(1 - fade);
+        heroCopy.style.transform = `translateY(${-fade * 60}px)`;
+        heroCopy.style.visibility = fade >= 1 ? 'hidden' : 'visible';
+        showHour(p < 0.12 ? -1 : p < 0.36 ? 0 : p < 0.7 ? 1 : 2);
+      },
+      onToggle: (self) => {
+        inDay = self.isActive;
+        if (inDay) setTone(dayTone);
+      },
+    });
+  }
+
+  /* ---------- Tone zones after the day ---------- */
+  document.querySelectorAll<HTMLElement>('[data-tone-zone]').forEach((el) =>
+    ScrollTrigger.create({
+      trigger: el,
+      start: 'top 36px',
+      end: 'bottom 36px',
+      onToggle: (s) => s.isActive && setTone(el.dataset.toneZone === 'light'),
+    }),
+  );
+  ScrollTrigger.create({ trigger: '.foot', start: 'top 36px', onEnter: () => setTone(false), onLeaveBack: () => setTone(false) });
+
+  /* ---------- Plates: each plant grows up from its pot, then leans toward your cursor ---------- */
+  const plates = [...document.querySelectorAll<HTMLElement>('[data-plate]')];
+  const plantOf = (pl: Element) => pl.querySelector<SVGGElement>('.art-plant')!;
+  let growing: ScrollTrigger[] = [];
+  if (!reduce) {
+    gsap.set(plates.map(plantOf), { svgOrigin: '0 0', scale: 0.55, opacity: 0 });
+    growing = ScrollTrigger.batch(plates, {
+      start: 'top 92%',
+      once: true,
+      onEnter: (batch) =>
+        gsap.to(batch.map(plantOf), { scale: 1, opacity: 1, duration: 1.2, ease: 'expo.out', stagger: 0.07, overwrite: 'auto' }),
+    });
+  }
+  /** Filtering moves plates around: from then on every plant is simply shown in full. */
+  const showAllPlants = () => {
+    if (!growing.length) return;
+    growing.forEach((st) => st.kill());
+    growing = [];
+    const all = plates.map(plantOf);
+    gsap.killTweensOf(all, 'scale,opacity');
+    gsap.set(all, { scale: 1, opacity: 1 });
+  };
+  if (finePointer && !reduce) {
+    plates.forEach((pl) => {
+      const plant = pl.querySelector<SVGGElement>('.art-plant')!;
+      gsap.set(plant, { svgOrigin: '0 0' });
+      const turn = gsap.quickTo(plant, 'rotation', { duration: 0.9, ease: 'power3.out' });
+      pl.addEventListener('pointermove', (e) => {
+        const b = pl.getBoundingClientRect();
+        turn(((e.clientX - (b.left + b.width / 2)) / b.width) * 9);
+      });
+      pl.addEventListener('pointerleave', () => gsap.to(plant, { rotation: 0, duration: 1.4, ease: 'elastic.out(1, 0.35)', overwrite: true }));
+    });
+  }
+
+  /* ---------- Finder: drag the sun, pick a place ---------- */
+  const dial = document.querySelector<HTMLElement>('[data-dial]')!;
+  const svg = dial.querySelector('svg')!;
+  const sun = dial.querySelector<SVGGElement>('[data-sun]')!;
+  const rays = dial.querySelector<SVGGElement>('[data-rays]')!;
+  const ticks = [...dial.querySelectorAll<SVGLineElement>('.dial-tick')];
+  const stops = [...dial.querySelectorAll<SVGGElement>('[data-stop]')];
+  const nameEl = document.querySelector<HTMLElement>('[data-light-name]')!;
+  const textEl = document.querySelector<HTMLElement>('[data-light-text]')!;
+  const countEl = document.querySelector<HTMLElement>('[data-count]')!;
+  const resetBtn = document.querySelector<HTMLButtonElement>('[data-reset]')!;
+  const emptyEl = document.querySelector<HTMLElement>('[data-empty]')!;
+  const CX = 200;
+  const CY = 212;
+  const R = 168;
+  const stopDeg = (level: number) => 180 + ((level - 0.5) / 4) * 180;
+  const WHERE: Record<string, string> = { indoors: 'indoors', balcony: 'on a balcony', garden: 'in a garden', fence: 'on a fence or arch' };
+  let level = 0;
+  let place = '';
+  const knob = { deg: 270 };
+
+  const drawKnob = () => {
+    const a = (knob.deg * Math.PI) / 180;
+    sun.setAttribute('transform', `translate(${CX + Math.cos(a) * R} ${CY + Math.sin(a) * R})`);
+    ticks.forEach((t) => t.classList.toggle('is-lit', level > 0 && Number(t.dataset.deg) <= knob.deg + 0.01));
+    // More light, longer rays.
+    const k = level === 0 ? 0.8 : 0.55 + level * 0.18;
+    rays.setAttribute('transform', `scale(${k})`);
+  };
+
+  function setLevel(next: number, animate = true) {
+    level = Math.max(0, Math.min(4, next));
+    const target = level === 0 ? 270 : stopDeg(level);
+    if (animate && !reduce) gsap.to(knob, { deg: target, duration: 0.7, ease: 'expo.out', onUpdate: drawKnob });
+    else {
+      knob.deg = target;
+      drawKnob();
+    }
+    stops.forEach((s) => s.classList.toggle('is-on', Number(s.dataset.stop) === level));
+    const info = LIGHTS.find((l) => l.level === level);
+    nameEl.textContent = info?.name ?? 'Any light';
+    textEl.textContent = info?.text ?? 'Every plant in the nursery, from deep shade to full sun.';
+    sun.setAttribute('aria-valuenow', String(level));
+    sun.setAttribute('aria-valuetext', info?.name ?? 'Any light');
+    filter();
+  }
+
+  let flip: gsap.core.Timeline | null = null;
+  let settle = 0;
+  function filter() {
+    showAllPlants();
+    // Finish a filter that is still animating, so every plate starts from where it settled.
+    flip?.progress(1).kill();
+    const state = Flip.getState(plates);
+    let shown = 0;
+    for (const pl of plates) {
+      const ok =
+        (level === 0 || (level >= Number(pl.dataset.min) && level <= Number(pl.dataset.max))) &&
+        (!place || pl.dataset.places!.split(' ').includes(place));
+      pl.hidden = !ok;
+      if (ok) shown++;
+    }
+    const light = LIGHTS.find((l) => l.level === level)?.name.toLowerCase();
+    const n = `${shown} ${shown === 1 ? 'plant' : 'plants'}`;
+    countEl.textContent =
+      level === 0 && !place ? `All ${plates.length} plants` : [n, light && `for ${light}`, place && WHERE[place]].filter(Boolean).join(' ');
+    resetBtn.hidden = level === 0 && !place;
+    emptyEl.hidden = shown > 0;
+    // Later sections moved with the grid's height.
+    clearTimeout(settle);
+    settle = window.setTimeout(() => ScrollTrigger.refresh(), 450);
+    if (reduce) return;
+    // Plates that stay glide to their new places; new ones fade in where they land. The grid keeps
+    // its real height throughout, so nothing below jumps into view mid-animation.
+    flip = Flip.from(state, {
+      duration: 0.45,
+      ease: 'power3.out',
+      onEnter: (els) => gsap.fromTo(els, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out', stagger: 0.03 }),
+    });
+  }
+
+  // Dragging: the sun follows your pointer along the arc and settles on the nearest kind of light.
+  const toSvg = (e: PointerEvent) => {
+    const pt = svg.createSVGPoint();
+    pt.x = e.clientX;
+    pt.y = e.clientY;
+    return pt.matrixTransform(svg.getScreenCTM()!.inverse());
+  };
+  const degOf = (e: PointerEvent) => {
+    const p = toSvg(e);
+    let deg = (Math.atan2(p.y - CY, p.x - CX) * 180) / Math.PI;
+    if (deg < 0) deg += 360;
+    if (deg < 90) deg = 360;
+    else if (deg < 180) deg = 180;
+    return deg;
+  };
+  const nearest = (deg: number) => Math.max(1, Math.min(4, Math.round((deg - 180) / 45 + 0.5)));
+  let dragging = false;
+  svg.addEventListener('pointerdown', (e) => {
+    const p = toSvg(e);
+    if (p.y > CY + 12) return;
+    dragging = true;
+    try {
+      svg.setPointerCapture(e.pointerId);
+    } catch {
+      // Synthetic events have no pointer to capture; dragging still works while over the dial.
+    }
+    gsap.killTweensOf(knob);
+    knob.deg = degOf(e);
+    const lv = nearest(knob.deg);
+    if (lv !== level) {
+      level = lv;
+      setLevelQuiet();
+    }
+    drawKnob();
+    e.preventDefault();
+  });
+  svg.addEventListener('pointermove', (e) => {
+    if (!dragging) return;
+    knob.deg = degOf(e);
+    const lv = nearest(knob.deg);
+    if (lv !== level) {
+      level = lv;
+      setLevelQuiet();
+    }
+    drawKnob();
+  });
+  const endDrag = () => {
+    if (!dragging) return;
+    dragging = false;
+    setLevel(level);
+    sun.focus({ preventScroll: true });
+  };
+  svg.addEventListener('pointerup', endDrag);
+  svg.addEventListener('pointercancel', endDrag);
+  /** Updates labels and the grid while the sun is still being dragged. */
+  function setLevelQuiet() {
+    stops.forEach((s) => s.classList.toggle('is-on', Number(s.dataset.stop) === level));
+    const info = LIGHTS.find((l) => l.level === level)!;
+    nameEl.textContent = info.name;
+    textEl.textContent = info.text;
+    sun.setAttribute('aria-valuenow', String(level));
+    sun.setAttribute('aria-valuetext', info.name);
+    filter();
+  }
+  sun.addEventListener('keydown', (e) => {
+    const step = { ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1 }[e.key];
+    if (step) setLevel(level === 0 ? (step > 0 ? 1 : 4) : level + step);
+    else if (e.key === 'Home') setLevel(0);
+    else if (e.key === 'End') setLevel(4);
+    else return;
+    e.preventDefault();
+  });
+  document.querySelectorAll<HTMLInputElement>('input[name="place"]').forEach((r) =>
+    r.addEventListener('change', () => {
+      place = r.value;
+      filter();
+    }),
+  );
+  resetBtn.addEventListener('click', () => {
+    (document.querySelector('input[name="place"][value=""]') as HTMLInputElement).checked = true;
+    place = '';
+    setLevel(0);
+  });
+  drawKnob();
+
+  /* ---------- Plant sheet ---------- */
+  const sheet = document.querySelector<HTMLDialogElement>('[data-sheet]')!;
+  const sheetArt = sheet.querySelector<HTMLElement>('[data-sheet-art]')!;
+  const sheetBody = sheet.querySelector<HTMLElement>('[data-sheet-body]')!;
+  const sheetWa = sheet.querySelector<HTMLAnchorElement>('[data-sheet-wa]');
+  let openSlug = '';
+  let opener: HTMLElement | null = null;
+
+  function openSheet(slug: string) {
+    const tpl = document.querySelector<HTMLTemplateElement>(`template[data-sheet-for="${slug}"]`);
+    const plate = document.querySelector<HTMLElement>(`[data-plate="${slug}"]`);
+    if (!tpl || !plate) return;
+    openSlug = slug;
+    sheetBody.replaceChildren(tpl.content.cloneNode(true));
+    const art = plate.querySelector('svg')!.cloneNode(true) as SVGSVGElement;
+    const g = art.querySelector<SVGGElement>('.art-plant')!;
+    for (const attr of ['transform', 'style', 'data-svg-origin']) g.removeAttribute(attr);
+    sheetArt.replaceChildren(art);
+    if (sheetWa) {
+      const name = tpl.dataset.name;
+      sheetWa.href = `https://wa.me/${NURSERY.whatsapp}?text=${encodeURIComponent(`Hello, I’d like to ask about the ${name}.`)}`;
+    }
+    if (!sheet.open) sheet.showModal();
+    sheet.scrollTop = 0;
+    history.replaceState(null, '', `#${slug}`);
+    if (reduce) return;
+    gsap.fromTo(sheet, { y: 36, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: 'expo.out' });
+    gsap.fromTo(g, { svgOrigin: '0 0', scale: 0.6, opacity: 0 }, { scale: 1, opacity: 1, duration: 1.2, ease: 'expo.out', delay: 0.1 });
+    gsap.from(sheetBody.children, { y: 18, opacity: 0, duration: 0.8, ease: 'expo.out', stagger: 0.04, delay: 0.08 });
+  }
+  function closeSheet() {
+    if (!sheet.open) return;
+    if (reduce) return sheet.close();
+    gsap.to(sheet, { y: 24, opacity: 0, duration: 0.3, ease: 'power2.in', onComplete: () => sheet.close() });
+  }
+  sheet.addEventListener('close', () => {
+    openSlug = '';
+    history.replaceState(null, '', location.pathname + location.search);
+    opener?.focus({ preventScroll: true });
+  });
+  sheet.addEventListener('cancel', (e) => {
+    e.preventDefault();
+    closeSheet();
+  });
+  sheet.addEventListener('click', (e) => e.target === sheet && closeSheet());
+  sheet.querySelector('[data-close]')!.addEventListener('click', closeSheet);
+  document.querySelectorAll<HTMLButtonElement>('[data-open]').forEach((b) =>
+    b.addEventListener('click', () => {
+      opener = b;
+      openSheet(b.dataset.open!);
+    }),
+  );
+  const fromHash = () => {
+    const slug = decodeURIComponent(location.hash.slice(1));
+    if (slug && document.querySelector(`[data-plate="${CSS.escape(slug)}"]`)) {
+      opener = document.querySelector<HTMLElement>(`[data-open="${CSS.escape(slug)}"]`);
+      openSheet(slug);
+    }
+  };
+  fromHash();
+  addEventListener('hashchange', fromHash);
+
+  /* ---------- Ask ---------- */
+  const form = document.querySelector<HTMLFormElement>('[data-form]')!;
+  const plantSelect = form.elements.namedItem('plant') as HTMLSelectElement;
+  sheet.querySelector('[data-ask-plant]')!.addEventListener('click', () => {
+    const name = document.querySelector<HTMLTemplateElement>(`template[data-sheet-for="${openSlug}"]`)?.dataset.name ?? '';
+    plantSelect.value = name;
+    (form.querySelector('input[name="topic"][value="Buying a plant"]') as HTMLInputElement).checked = true;
+    syncMessage();
+    opener = null;
+    closeSheet();
+    setTimeout(() => {
+      (innerWidth < 901 ? form : document.getElementById('ask')!).scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' });
+      setTimeout(() => (form.elements.namedItem('name') as HTMLInputElement).focus({ preventScroll: true }), reduce ? 0 : 900);
+    }, reduce ? 0 : 320);
+  });
+
+  const msgOpt = form.querySelector<HTMLElement>('[data-msg-opt]')!;
+  const syncMessage = () => (msgOpt.hidden = !plantSelect.value);
+  plantSelect.addEventListener('change', syncMessage);
+  syncMessage();
+
+  const field = (name: string) => form.elements.namedItem(name) as HTMLInputElement;
+  const showError = (name: string, on: boolean, input = field(name)) => {
+    const err = form.querySelector<HTMLElement>(`[data-error-for="${name}"]`)!;
+    err.classList.toggle('is-on', on);
+    input.setAttribute('aria-invalid', String(on));
+    if (on) input.setAttribute('aria-describedby', err.id || (err.id = `${name}-error`));
+  };
+  const digits = (v: string) => v.replace(/\D/g, '').length;
+  const checks: Record<string, () => boolean> = {
+    name: () => {
+      const ok = field('name').value.trim() !== '';
+      showError('name', !ok);
+      return ok;
+    },
+    email: () => {
+      const email = field('email');
+      const phone = field('phone');
+      const hasEmail = email.value.trim() !== '';
+      const ok = (hasEmail && email.checkValidity()) || (!hasEmail && digits(phone.value) >= 7);
+      showError('email', !ok);
+      phone.setAttribute('aria-invalid', String(!ok && !hasEmail));
+      return ok;
+    },
+    message: () => {
+      const ok = plantSelect.value !== '' || field('message').value.trim().length >= 2;
+      showError('message', !ok, field('message'));
+      return ok;
+    },
+  };
+  field('name').addEventListener('blur', checks.name);
+  field('email').addEventListener('blur', () => (field('email').value || field('phone').value) && checks.email());
+
+  // Enquiries go to the qwantarc.com Worker. Local development can point elsewhere.
+  const ENDPOINT = import.meta.env.PUBLIC_ENQUIRY_URL || 'https://qwantarc.com/api/enquiry';
+  const opened = performance.now();
+  const send = form.querySelector<HTMLButtonElement>('[data-send]')!;
+  const sendLabel = form.querySelector<HTMLElement>('[data-send-label]')!;
+  const hint = form.querySelector<HTMLElement>('[data-hint]')!;
+  const hintText = hint.textContent;
+  const sent = document.querySelector<HTMLElement>('[data-sent]')!;
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (send.disabled) return;
+    const results = [checks.name(), checks.email(), checks.message()];
+    if (results.includes(false)) {
+      (form.querySelector('[aria-invalid="true"]') as HTMLElement | null)?.focus();
+      return;
+    }
+    const data = new FormData(form);
+    const get = (k: string) => String(data.get(k) ?? '').trim();
+    const payload = {
+      source: 'farms',
+      topic: get('topic'),
+      plant: get('plant'),
+      name: get('name'),
+      phone: get('phone'),
+      email: get('email'),
+      message: get('message'),
+      website: get('website'),
+      elapsed: Math.round(performance.now() - opened),
+    };
+    send.disabled = true;
+    sendLabel.textContent = 'Sending…';
+    hint.classList.remove('is-error');
+    hint.textContent = hintText;
+    try {
+      const res = await fetch(ENDPOINT, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload) });
+      const out = await res.json().catch(() => ({ ok: false }));
+      if (!res.ok || !out.ok) throw new Error(out.error || 'Couldn’t send right now. Try again in a minute.');
+      document.querySelector('[data-sent-name]')!.textContent = `, ${payload.name.split(' ')[0]}`;
+      document.querySelector('[data-sent-contact]')!.textContent = payload.phone || payload.email;
+      form.hidden = true;
+      sent.hidden = false;
+      sent.focus();
+    } catch (err) {
+      const msg = err instanceof Error && err.message !== 'Failed to fetch' ? err.message : 'Couldn’t reach our server. Check your connection and try again.';
+      hint.classList.add('is-error');
+      hint.textContent = `${msg} You can also write to ${NURSERY.email}.`;
+    } finally {
+      send.disabled = false;
+      sendLabel.textContent = 'Send Enquiry';
+    }
+  });
+  document.querySelector('[data-again]')!.addEventListener('click', () => {
+    form.reset();
+    syncMessage();
+    sent.hidden = true;
+    form.hidden = false;
+    field('name').focus();
+  });
+
+  const copy = document.querySelector<HTMLButtonElement>('[data-copy]');
+  const copyLabel = document.querySelector<HTMLElement>('[data-copy-label]');
+  copy?.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(copy.dataset.copy!);
+      copyLabel!.textContent = 'Copied';
+    } catch {
+      copyLabel!.textContent = 'Select and copy above';
+    }
+    setTimeout(() => (copyLabel!.textContent = 'Copy Address'), 2000);
+  });
+
+  // The sun sets as you reach the bottom of the page.
+  if (!reduce) {
+    gsap.fromTo(
+      '[data-dusk-sun]',
+      { yPercent: -30 },
+      { yPercent: 45, ease: 'none', scrollTrigger: { trigger: '.dusk', start: 'top bottom', end: 'bottom top', scrub: true } },
+    );
+  }
+</script>
+
+<style>
+  @media (prefers-reduced-motion: reduce) {
+    .hours {
+      display: none;
+    }
+  }
+</style>
