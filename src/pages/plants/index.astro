@@ -40,7 +40,6 @@ const RAYS = Array.from({ length: 8 }, (_, i) => (i * Math.PI) / 4);
   title={TITLE}
   description={DESCRIPTION}
   origin={NURSERY.origin}
-  canonical={`${NURSERY.origin}/`}
   themeColor="#0a0a09"
   fonts="brand"
   icon="/farms-icon.svg"
@@ -51,7 +50,7 @@ const RAYS = Array.from({ length: 8 }, (_, i) => (i * Math.PI) / 4);
   <header class="bar farm-bar" data-bar>
     <a class="bar-mark" href="#top" aria-label="Qwantarc Farms, top of the page">Qwantarc <em>Farms</em></a>
     <nav class="bar-end" aria-label="Sections">
-      <a class="bar-link" href="#plants">Plants</a>
+      <a class="bar-link" href="#collection">Plants</a>
       <a class="bar-link" href="#ask">Ask</a>
     </nav>
   </header>
@@ -65,7 +64,7 @@ const RAYS = Array.from({ length: 8 }, (_, i) => (i * Math.PI) / 4);
           <h1 id="farm-title" class="hero-title">Every plant follows the <em>light.</em></h1>
           <p class="hero-text">Palms, climbers, flowering shrubs, indoor plants and fruit trees, chosen for the light your space actually gets.</p>
           <div class="hero-actions">
-            <a class="btn is-solid" href="#plants">Find Your Plant</a>
+            <a class="btn is-solid" href="#collection">Find Your Plant</a>
             <a class="btn" href="#ask">Ask About a Plant</a>
           </div>
         </div>
@@ -83,7 +82,7 @@ const RAYS = Array.from({ length: 8 }, (_, i) => (i * Math.PI) / 4);
       </div>
     </section>
 
-    <section class="nursery on-light" id="plants" data-tone-zone="light" aria-labelledby="plants-title">
+    <section class="nursery on-light" id="collection" data-tone-zone="light" aria-labelledby="plants-title">
       <header class="nursery-head">
         <p class="n">The nursery</p>
         <h2 id="plants-title" class="section-title">Now, <em>your</em> light.</h2>

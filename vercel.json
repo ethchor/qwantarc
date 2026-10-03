@@ -29,23 +29,22 @@
       "permanent": true
     },
     {
-      "source": "/farms",
+      "source": "/",
       "has": [{ "type": "host", "value": "farms.qwantarc.com" }],
-      "destination": "/",
+      "destination": "/plants",
       "permanent": false
     },
     {
       "source": "/farms",
-      "has": [{ "type": "host", "value": "(?:www\\.|developer\\.)?qwantarc\\.com" }],
-      "destination": "https://farms.qwantarc.com/",
-      "permanent": false
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/",
       "has": [{ "type": "host", "value": "farms.qwantarc.com" }],
-      "destination": "/farms"
+      "destination": "/plants",
+      "permanent": false
+    },
+    {
+      "source": "/:page(plants|farms)",
+      "has": [{ "type": "host", "value": "(?:www\\.|developer\\.)?qwantarc\\.com" }],
+      "destination": "https://farms.qwantarc.com/plants",
+      "permanent": false
     }
   ]
 }

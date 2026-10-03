@@ -6,8 +6,6 @@ interface Props {
   origin?: string;
   themeColor?: string;
   fonts?: 'inter' | 'brand';
-  /** When the page is served from another path, such as farms.qwantarc.com/ for /farms. */
-  canonical?: string;
   icon?: string;
   siteName?: string;
 }
@@ -21,7 +19,7 @@ const {
   icon = '/favicon.svg',
   siteName = 'Qwantarc',
 } = Astro.props;
-const canonical = Astro.props.canonical ?? new URL(Astro.url.pathname.replace(/\/$/, '') || '/', origin).href;
+const canonical = new URL(Astro.url.pathname.replace(/\/$/, '') || '/', origin).href;
 const families = {
   inter: 'family=Inter:wght@400;500;600;700',
   brand: 'family=Lexend:wght@100..900&family=Instrument+Serif:ital@0;1',
