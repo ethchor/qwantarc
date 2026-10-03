@@ -29,6 +29,13 @@ const inlineMarkdown = (text: string) =>
     .replace(/`([^`]+)`/g, '<code>$1</code>')
     .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2">$1</a>');
 
+/** A prompt that hands an assistant this page's Markdown. */
+const askUrl = (base: string, id: string) =>
+  base +
+  encodeURIComponent(
+    `Read https://developer.qwantarc.com/design/qig/${id}.md from Qwantarc Interface Guidelines (QIG) and help me apply it to what I’m building.`,
+  );
+
 let Content: Awaited<ReturnType<typeof render>>['Content'] | null = null;
 let prev: QigPage | undefined;
 let next: QigPage | undefined;
@@ -111,6 +118,18 @@ const sectionCrumbs = [
           </header>
           <div class="article-body">
             {page.data.summary && <p class="lede" set:html={inlineMarkdown(page.data.summary)} />}
+            <div class="page-ai" aria-label="Use this page with AI">
+              <button class="page-ai-btn" type="button" data-copy-page={`/design/qig/${page.id}.md`}>
+                <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="6.5" y="6.5" width="9" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.4"></rect><path d="M4.5 13V5.5a2 2 0 0 1 2-2H12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></path></svg>
+                <span data-copy-label>Copy Page</span>
+              </button>
+              <a class="page-ai-btn" href={`/design/qig/${page.id}.md`}>
+                <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 3.5h6.5L15 7v9.5H5z M11.5 3.5V7H15" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"></path></svg>
+                View as Markdown
+              </a>
+              <a class="page-ai-btn" href={askUrl('https://claude.ai/new?q=', page.id)} target="_blank" rel="noopener">Open in Claude</a>
+              <a class="page-ai-btn" href={askUrl('https://chatgpt.com/?q=', page.id)} target="_blank" rel="noopener">Open in ChatGPT</a>
+            </div>
             <div class="prose">
               <Content />
             </div>
@@ -170,3 +189,19 @@ const sectionCrumbs = [
     )
   )
 }
+
+<script>
+  for (const btn of document.querySelectorAll<HTMLButtonElement>('[data-copy-page]')) {
+    const label = btn.querySelector<HTMLElement>('[data-copy-label]')!;
+    btn.addEventListener('click', async () => {
+      try {
+        const md = await (await fetch(btn.dataset.copyPage!)).text();
+        await navigator.clipboard.writeText(md);
+        label.textContent = 'Copied';
+      } catch {
+        label.textContent = 'Couldn’t copy';
+      }
+      setTimeout(() => (label.textContent = 'Copy Page'), 2000);
+    });
+  }
+</script>

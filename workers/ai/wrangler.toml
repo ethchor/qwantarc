@@ -1,0 +1,29 @@
+name = "qwantarc-ai"
+main = "src/index.ts"
+compatibility_date = "2026-09-01"
+workers_dev = false
+
+routes = [
+  # The site guide's cloud engine, same-origin for qwantarc.com.
+  { pattern = "qwantarc.com/api/ask", zone_name = "qwantarc.com" },
+  # The QIG MCP server for coding agents.
+  { pattern = "mcp.qwantarc.com", custom_domain = true },
+]
+
+[ai]
+binding = "AI"
+
+[[ratelimits]]
+name = "ASK_LIMIT"
+namespace_id = "2101"
+simple = { limit = 12, period = 60 }
+
+[[ratelimits]]
+name = "MCP_LIMIT"
+namespace_id = "2102"
+simple = { limit = 120, period = 60 }
+
+[vars]
+SITE = "https://developer.qwantarc.com"
+MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
+ALLOWED_ORIGINS = "https://qwantarc.com,https://www.qwantarc.com,https://developer.qwantarc.com,http://localhost:4321"

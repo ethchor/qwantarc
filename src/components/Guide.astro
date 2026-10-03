@@ -1,0 +1,539 @@
+---
+/** The site guide: an orb of dots in the corner that opens a small assistant. See guide/client.ts. */
+---
+
+<div class="guide" data-guide data-open="false" data-mode="idle">
+  <section class="guide-panel" data-guide-panel role="dialog" aria-labelledby="guide-title" hidden>
+    <header class="guide-head">
+      <canvas class="guide-mini" data-guide-dots aria-hidden="true"></canvas>
+      <div class="guide-head-text">
+        <h2 id="guide-title" class="guide-title">Ask Qwantarc</h2>
+        <p class="guide-engine"><span class="guide-dot" aria-hidden="true"></span><span data-guide-engine>Cloud AI</span></p>
+        <div class="guide-switch" data-guide-switch role="group" aria-label="Where answers come from" hidden>
+          <button type="button" data-engine-choice="device" aria-pressed="false" aria-label="On-device AI" title="On-device AI: questions stay in this browser">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="4" y="4" width="8" height="8" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.3"></rect><path d="M6.5 1.8v2.2M9.5 1.8v2.2M6.5 12v2.2M9.5 12v2.2M1.8 6.5H4M1.8 9.5H4M12 6.5h2.2M12 9.5h2.2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"></path></svg>
+          </button>
+          <button type="button" data-engine-choice="cloud" aria-pressed="true" aria-label="Cloud AI" title="Cloud AI: answers come from Qwantarc’s server">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.6 12.5h7.1a2.8 2.8 0 0 0 .3-5.6 4 4 0 0 0-7.6-.9A3.3 3.3 0 0 0 4.6 12.5Z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"></path></svg>
+          </button>
+        </div>
+      </div>
+      <button class="guide-icon" type="button" data-guide-clear hidden title="New Conversation" aria-label="New Conversation">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10a6 6 0 1 0 1.8-4.3M4 4v3.5h3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+      </button>
+      <button class="guide-icon" type="button" data-guide-speak aria-pressed="false" title="Speak Replies" aria-label="Speak Replies">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3.5 8v4h3l4 3.5v-11l-4 3.5zM13.5 7.5a3.5 3.5 0 0 1 0 5M15.5 5.5a6.3 6.3 0 0 1 0 9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+      </button>
+      <button class="guide-icon" type="button" data-guide-close title="Close" aria-label="Close">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5.5 5.5 9 9m0-9-9 9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path></svg>
+      </button>
+    </header>
+
+    <div class="guide-log" data-guide-log aria-live="polite"></div>
+
+    <form class="guide-form" data-guide-form>
+      <label class="sr-only" for="guide-input">Ask a question</label>
+      <textarea id="guide-input" class="guide-input" data-guide-input rows="1" maxlength="600" placeholder="Ask about Qwantarc or the guidelines" enterkeyhint="send"></textarea>
+      <button class="guide-icon guide-mic" type="button" data-guide-mic aria-pressed="false" title="Speak (uses your browser’s speech service)" aria-label="Speak your question">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="7.5" y="3" width="5" height="9" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.5"></rect><path d="M5 9.5a5 5 0 0 0 10 0M10 14.5V17" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path></svg>
+      </button>
+      <button class="guide-send" type="submit" data-guide-send aria-label="Send">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 15.5v-11M5.5 9 10 4.5 14.5 9" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+      </button>
+    </form>
+
+    <footer class="guide-foot">
+      <p class="guide-note" data-guide-note></p>
+    </footer>
+  </section>
+
+  <button class="guide-orb" type="button" data-guide-orb aria-expanded="false" aria-label="Ask Qwantarc. Hold to speak." title="Ask Qwantarc">
+    <canvas class="guide-dots" data-guide-dots aria-hidden="true"></canvas>
+  </button>
+</div>
+
+<script>
+  import './guide/client.ts';
+</script>
+
+<style is:global>
+  /* Same-site page changes cross-fade while the guide holds its place (Chrome, Edge, Safari 18.2+). */
+  @view-transition {
+    navigation: auto;
+  }
+  .guide-panel {
+    view-transition-name: qw-guide-panel;
+  }
+  .guide-orb {
+    view-transition-name: qw-guide-orb;
+  }
+  ::view-transition-group(qw-guide-panel),
+  ::view-transition-group(qw-guide-orb) {
+    animation-duration: 0s;
+  }
+  .guide-panel.is-restored {
+    animation: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    ::view-transition-group(*),
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+      animation: none !important;
+    }
+  }
+
+  .guide {
+    --g-ink: #0a0a09;
+    --g-surface: rgb(18 18 17 / 0.82);
+    --g-bone: #ece9e3;
+    --g-bone-2: rgb(236 233 227 / 0.66);
+    --g-bone-3: rgb(236 233 227 / 0.42);
+    --g-line: rgb(236 233 227 / 0.12);
+    --g-ember: #ff7043;
+    --g-ease: cubic-bezier(0.16, 1, 0.3, 1);
+    position: fixed;
+    right: max(18px, env(safe-area-inset-right));
+    bottom: max(18px, env(safe-area-inset-bottom));
+    z-index: 80;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 12px;
+    font-family: 'Lexend', system-ui, sans-serif;
+    color: var(--g-bone);
+    pointer-events: none;
+  }
+  .guide-orb,
+  .guide-panel {
+    pointer-events: auto;
+  }
+  .guide .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  /* ---- Orb ---- */
+  .guide-orb {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 60px;
+    height: 60px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    /* No disc and no ring: a soft, edgeless shade keeps the particles readable over any page. */
+    background: radial-gradient(circle, rgb(10 10 9 / 0.6) 0%, rgb(10 10 9 / 0.38) 46%, rgb(10 10 9 / 0) 72%);
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+  }
+  /* The orb itself stays still; its particles do the moving (see guide/client.ts). */
+  .guide-orb:focus-visible {
+    outline: 2px solid var(--g-ember);
+    outline-offset: 4px;
+  }
+
+  .guide-dots {
+    width: 56px;
+    height: 56px;
+    pointer-events: none;
+  }
+
+  /* ---- Panel ---- */
+  .guide-panel {
+    display: flex;
+    flex-direction: column;
+    width: min(400px, calc(100vw - 36px));
+    max-height: min(620px, calc(100dvh - 120px));
+    overflow: hidden;
+    border: 1px solid var(--g-line);
+    border-radius: 26px;
+    background: rgb(14 14 13 / 0.86);
+    backdrop-filter: blur(28px) saturate(150%);
+    -webkit-backdrop-filter: blur(28px) saturate(150%);
+    box-shadow: 0 30px 80px -10px rgb(0 0 0 / 0.7);
+    transform-origin: bottom right;
+    animation: guide-in 0.45s var(--g-ease);
+  }
+  .guide-panel[hidden] {
+    display: none;
+  }
+  @keyframes guide-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px) scale(0.96);
+    }
+  }
+  .guide-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 12px 12px 16px;
+    border-bottom: 1px solid var(--g-line);
+  }
+  .guide-mini {
+    flex: none;
+    width: 34px;
+    height: 34px;
+  }
+  .guide-head-text {
+    flex: 1;
+    min-width: 0;
+  }
+  .guide-title {
+    margin: 0;
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 22px;
+    line-height: 1.1;
+  }
+  .guide-engine {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 2px 0 0;
+    font-size: 12px;
+    color: var(--g-bone-3);
+  }
+  .guide-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--g-bone-3);
+  }
+  .guide[data-engine='device'] .guide-dot {
+    background: #30d158;
+  }
+  .guide[data-engine='cloud'] .guide-dot {
+    background: var(--g-ember);
+  }
+  .guide-engine[hidden],
+  .guide-switch[hidden] {
+    display: none;
+  }
+  /* On-device | Cloud: a tiny icon-only segmented control, never empty. */
+  .guide-switch {
+    display: inline-flex;
+    gap: 1px;
+    margin-top: 4px;
+    padding: 2px;
+    border-radius: 999px;
+    background: rgb(236 233 227 / 0.06);
+  }
+  .guide-switch button {
+    display: inline-grid;
+    place-items: center;
+    width: 22px;
+    height: 18px;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: none;
+    color: var(--g-bone-3);
+    cursor: pointer;
+    transition:
+      background 0.2s,
+      color 0.2s;
+  }
+  .guide-switch svg {
+    width: 12px;
+    height: 12px;
+  }
+  .guide-switch button:hover {
+    color: var(--g-bone-2);
+  }
+  .guide-switch button[aria-pressed='true'] {
+    background: rgb(236 233 227 / 0.12);
+  }
+  .guide-switch button[data-engine-choice='device'][aria-pressed='true'] {
+    color: #30d158;
+  }
+  .guide-switch button[data-engine-choice='cloud'][aria-pressed='true'] {
+    color: var(--g-ember);
+  }
+  .guide-switch button:disabled {
+    cursor: progress;
+    opacity: 0.6;
+  }
+  .guide-switch button:focus-visible {
+    outline: 2px solid var(--g-ember);
+    outline-offset: 1px;
+  }
+  .guide-icon {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: none;
+    color: var(--g-bone-2);
+    cursor: pointer;
+    transition:
+      background 0.2s,
+      color 0.2s;
+  }
+  .guide-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+  .guide-icon:hover {
+    background: rgb(236 233 227 / 0.07);
+    color: var(--g-bone);
+  }
+  .guide-icon[aria-pressed='true'] {
+    color: var(--g-ember);
+  }
+  .guide-icon[hidden] {
+    display: none;
+  }
+  .guide-icon:focus-visible,
+  .guide-send:focus-visible,
+  .guide-chip:focus-visible,
+  .guide-suggestion:focus-visible,
+  .guide-upgrade:focus-visible {
+    outline: 2px solid var(--g-ember);
+    outline-offset: 2px;
+  }
+
+  .guide-log {
+    flex: 1;
+    min-height: 140px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--g-line) transparent;
+  }
+  .guide-hello-title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 500;
+  }
+  .guide-hello-text {
+    margin: 4px 0 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--g-bone-2);
+  }
+  .guide-suggest {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+  }
+  .guide-suggestion {
+    padding: 8px 12px;
+    border: 1px solid var(--g-line);
+    border-radius: 999px;
+    background: rgb(236 233 227 / 0.03);
+    color: var(--g-bone);
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
+    transition:
+      border-color 0.2s,
+      background 0.2s;
+  }
+  .guide-suggestion:hover {
+    border-color: rgb(255 112 67 / 0.45);
+    background: rgb(236 233 227 / 0.06);
+  }
+  .guide-msg {
+    max-width: 92%;
+  }
+  .guide-msg.is-user {
+    align-self: flex-end;
+    padding: 9px 14px;
+    border-radius: 18px 18px 6px 18px;
+    background: var(--g-bone);
+    color: var(--g-ink);
+  }
+  .guide-msg.is-assistant {
+    align-self: flex-start;
+  }
+  .guide-msg-text {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.55;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+  .guide-msg.is-user .guide-msg-text {
+    font-size: 14px;
+  }
+  .guide-msg.is-thinking .guide-msg-text {
+    color: var(--g-bone-3);
+    animation: guide-blink 1.2s ease-in-out infinite;
+  }
+  @keyframes guide-blink {
+    50% {
+      opacity: 0.35;
+    }
+  }
+  .guide-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+  }
+  .guide-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 12px;
+    border: 1px solid rgb(255 112 67 / 0.35);
+    border-radius: 999px;
+    color: var(--g-bone);
+    font-size: 13px;
+    text-decoration: none;
+    transition:
+      background 0.2s,
+      border-color 0.2s;
+  }
+  .guide-chip:hover {
+    background: rgb(255 112 67 / 0.12);
+    border-color: var(--g-ember);
+    text-decoration: none;
+  }
+  .guide-chip-arrow {
+    color: var(--g-ember);
+  }
+
+  .guide-form {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    margin: 0 12px;
+    padding: 6px 6px 6px 14px;
+    border: 1px solid var(--g-line);
+    border-radius: 22px;
+    background: rgb(236 233 227 / 0.04);
+    transition: border-color 0.2s;
+  }
+  .guide-form:focus-within {
+    border-color: rgb(255 112 67 / 0.5);
+  }
+  .guide-input {
+    flex: 1;
+    min-height: 34px;
+    max-height: 120px;
+    padding: 7px 0;
+    border: 0;
+    background: none;
+    color: var(--g-bone);
+    font: inherit;
+    font-size: 15px;
+    line-height: 1.35;
+    resize: none;
+    outline: none;
+  }
+  .guide .guide-input:focus,
+  .guide .guide-input:focus-visible {
+    outline: none;
+  }
+  .guide-input::placeholder {
+    color: var(--g-bone-3);
+  }
+  .guide-send {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: var(--g-bone);
+    color: var(--g-ink);
+    cursor: pointer;
+    transition:
+      background 0.2s,
+      opacity 0.2s;
+  }
+  .guide-send svg {
+    width: 18px;
+    height: 18px;
+  }
+  .guide-send:hover {
+    background: var(--g-ember);
+  }
+  .guide-send:disabled {
+    opacity: 0.4;
+    cursor: progress;
+  }
+  .guide-foot {
+    padding: 10px 16px 14px;
+  }
+  .guide-note {
+    margin: 0;
+    font-size: 11.5px;
+    line-height: 1.45;
+    color: var(--g-bone-3);
+  }
+  .guide-upgrade {
+    margin-top: 6px;
+    padding: 0;
+    border: 0;
+    border-bottom: 1px solid var(--g-line);
+    background: none;
+    color: var(--g-bone-2);
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .guide-upgrade[hidden] {
+    display: none;
+  }
+  .guide-upgrade:hover {
+    color: var(--g-bone);
+    border-color: var(--g-ember);
+  }
+
+  @media (max-width: 600px) {
+    .guide {
+      left: max(10px, env(safe-area-inset-left));
+      right: max(10px, env(safe-area-inset-right));
+      bottom: max(10px, env(safe-area-inset-bottom));
+    }
+    .guide-orb {
+      width: 56px;
+      height: 56px;
+    }
+    .guide-panel {
+      width: 100%;
+      max-height: calc(100dvh - 100px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .guide-panel,
+    .guide-msg.is-thinking .guide-msg-text {
+      animation: none;
+    }
+    .guide-orb {
+      transition: none;
+    }
+  }
+  @media (prefers-reduced-transparency: reduce) {
+    .guide-panel {
+      background: #121211;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
+  }
+</style>

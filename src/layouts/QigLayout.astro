@@ -1,5 +1,6 @@
 ---
 import Base from './Base.astro';
+import Guide from '../components/Guide.astro';
 import { BRAND_URL, QIG_BASE, QIG_NAME, getNav, pageUrl } from '../lib/qig';
 import '../styles/qig.css';
 
@@ -142,6 +143,8 @@ const allCrumbs: Crumb[] = crumbs;
     </main>
   </div>
 
+
+  <Guide />
 
   <script>
     const sidebar = document.getElementById('qig-sidebar');

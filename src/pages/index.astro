@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import Guide from '../components/Guide.astro';
 import '../styles/brand.css';
 
 const TAGLINE = 'Everything we build, from cognition to comfort, follows the intelligent arc.';
@@ -51,9 +52,6 @@ const stages = [
         </h1>
       </div>
       <p class="corner corner-l" data-fade>From cognition<br />to comfort</p>
-      <p class="corner corner-r" data-fade>
-        <span class="hint-mouse">Move to bend the arc</span><span class="hint-touch">Touch to bend the arc</span><span class="pulse" aria-hidden="true"></span>
-      </p>
     </section>
 
     <section class="manifesto" data-section="02" aria-label="What we believe">
@@ -93,6 +91,8 @@ const stages = [
       </a>
     </section>
   </main>
+
+  <Guide />
 
   <footer class="foot">
     <div class="foot-row">
@@ -723,38 +723,6 @@ const stages = [
   .corner-l {
     left: clamp(18px, 3.4vw, 44px);
   }
-  .corner-r {
-    right: clamp(18px, 3.4vw, 44px);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .pulse {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: var(--ember);
-    animation: pulse 2.4s ease-out infinite;
-  }
-  @keyframes pulse {
-    from {
-      box-shadow: 0 0 0 0 rgb(255 112 67 / 0.6);
-    }
-    to {
-      box-shadow: 0 0 0 12px rgb(255 112 67 / 0);
-    }
-  }
-  .hint-touch {
-    display: none;
-  }
-  @media (pointer: coarse) {
-    .hint-mouse {
-      display: none;
-    }
-    .hint-touch {
-      display: inline;
-    }
-  }
 
   /* ---- Manifesto ---- */
   .manifesto {
@@ -944,9 +912,6 @@ const stages = [
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .pulse {
-      animation: none;
-    }
     .journey {
       height: auto;
     }

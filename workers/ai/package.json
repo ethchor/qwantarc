@@ -1,0 +1,13 @@
+{
+  "name": "qwantarc-ai",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "snapshot": "node scripts/snapshot.mjs",
+    "deploy": "npm --prefix ../.. run build && node scripts/snapshot.mjs && wrangler deploy",
+    "dev": "wrangler dev"
+  },
+  "devDependencies": {
+    "wrangler": "^4"
+  }
+}
