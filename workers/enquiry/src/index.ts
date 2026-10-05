@@ -4,6 +4,7 @@
  * qwantarc.com/contact sends { topic, name, email, company?, message, website (honeypot), elapsed (ms on page) }.
  * farms.qwantarc.com sends { source: 'farms', topic, plant?, name, phone?, email?, message?, website, elapsed },
  * where a phone number is as good as an email for replying, and naming a plant is enough of a message.
+ * ethchor.qwantarc.com, Vimu's portfolio, sends { source: 'ethchor', topic, name, email, message, website, elapsed }.
  *
  * Each enquiry is mailed to the verified Email Routing destination, with Reply-To set to the sender's email.
  */
@@ -18,6 +19,7 @@ interface Env {
 
 const TOPICS = ['Partnership', 'Product', 'Careers', 'Press', 'Something else'];
 const FARM_TOPICS = ['Buying a plant', 'Help choosing', 'A bulk order', 'Something else'];
+const PORTFOLIO_TOPICS = ['A project', 'Hiring', 'Mentorship', 'Just saying hello'];
 const EMAIL_RE = /^[^\s@<>()",;:]+@[^\s@<>()",;:]+\.[^\s@<>()",;:]{2,}$/;
 const PHONE_RE = /^\+?[\d\s().-]{7,30}$/;
 
@@ -84,6 +86,19 @@ function compose(data: Record<string, unknown>): Letter | string {
         'Sent from farms.qwantarc.com',
       ],
       replyTo: emailOk ? { name, email } : undefined,
+    };
+  }
+
+  if (data.source === 'ethchor') {
+    const topic = PORTFOLIO_TOPICS.includes(String(data.topic)) ? String(data.topic) : 'Just saying hello';
+    if (!name || !EMAIL_RE.test(email) || message.length < 2) {
+      return 'Check your name, email and message, then send again.';
+    }
+    return {
+      fromName: 'Vimu Kale, portfolio',
+      subject: `${topic}: a message from ${name}`,
+      body: [message, '', '--', name, email, `Topic: ${topic}`, 'Sent from ethchor.qwantarc.com'],
+      replyTo: { name, email },
     };
   }
 

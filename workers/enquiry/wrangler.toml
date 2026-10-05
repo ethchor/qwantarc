@@ -3,7 +3,7 @@ main = "src/index.ts"
 compatibility_date = "2026-09-01"
 workers_dev = false
 
-# Runs on the brand domain, so the contact form posts same-origin. farms.qwantarc.com posts to it cross-origin.
+# Runs on the brand domain, so the contact form posts same-origin. farms. and ethchor.qwantarc.com post to it cross-origin.
 routes = [{ pattern = "qwantarc.com/api/enquiry", zone_name = "qwantarc.com" }]
 
 # Email Routing: can only deliver to verified destination addresses.
@@ -14,4 +14,4 @@ destination_address = "ethchor@gmail.com"
 [vars]
 FROM_ADDRESS = "enquiries@qwantarc.com"
 TO_ADDRESS = "ethchor@gmail.com"
-ALLOWED_ORIGINS = "https://qwantarc.com,https://www.qwantarc.com,https://farms.qwantarc.com"
+ALLOWED_ORIGINS = "https://qwantarc.com,https://www.qwantarc.com,https://farms.qwantarc.com,https://ethchor.qwantarc.com"

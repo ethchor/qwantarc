@@ -45,6 +45,18 @@
       "has": [{ "type": "host", "value": "(?:www\\.|developer\\.)?qwantarc\\.com" }],
       "destination": "https://farms.qwantarc.com/plants",
       "permanent": false
+    },
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "ethchor.qwantarc.com" }],
+      "destination": "/vimu",
+      "permanent": false
+    },
+    {
+      "source": "/vimu",
+      "has": [{ "type": "host", "value": "(?:www\\.|developer\\.|farms\\.)?qwantarc\\.com" }],
+      "destination": "https://ethchor.qwantarc.com/vimu",
+      "permanent": false
     }
   ]
 }

@@ -1,0 +1,570 @@
+---
+import Base from '../../layouts/Base.astro';
+import '../../styles/brand.css';
+import '../../styles/ethchor.css';
+import { EXPERTISE, NOW, PERSON, TOPICS, WAYS, WORK } from '../../lib/ethchor/profile';
+
+const TITLE = 'Vimu Kale | Full stack engineer for healthcare';
+const DESCRIPTION =
+  'Full stack engineer building software for healthcare: FHIR and HL7 interoperability, clinical workflows and the screens patients see.';
+const manifesto =
+  'Healthcare runs on software that too often gets in the way. I build the kind that *doesn’t:* systems that speak FHIR, workflows that respect a clinician’s time, and screens that make the complex feel *calm.*'.split(
+    ' ',
+  );
+const pad = (n: number) => String(n).padStart(2, '0');
+const arrow =
+  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg>';
+---
+
+<Base title={TITLE} description={DESCRIPTION} origin={PERSON.origin} themeColor="#0a0a09" fonts="brand" icon="/vimu-icon.svg" siteName={PERSON.name}>
+  <div class="grain" aria-hidden="true"></div>
+
+  <header class="bar vk-bar" data-bar>
+    <a class="bar-mark" href="#top" aria-label="Vimu Kale, top of the page">Vimu <em>Kale</em></a>
+    <nav class="bar-end" aria-label="Sections">
+      <a class="bar-link" href="#work">Work</a>
+      <a class="bar-link" href="#now">Now</a>
+      <a class="bar-link" href="#contact">Contact</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="vk-hero" data-hero aria-labelledby="vk-name">
+      <canvas class="vk-portrait" data-portrait aria-hidden="true"></canvas>
+      <div class="vk-hero-copy" data-hero-copy>
+        <p class="n">{PERSON.handle} · {PERSON.role}</p>
+        <h1 id="vk-name" class="vk-name" aria-label={PERSON.name}>
+          {
+            PERSON.name.split(' ').map((word) => (
+              <span class="vk-word" aria-hidden="true">
+                {[...word].map((ch) => (
+                  <span class="vk-clip">
+                    <span class="vk-ch">{ch}</span>
+                  </span>
+                ))}
+              </span>
+            ))
+          }
+        </h1>
+        <p class="vk-role" data-fade>Building software for <em>healthcare.</em></p>
+        <p class="vk-intro" data-fade>FHIR and HL7 interoperability, clinical workflows and the screens patients see. Software that helps people care for people.</p>
+        <div class="vk-actions" data-fade>
+          <a class="btn is-solid" href="#work">See My Work</a>
+          <a class="btn" href="#contact">Get in Touch</a>
+        </div>
+        <ul class="vk-links" data-fade>
+          {
+            PERSON.links.map((l) => (
+              <li>
+                <a href={l.href} target="_blank" rel="noopener">
+                  {l.label}
+                  <Fragment set:html={arrow} />
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </section>
+
+    <section class="manifesto" aria-label="What I believe">
+      <p class="manifesto-text" data-words>
+        {
+          manifesto.map((w) => {
+            const text = w.replace(/\*/g, '');
+            return w.startsWith('*') ? <em class="w">{text} </em> : <span class="w">{text} </span>;
+          })
+        }
+      </p>
+    </section>
+
+    <section class="vk-section" id="work" aria-labelledby="work-title">
+      <header class="vk-head" data-reveal>
+        <p class="n">01 · Selected work</p>
+        <h2 id="work-title" class="vk-title">Software for <em>care.</em></h2>
+        <p class="vk-lede">Five of these seven are in healthcare: interoperability, remote monitoring, mental health and maternity.</p>
+      </header>
+      <ol class="vk-list">
+        {
+          WORK.map((w, i) => (
+            <li class="vk-item" data-item>
+              <button class="vk-row" type="button" aria-expanded="false" aria-controls={`work-${i}`} data-toggle>
+                <span class="vk-num">{pad(i + 1)}</span>
+                <span class="vk-wname">{w.name}</span>
+                <span class="vk-wrole">{w.role}</span>
+                <span class="vk-flag">{w.healthcare ? 'Healthcare' : ''}</span>
+                <span class="vk-plus" aria-hidden="true" />
+              </button>
+              <div class="vk-panel" id={`work-${i}`} data-panel>
+                <div class="vk-panel-in">
+                  <p class="vk-sum">{w.summary}</p>
+                  <p class="vk-det">{w.details}</p>
+                  <ul class="vk-tags" aria-label="Built with">
+                    {w.tags.map((t) => (
+                      <li>{t}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+    </section>
+
+    <section class="vk-section" id="now" aria-labelledby="now-title">
+      <header class="vk-head" data-reveal>
+        <p class="n">02 · Now</p>
+        <h2 id="now-title" class="vk-title">Building <em>Qwantarc.</em></h2>
+        <p class="vk-lede">Software that follows one design system, from cognition to comfort. A few things I’ve made there.</p>
+      </header>
+      <div class="vk-cards">
+        {
+          NOW.map((c) => (
+            <a class="vk-card" href={c.href} target="_blank" rel="noopener" data-reveal>
+              <span class="vk-art">
+                <canvas data-art={c.art} aria-hidden="true" />
+              </span>
+              <span class="vk-cname">{c.name}</span>
+              <span class="vk-ctext">{c.text}</span>
+              <span class="vk-go">
+                Visit
+                <Fragment set:html={arrow} />
+              </span>
+            </a>
+          ))
+        }
+      </div>
+    </section>
+
+    <section class="vk-section" aria-labelledby="skills-title">
+      <header class="vk-head" data-reveal>
+        <p class="n">03 · Expertise</p>
+        <h2 id="skills-title" class="vk-title">Deep in <em>healthcare,</em> fluent in the rest.</h2>
+      </header>
+      <div class="vk-areas">
+        {
+          EXPERTISE.map((e, i) => (
+            <div class:list={['vk-area', { 'is-lead': i === 0 }]} data-reveal>
+              <h3>{e.area}</h3>
+              <p>{e.note}</p>
+              <ul>
+                {e.items.map((x) => (
+                  <li>{x}</li>
+                ))}
+              </ul>
+            </div>
+          ))
+        }
+      </div>
+    </section>
+
+    <section class="vk-section" aria-labelledby="ways-title">
+      <header class="vk-head" data-reveal>
+        <p class="n">04 · How I work</p>
+        <h2 id="ways-title" class="vk-title">Everyone gets <em>better.</em></h2>
+      </header>
+      <ol class="vk-ways">
+        {
+          WAYS.map((w, i) => (
+            <li data-reveal>
+              <span class="vk-num">{pad(i + 1)}</span>
+              <h3>{w.title}</h3>
+              <p>{w.text}</p>
+            </li>
+          ))
+        }
+      </ol>
+      <p class="vk-aside" data-reveal>Off the clock, I’m probably enjoying a jackfruit or learning something new.</p>
+    </section>
+
+    <section class="vk-contact" id="contact" aria-labelledby="contact-title">
+      <div class="vk-contact-grid">
+        <div>
+          <p class="n">05 · Contact</p>
+          <h2 id="contact-title" class="vk-title">Let’s build something <em>careful.</em></h2>
+          <p class="vk-lede">A project, a role, mentorship or just a hello. Every message reaches me directly.</p>
+          <div class="direct">
+            <p class="direct-label">Or write directly</p>
+            <p class="direct-value">{PERSON.email}</p>
+            <div class="direct-actions">
+              <button class="btn" type="button" data-copy={PERSON.email}><span data-copy-label>Copy Address</span></button>
+              {
+                PERSON.links.map((l) => (
+                  <a class="btn" href={l.href} target="_blank" rel="noopener">
+                    {l.label}
+                  </a>
+                ))
+              }
+            </div>
+          </div>
+        </div>
+
+        <form class="form" data-form novalidate>
+          <fieldset>
+            <legend class="label">What is it about?</legend>
+            <div class="chips">
+              {
+                TOPICS.map((t, i) => (
+                  <label class="chip">
+                    <input type="radio" name="topic" value={t} checked={i === 0} />
+                    <span>{t}</span>
+                  </label>
+                ))
+              }
+            </div>
+          </fieldset>
+          <div class="row">
+            <div class="field">
+              <label class="label" for="name">Name</label>
+              <input id="name" name="name" type="text" autocomplete="name" required placeholder="Your name" />
+              <p class="error" data-error-for="name">Enter your name.</p>
+            </div>
+            <div class="field">
+              <label class="label" for="email">Email</label>
+              <input id="email" name="email" type="email" autocomplete="email" required placeholder="you@company.com" />
+              <p class="error" data-error-for="email">Enter an email address I can reply to.</p>
+            </div>
+          </div>
+          <div class="field">
+            <label class="label" for="message">Message</label>
+            <textarea id="message" name="message" rows="5" required placeholder="A few lines about what you have in mind."></textarea>
+            <p class="error" data-error-for="message">Write a short message.</p>
+          </div>
+          <div class="trap" aria-hidden="true">
+            <label for="website">Website</label>
+            <input id="website" name="website" type="text" tabindex="-1" autocomplete="off" />
+          </div>
+          <div class="submit-row">
+            <button class="btn is-solid" type="submit" data-send>
+              <span data-send-label>Send Message</span>
+              <Fragment set:html={arrow} />
+            </button>
+            <p class="hint" data-hint role="status" aria-live="polite">It goes straight to my inbox.</p>
+          </div>
+        </form>
+
+        <section class="sent" data-sent hidden tabindex="-1" aria-labelledby="sent-title">
+          <p class="n">Sent</p>
+          <h3 id="sent-title" class="sent-title">Thank you<span data-sent-name></span>.</h3>
+          <p class="sent-text">Your message is on its way. I’ll reply to <span data-sent-email></span> soon.</p>
+          <button class="btn is-solid" type="button" data-again>Send Another</button>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot vk-foot">
+    <div class="foot-row">
+      <span>© {new Date().getFullYear()} {PERSON.name}</span>
+      <span>{PERSON.email}</span>
+      <a class="foot-dev" href="https://qwantarc.com">Qwantarc<Fragment set:html={arrow} /></a>
+      <span>Care, carefully built.</span>
+    </div>
+    <p class="foot-mark" aria-hidden="true">Vimu</p>
+  </footer>
+</Base>
+
+<script>
+  import { gsap } from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+  import { createPortrait } from '../../components/ethchor/portrait';
+  import { PERSON } from '../../lib/ethchor/profile';
+
+  gsap.registerPlugin(ScrollTrigger);
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const finePointer = matchMedia('(pointer: fine)').matches;
+
+  /* ---------- Bar ---------- */
+  const bar = document.querySelector<HTMLElement>('[data-bar]')!;
+  const onScroll = () => bar.classList.toggle('is-scrolled', scrollY > 8);
+  addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
+  /* ---------- Hero: the particle portrait and the name ---------- */
+  const hero = document.querySelector<HTMLElement>('[data-hero]')!;
+  const portrait = createPortrait(document.querySelector<HTMLCanvasElement>('[data-portrait]')!, hero, { reduce });
+  const copy = document.querySelector<HTMLElement>('[data-hero-copy]')!;
+  if (!reduce) {
+    gsap.set('.vk-ch', { yPercent: 110 });
+    gsap.set('[data-fade]', { opacity: 0, y: 16 });
+    gsap
+      .timeline({ delay: 0.5 })
+      .to('.vk-ch', { yPercent: 0, duration: 1.3, ease: 'expo.out', stagger: 0.05 })
+      .to('[data-fade]', { opacity: 1, y: 0, duration: 1, ease: 'expo.out', stagger: 0.08 }, 0.5);
+    ScrollTrigger.create({
+      trigger: hero,
+      start: 'top top',
+      end: 'bottom top',
+      scrub: 0.6,
+      onUpdate: (self) => {
+        portrait.state.scatter = self.progress;
+        copy.style.opacity = String(1 - Math.min(1, self.progress * 1.8));
+        copy.style.transform = `translateY(${-self.progress * 80}px)`;
+      },
+    });
+
+    // The name's weight follows the pointer, as the Qwantarc wordmark does.
+    const letters = [...document.querySelectorAll<HTMLElement>('.vk-ch')];
+    const weights = letters.map(() => 600);
+    let mx = -9999;
+    let my = -9999;
+    let near = false;
+    if (finePointer) {
+      hero.addEventListener('pointermove', (e) => {
+        mx = e.clientX;
+        my = e.clientY;
+        near = true;
+      });
+      hero.addEventListener('pointerleave', () => (near = false));
+      const tick = () => {
+        const reach = 160;
+        letters.forEach((el, i) => {
+          let target = 600;
+          if (near) {
+            const b = el.getBoundingClientRect();
+            const d = Math.hypot(mx - (b.left + b.width / 2), my - (b.top + b.height / 2));
+            target = 200 + 700 * Math.exp(-(d * d) / (2 * reach * reach));
+          }
+          weights[i] += (target - weights[i]) * 0.12;
+          el.style.fontVariationSettings = `'wght' ${weights[i].toFixed(0)}`;
+        });
+        requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    }
+
+    /* ---------- Manifesto: words light up as you read ---------- */
+    gsap.fromTo(
+      '[data-words] .w',
+      { opacity: 0.12 },
+      { opacity: 1, ease: 'none', stagger: 0.12, scrollTrigger: { trigger: '[data-words]', start: 'top 78%', end: 'bottom 42%', scrub: 0.6 } },
+    );
+
+    /* ---------- Sections arrive ---------- */
+    gsap.utils.toArray<HTMLElement>('[data-reveal]').forEach((el) =>
+      gsap.from(el, { y: 30, opacity: 0, duration: 1.1, ease: 'expo.out', scrollTrigger: { trigger: el, start: 'top 88%', once: true } }),
+    );
+    gsap.from('[data-item]', {
+      y: 24,
+      opacity: 0,
+      duration: 0.9,
+      ease: 'expo.out',
+      stagger: 0.06,
+      scrollTrigger: { trigger: '.vk-list', start: 'top 85%', once: true },
+    });
+  }
+
+  /* ---------- Work: rows open to the details ---------- */
+  document.querySelectorAll<HTMLButtonElement>('[data-toggle]').forEach((btn) => {
+    const panel = document.getElementById(btn.getAttribute('aria-controls')!)!;
+    btn.addEventListener('click', () => {
+      const open = btn.getAttribute('aria-expanded') !== 'true';
+      btn.setAttribute('aria-expanded', String(open));
+      btn.closest('[data-item]')!.classList.toggle('is-open', open);
+      if (reduce) {
+        panel.style.height = open ? 'auto' : '0px';
+        return;
+      }
+      gsap.killTweensOf(panel);
+      if (open) {
+        gsap.fromTo(panel, { height: panel.offsetHeight }, { height: 'auto', duration: 0.7, ease: 'expo.out', onComplete: () => ScrollTrigger.refresh() });
+        gsap.fromTo(panel.querySelector('.vk-panel-in'), { y: 14, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: 'expo.out', delay: 0.05 });
+      } else {
+        gsap.to(panel, { height: 0, duration: 0.5, ease: 'expo.inOut', onComplete: () => ScrollTrigger.refresh() });
+      }
+    });
+  });
+
+  /* ---------- Now: a small picture for each thing ---------- */
+  const paintArt = (cv: HTMLCanvasElement) => {
+    const w = cv.clientWidth;
+    const h = cv.clientHeight;
+    if (!w || !h) return;
+    const dpr = Math.min(devicePixelRatio || 1, 2);
+    cv.width = Math.round(w * dpr);
+    cv.height = Math.round(h * dpr);
+    const ctx = cv.getContext('2d')!;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const kind = cv.dataset.art;
+    if (kind === 'plant') {
+      // A potted plant in the Farms style: terracotta, and broad leaves lit from the left.
+      const s = h / 100;
+      const cx = w / 2;
+      const soil = h * 0.62;
+      const leaves: [number, number, number][] = [
+        [-1.1, 30, 22],
+        [-0.6, 40, 25],
+        [-0.12, 46, 26],
+        [0.38, 40, 24],
+        [0.88, 32, 22],
+      ];
+      for (const [a, stem, len] of leaves) {
+        const ang = -Math.PI / 2 + a;
+        const ex = cx + Math.cos(ang) * stem * s;
+        const ey = soil + Math.sin(ang) * stem * s;
+        ctx.strokeStyle = '#4d6b35';
+        ctx.lineWidth = 1.5 * s;
+        ctx.beginPath();
+        ctx.moveTo(cx, soil);
+        ctx.quadraticCurveTo(cx + Math.cos(ang) * stem * s * 0.4, soil + Math.sin(ang) * stem * s * 0.7, ex, ey);
+        ctx.stroke();
+        // A heart-shaped blade in two halves: the one facing the light is brighter.
+        const la = ang + Math.sign(a) * 0.55;
+        const L = len * s;
+        const dx = Math.cos(la);
+        const dy = Math.sin(la);
+        for (const side of [1, -1]) {
+          const nx = -dy * side;
+          const ny = dx * side;
+          const half = new Path2D();
+          half.moveTo(ex, ey);
+          half.bezierCurveTo(ex - dx * L * 0.3 + nx * L * 0.62, ey - dy * L * 0.3 + ny * L * 0.62, ex + dx * L * 0.55 + nx * L * 0.5, ey + dy * L * 0.55 + ny * L * 0.5, ex + dx * L, ey + dy * L);
+          half.lineTo(ex, ey);
+          const lit = nx * -0.55 + ny * -0.84 > 0;
+          ctx.fillStyle = lit ? '#3f7a3a' : '#25502a';
+          ctx.fill(half);
+        }
+        ctx.strokeStyle = 'rgb(140 190 120 / 0.55)';
+        ctx.lineWidth = 0.8 * s;
+        ctx.beginPath();
+        ctx.moveTo(ex, ey);
+        ctx.lineTo(ex + dx * L * 0.85, ey + dy * L * 0.85);
+        ctx.stroke();
+      }
+      const top = soil + 2 * s;
+      const pot = ctx.createLinearGradient(cx - 17 * s, 0, cx + 17 * s, 0);
+      pot.addColorStop(0, '#c8774f');
+      pot.addColorStop(0.45, '#b65a36');
+      pot.addColorStop(1, '#8a4027');
+      ctx.fillStyle = pot;
+      ctx.beginPath();
+      ctx.moveTo(cx - 15 * s, top + 5 * s);
+      ctx.lineTo(cx + 15 * s, top + 5 * s);
+      ctx.lineTo(cx + 11 * s, top + 30 * s);
+      ctx.lineTo(cx - 11 * s, top + 30 * s);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = '#c96d43';
+      ctx.fillRect(cx - 17 * s, top, 34 * s, 6 * s);
+      ctx.fillStyle = 'rgb(40 30 20 / 0.25)';
+      ctx.beginPath();
+      ctx.ellipse(cx, top + 31 * s, 14 * s, 2 * s, 0, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (kind === 'arc') {
+      const cx = w / 2;
+      const cy = h * 1.25;
+      for (let k = 0; k < 16; k++) {
+        const r = h * 0.45 + k * h * 0.07;
+        ctx.strokeStyle = k === 7 ? 'rgb(255 112 67)' : `rgb(236 233 227 / ${0.06 + (16 - k) * 0.012})`;
+        ctx.lineWidth = k === 7 ? 1.6 : 1;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, Math.PI * 1.08, Math.PI * 1.92);
+        ctx.stroke();
+      }
+    } else {
+      // The guide's orb: a ring of ember particles.
+      const cx = w / 2;
+      const cy = h / 2;
+      const R = Math.min(w, h) * 0.28;
+      for (let i = 0; i < 140; i++) {
+        const a = (i / 140) * Math.PI * 2;
+        const rr = R + Math.sin(i * 7.3) * R * 0.12;
+        const s = 1 + ((i * 37) % 10) / 6;
+        ctx.fillStyle = `rgb(255 ${110 + ((i * 13) % 60)} 67 / ${0.45 + ((i * 17) % 10) / 20})`;
+        ctx.beginPath();
+        ctx.arc(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr, s, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  };
+  const arts = [...document.querySelectorAll<HTMLCanvasElement>('[data-art]')];
+  const seen = new IntersectionObserver(
+    (entries) => entries.forEach((e) => e.isIntersecting && (paintArt(e.target as HTMLCanvasElement), seen.unobserve(e.target))),
+    { rootMargin: '400px 0px' },
+  );
+  arts.forEach((a) => seen.observe(a));
+
+  /* ---------- Contact ---------- */
+  const form = document.querySelector<HTMLFormElement>('[data-form]')!;
+  const field = (name: string) => form.elements.namedItem(name) as HTMLInputElement;
+  const showError = (name: string, on: boolean) => {
+    const err = form.querySelector<HTMLElement>(`[data-error-for="${name}"]`)!;
+    err.classList.toggle('is-on', on);
+    field(name).setAttribute('aria-invalid', String(on));
+    if (on) field(name).setAttribute('aria-describedby', err.id || (err.id = `${name}-error`));
+  };
+  const check = (name: string) => {
+    const el = field(name);
+    const ok = el.value.trim() !== '' && (el.type !== 'email' || el.checkValidity());
+    showError(name, !ok);
+    return ok;
+  };
+  for (const name of ['name', 'email', 'message']) field(name).addEventListener('blur', () => check(name));
+
+  // Messages go to the qwantarc.com Worker. Local development can point elsewhere.
+  const ENDPOINT = import.meta.env.PUBLIC_ENQUIRY_URL || 'https://qwantarc.com/api/enquiry';
+  const opened = performance.now();
+  const send = form.querySelector<HTMLButtonElement>('[data-send]')!;
+  const sendLabel = form.querySelector<HTMLElement>('[data-send-label]')!;
+  const hint = form.querySelector<HTMLElement>('[data-hint]')!;
+  const hintText = hint.textContent;
+  const sent = document.querySelector<HTMLElement>('[data-sent]')!;
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (send.disabled) return;
+    if (['name', 'email', 'message'].map(check).includes(false)) {
+      (form.querySelector('[aria-invalid="true"]') as HTMLElement | null)?.focus();
+      return;
+    }
+    const data = new FormData(form);
+    const get = (k: string) => String(data.get(k) ?? '').trim();
+    const payload = {
+      source: 'ethchor',
+      topic: get('topic'),
+      name: get('name'),
+      email: get('email'),
+      message: get('message'),
+      website: get('website'),
+      elapsed: Math.round(performance.now() - opened),
+    };
+    send.disabled = true;
+    sendLabel.textContent = 'Sending…';
+    hint.classList.remove('is-error');
+    hint.textContent = hintText;
+    try {
+      const res = await fetch(ENDPOINT, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload) });
+      const out = await res.json().catch(() => ({ ok: false }));
+      if (!res.ok || !out.ok) throw new Error(out.error || 'Couldn’t send right now. Try again in a minute.');
+      document.querySelector('[data-sent-name]')!.textContent = `, ${payload.name.split(' ')[0]}`;
+      document.querySelector('[data-sent-email]')!.textContent = payload.email;
+      form.hidden = true;
+      sent.hidden = false;
+      sent.focus();
+    } catch (err) {
+      const msg = err instanceof Error && err.message !== 'Failed to fetch' ? err.message : 'Couldn’t reach the server. Check your connection and try again.';
+      hint.classList.add('is-error');
+      hint.textContent = `${msg} You can also write to ${PERSON.email}.`;
+    } finally {
+      send.disabled = false;
+      sendLabel.textContent = 'Send Message';
+    }
+  });
+  document.querySelector('[data-again]')!.addEventListener('click', () => {
+    form.reset();
+    sent.hidden = true;
+    form.hidden = false;
+    field('name').focus();
+  });
+  const copyBtn = document.querySelector<HTMLButtonElement>('[data-copy]');
+  const copyLabel = document.querySelector<HTMLElement>('[data-copy-label]');
+  copyBtn?.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(copyBtn.dataset.copy!);
+      copyLabel!.textContent = 'Copied';
+    } catch {
+      copyLabel!.textContent = 'Select and copy above';
+    }
+    setTimeout(() => (copyLabel!.textContent = 'Copy Address'), 2000);
+  });
+</script>
