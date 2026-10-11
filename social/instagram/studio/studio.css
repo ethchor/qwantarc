@@ -1,0 +1,485 @@
+/* Qwantarc Instagram studio: the qwantarc.com language (warm black, bone, one ember accent) at post size.
+   Every size is in logical pixels. The renderer captures at 2.5x, so 432 logical px export as 1080. */
+
+@font-face {
+  font-family: 'Lexend';
+  src: url('fonts/lexend-var.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Instrument Serif';
+  src: url('fonts/instrument-serif.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Instrument Serif';
+  src: url('fonts/instrument-serif-italic.woff2') format('woff2');
+  font-weight: 400;
+  font-style: italic;
+}
+
+:root {
+  --ink: #0a0a09;
+  --bone: #ece9e3;
+  --bone-2: rgb(236 233 227 / 0.62);
+  --bone-3: rgb(236 233 227 / 0.36);
+  --line: rgb(236 233 227 / 0.12);
+  --line-strong: rgb(236 233 227 / 0.24);
+  --ember: #ff7043;
+  --sans: 'Lexend', system-ui, sans-serif;
+  --serif: 'Instrument Serif', 'Times New Roman', serif;
+  --m: 24px;
+  --grain: 0.07;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  background: var(--ink);
+}
+body {
+  color: var(--bone);
+  font-family: var(--sans);
+  font-weight: 300;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
+}
+em {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: var(--ember);
+}
+p,
+h1,
+h2 {
+  margin: 0;
+}
+
+.stage {
+  position: relative;
+  overflow: hidden;
+  background: var(--ink);
+}
+.layer {
+  position: absolute;
+  inset: 0;
+}
+.grain {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  opacity: var(--grain);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---- Folio: the site's bar and footer row, at the corners of every post ---- */
+.folio {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+  font-size: 10.5px;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  line-height: 1.45;
+  color: var(--bone-2);
+}
+.folio > span {
+  position: absolute;
+}
+.f-tl {
+  top: calc(var(--m) - 3px);
+  left: var(--m);
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--bone);
+}
+.f-tr {
+  top: var(--m);
+  right: var(--m);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+}
+.f-tr b {
+  font-weight: 400;
+  color: var(--bone);
+}
+.f-bl {
+  bottom: var(--m);
+  left: var(--m);
+}
+.f-br {
+  bottom: var(--m);
+  right: var(--m);
+}
+.n {
+  font-size: 11.5px;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  color: var(--ember);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Hero ---- */
+.hero-center {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+.mark {
+  display: flex;
+  margin: 0;
+  font-size: 18.5vw;
+  font-weight: 700;
+  line-height: 0.9;
+  letter-spacing: -0.05em;
+  color: var(--bone);
+  transform: translateY(-4%);
+}
+.mark-clip {
+  display: inline-block;
+  overflow: hidden;
+  padding: 0.06em 0.005em 0.14em;
+  margin-bottom: -0.14em;
+}
+.mark-ch {
+  display: inline-block;
+  font-variation-settings: 'wght' 700;
+}
+.corner {
+  position: absolute;
+  bottom: var(--m);
+  left: var(--m);
+  font-size: 11.5px;
+  line-height: 1.45;
+  letter-spacing: 0.02em;
+  color: var(--bone-2);
+}
+
+/* ---- Manifesto ---- */
+.mf {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 0 30px 64px;
+}
+.mf-text {
+  font-size: 47px;
+  font-weight: 300;
+  line-height: 1.06;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+.mf-text em {
+  letter-spacing: -0.01em;
+}
+
+/* ---- Say hello ---- */
+.hello {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  text-align: center;
+  padding: 0 30px 34px;
+}
+.hello-title {
+  margin-top: 14px;
+  font-size: 86px;
+  font-weight: 300;
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+}
+.hello-text {
+  max-width: 27ch;
+  margin-top: 22px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--bone-2);
+}
+.hello-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 30px;
+  padding: 13px 22px 13px 24px;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  font-size: 19px;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+.hello-cta.is-solid {
+  background: var(--ember);
+  border-color: var(--ember);
+  color: var(--ink);
+}
+.hello-cta svg {
+  width: 0.9em;
+  height: 0.9em;
+}
+.hello-mail {
+  margin-top: 22px;
+  font-size: 12.5px;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  color: var(--bone-2);
+}
+
+/* ---- Journey ---- */
+.stages {
+  position: absolute;
+  left: 50%;
+  display: grid;
+  width: calc(100% - 48px);
+  transform: translateX(-50%);
+  text-align: center;
+}
+.stage-card {
+  grid-area: 1 / 1;
+}
+.stage-n {
+  font-size: 11.5px;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  color: var(--ember);
+  font-variant-numeric: tabular-nums;
+}
+.stage-word {
+  perspective: 700px;
+  margin-top: 8px;
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  color: var(--bone);
+}
+.stage-word .ch {
+  display: inline-block;
+  transform-origin: 50% 100%;
+}
+.stage-text {
+  max-width: 31ch;
+  margin: 16px auto 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--bone-2);
+  text-wrap: balance;
+}
+.endcard {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: grid;
+  justify-items: center;
+  text-align: center;
+}
+.endcard .mark {
+  font-size: 17vw;
+  transform: none;
+}
+.endcard-line {
+  margin-top: 14px;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  color: var(--bone-2);
+}
+
+/* ---- Product posts (guide, QIG, Farms) ---- */
+.head {
+  position: absolute;
+  left: var(--m);
+  right: var(--m);
+}
+.head.is-center {
+  text-align: center;
+}
+.eyebrow {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  font-size: 11.5px;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  color: var(--bone-2);
+}
+.head.is-center .eyebrow {
+  justify-content: center;
+}
+.eyebrow b {
+  font-weight: 500;
+  color: var(--ember);
+}
+.title {
+  margin-top: 10px;
+  font-size: 46px;
+  font-weight: 300;
+  line-height: 1;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+.title-serif {
+  margin-top: 10px;
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 64px;
+  line-height: 0.92;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+.lede {
+  margin-top: 14px;
+  max-width: 34ch;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--bone-2);
+  text-wrap: pretty;
+}
+.head.is-center .lede {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* The guide's input, as on the site. */
+.ask {
+  position: absolute;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 372px;
+  padding: 6px 6px 6px 16px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: rgb(236 233 227 / 0.04);
+  transform: translateX(-50%);
+}
+.ask.is-focus {
+  border-color: rgb(255 112 67 / 0.5);
+}
+.ask-input {
+  position: relative;
+  flex: 1;
+  height: 34px;
+  font-size: 14.5px;
+  line-height: 34px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.ask-ph,
+.ask-typed {
+  position: absolute;
+  inset: 0;
+}
+.ask-ph {
+  color: rgb(236 233 227 / 0.42);
+}
+.ask-typed {
+  color: var(--bone);
+}
+.caret {
+  display: inline-block;
+  width: 1.5px;
+  height: 18px;
+  margin-left: 1px;
+  vertical-align: -3px;
+  background: var(--ember);
+}
+.ask-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  color: rgb(236 233 227 / 0.66);
+}
+.ask-icon svg,
+.ask-send svg {
+  width: 19px;
+  height: 19px;
+}
+.ask-send {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--bone);
+  color: var(--ink);
+}
+.ask-note {
+  position: absolute;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 11px;
+  letter-spacing: 0.01em;
+  color: rgb(236 233 227 / 0.42);
+}
+
+.facts {
+  display: flex;
+  gap: 22px;
+  margin-top: 18px;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  color: var(--bone-2);
+}
+.facts b {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 22px;
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  color: var(--bone);
+  font-variant-numeric: tabular-nums;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 18px;
+}
+.chip {
+  padding: 5px 11px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  color: var(--bone-2);
+}
+
+/* Farms: copy switches to ink once the sky turns to bone. */
+.tone-ink {
+  color: var(--ink);
+}
+.tone-ink .eyebrow,
+.tone-ink .lede {
+  color: rgb(10 10 9 / 0.66);
+}
+
+/* ---- Marks: profile picture and highlight covers ---- */
+.mark-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
