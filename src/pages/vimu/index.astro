@@ -1,58 +1,75 @@
 ---
 import Base from '../../layouts/Base.astro';
-import '../../styles/brand.css';
+import Diagram from '../../components/ethchor/Diagram.astro';
 import '../../styles/ethchor.css';
-import { EXPERTISE, NOW, PERSON, TOPICS, WAYS, WORK } from '../../lib/ethchor/profile';
+import { AUDIENCES, CASES, PERSON, SIDE_QUEST, TOOLKIT, TOPICS, WAYS } from '../../lib/ethchor/profile';
 
 const TITLE = 'Vimu Kale | Full stack engineer for healthcare';
 const DESCRIPTION =
-  'Full stack engineer building software for healthcare: FHIR and HL7 interoperability, clinical workflows and the screens patients see.';
+  'Full stack engineer building software for healthcare: FHIR and HL7 interoperability, clinical workflows, AI in care and the screens patients see.';
 const manifesto =
   'Healthcare runs on software that too often gets in the way. I build the kind that *doesn’t:* systems that speak FHIR, workflows that respect a clinician’s time, and screens that make the complex feel *calm.*'.split(
     ' ',
   );
 const pad = (n: number) => String(n).padStart(2, '0');
+const inCare = CASES.filter((c) => c.healthcare).length;
+const words = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'];
 const arrow =
-  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg>';
+  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>';
+const heartIcon =
+  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7.5-4.6-7.5-10.1A4.4 4.4 0 0 1 12 7.3a4.4 4.4 0 0 1 7.5 2.6C19.5 15.4 12 20 12 20Z" fill="currentColor"></path></svg>';
 ---
 
-<Base title={TITLE} description={DESCRIPTION} origin={PERSON.origin} themeColor="#0a0a09" fonts="brand" icon="/vimu-icon.svg" siteName={PERSON.name}>
+<Base title={TITLE} description={DESCRIPTION} origin={PERSON.origin} themeColor="#07070c" fonts="vimu" icon="/vimu-icon.svg" siteName={PERSON.name}>
+  <canvas class="organism" data-organism aria-hidden="true"></canvas>
   <div class="grain" aria-hidden="true"></div>
 
-  <header class="bar vk-bar" data-bar>
-    <a class="bar-mark" href="#top" aria-label="Vimu Kale, top of the page">Vimu <em>Kale</em></a>
-    <nav class="bar-end" aria-label="Sections">
-      <a class="bar-link" href="#work">Work</a>
-      <a class="bar-link" href="#now">Now</a>
-      <a class="bar-link" href="#contact">Contact</a>
+  <header class="bar" data-bar>
+    <a class="mark" href="#top" aria-label="Vimu Kale, top of the page"><span class="mark-dot" aria-hidden="true"></span>Vimu Kale</a>
+    <nav class="nav" aria-label="Sections">
+      <a href="#work">Work</a>
+      <a href="#toolkit">Toolkit</a>
+      <a href="#side-quest">Side quest</a>
+      <a href="#contact">Contact</a>
     </nav>
+    <span class="readout" data-readout title="The page’s pulse. It quickens when you move fast or click.">
+      <Fragment set:html={heartIcon} /><span data-bpm>62</span><span class="readout-u">bpm</span>
+    </span>
   </header>
 
   <main id="top">
-    <section class="vk-hero" data-hero aria-labelledby="vk-name">
-      <canvas class="vk-portrait" data-portrait aria-hidden="true"></canvas>
-      <div class="vk-hero-copy" data-hero-copy>
-        <p class="n">{PERSON.handle} · {PERSON.role}</p>
-        <h1 id="vk-name" class="vk-name" aria-label={PERSON.name}>
+    <section class="hero" data-shape="portrait" data-hero data-play aria-labelledby="name">
+      <div class="hero-stage" data-anchor aria-hidden="true"></div>
+      <div class="hero-copy" data-noplay>
+        <p class="kicker" data-fade><span class="kicker-dot" aria-hidden="true"></span>{PERSON.handle} · {PERSON.role}</p>
+        <h1 id="name" class="name" aria-label={PERSON.name}>
           {
-            PERSON.name.split(' ').map((word) => (
-              <span class="vk-word" aria-hidden="true">
-                {[...word].map((ch) => (
-                  <span class="vk-clip">
-                    <span class="vk-ch">{ch}</span>
+            PERSON.name.split(' ').map((w) => (
+              <span class="name-word" aria-hidden="true">
+                {[...w].map((ch) => (
+                  <span class="name-clip">
+                    <span class="l">{ch}</span>
                   </span>
                 ))}
               </span>
             ))
           }
         </h1>
-        <p class="vk-role" data-fade>Building software for <em>healthcare.</em></p>
-        <p class="vk-intro" data-fade>FHIR and HL7 interoperability, clinical workflows and the screens patients see. Software that helps people care for people.</p>
-        <div class="vk-actions" data-fade>
-          <a class="btn is-solid" href="#work">See My Work</a>
-          <a class="btn" href="#contact">Get in Touch</a>
+        <p class="hero-line" data-fade>
+          <span class="sr-only">I build software for clinicians, patients and care teams.</span>
+          <span aria-hidden="true">
+            I build software for{' '}
+            <span class="rotor" data-rotor>
+              {AUDIENCES.map((a, i) => <span class={`rotor-w rotor-${i}`}>{a}</span>)}
+            </span>
+          </span>
+        </p>
+        <p class="hero-sub" data-fade>FHIR and HL7 interoperability, clinical workflows, AI in care, and the screens patients actually see.</p>
+        <div class="actions" data-fade>
+          <a class="btn is-solid" href="#work" data-magnet><span>See the Work</span><Fragment set:html={arrow} /></a>
+          <a class="btn" href="#contact" data-magnet><span>Say Hello</span></a>
         </div>
-        <ul class="vk-links" data-fade>
+        <ul class="links" data-fade>
           {
             PERSON.links.map((l) => (
               <li>
@@ -65,10 +82,26 @@ const arrow =
           }
         </ul>
       </div>
+
+      <aside class="monitor" data-monitor data-noplay aria-label="The page’s pulse">
+        <div class="mon-top">
+          <span class="mon-live"><span class="mon-dot" aria-hidden="true"></span>Live</span>
+          <span class="mon-k">Pulse</span>
+        </div>
+        <div class="mon-read">
+          <p><span class="mon-k">HR</span><span class="mon-v" data-hr>62</span><span class="mon-u">bpm</span></p>
+          <p class="is-o2"><span class="mon-k">SpO₂</span><span class="mon-v" data-spo2>98</span><span class="mon-u">%</span></p>
+        </div>
+        <canvas class="mon-ecg" data-ecg aria-hidden="true"></canvas>
+        <p class="mon-hint" data-hint>It quickens when you do. Click to pulse, hold to charge.</p>
+      </aside>
+
+      <a class="scroll-cue" href="#manifesto" aria-label="Scroll to the next section"><span aria-hidden="true"></span>Scroll</a>
     </section>
 
-    <section class="manifesto" aria-label="What I believe">
-      <p class="manifesto-text" data-words>
+    <section class="manifesto" id="manifesto" data-shape="heart" data-play aria-label="What I believe">
+      <div class="manifesto-stage" data-anchor aria-hidden="true"></div>
+      <p class="manifesto-text" data-words data-noplay>
         {
           manifesto.map((w) => {
             const text = w.replace(/\*/g, '');
@@ -78,78 +111,87 @@ const arrow =
       </p>
     </section>
 
-    <section class="vk-section" id="work" aria-labelledby="work-title">
-      <header class="vk-head" data-reveal>
-        <p class="n">01 · Selected work</p>
-        <h2 id="work-title" class="vk-title">Software for <em>care.</em></h2>
-        <p class="vk-lede">Five of these seven are in healthcare: interoperability, remote monitoring, mental health and maternity.</p>
+    <section class="work" id="work" data-shape="network" aria-labelledby="work-title">
+      <div class="work-stage" data-anchor aria-hidden="true"></div>
+      <header class="sec-head" data-reveal>
+        <p class="kicker"><span class="kicker-n">01</span> Selected work</p>
+        <h2 id="work-title" class="sec-title">Systems that <em>care.</em></h2>
+        <p class="sec-lede">
+          {words[CASES.length][0].toUpperCase() + words[CASES.length].slice(1)} systems, {words[inCare]} of them in healthcare. Client names
+          stay private; the domain, what I built and why I built it that way don’t.
+        </p>
       </header>
-      <ol class="vk-list">
+
+      <ol class="cases">
         {
-          WORK.map((w, i) => (
-            <li class="vk-item" data-item>
-              <button class="vk-row" type="button" aria-expanded="false" aria-controls={`work-${i}`} data-toggle>
-                <span class="vk-num">{pad(i + 1)}</span>
-                <span class="vk-wname">{w.name}</span>
-                <span class="vk-wrole">{w.role}</span>
-                <span class="vk-flag">{w.healthcare ? 'Healthcare' : ''}</span>
-                <span class="vk-plus" aria-hidden="true" />
-              </button>
-              <div class="vk-panel" id={`work-${i}`} data-panel>
-                <div class="vk-panel-in">
-                  <p class="vk-sum">{w.summary}</p>
-                  <p class="vk-det">{w.details}</p>
-                  <ul class="vk-tags" aria-label="Built with">
-                    {w.tags.map((t) => (
-                      <li>{t}</li>
-                    ))}
-                  </ul>
+          CASES.map((c, i) => (
+            <li class="case" data-case={i} style={`--c: ${c.color}`}>
+              <article class="case-card" aria-labelledby={`case-${c.slug}`}>
+                <header class="case-head">
+                  <p class="case-meta">
+                    <span class="case-ch">
+                      <span class="case-dot" aria-hidden="true" />
+                      CH {pad(i + 1)}
+                    </span>
+                    <span>{c.field}</span>
+                  </p>
+                  <h3 id={`case-${c.slug}`} class="case-title">
+                    {c.domain}
+                  </h3>
+                  <p class="case-role">{c.role}</p>
+                  <p class="case-sum">{c.summary}</p>
+                </header>
+                <div class="case-body">
+                  <div class="case-text">
+                    <h4 class="case-h">What I did</h4>
+                    <p class="case-did">{c.did}</p>
+                    <h4 class="case-h">Architecture decisions</h4>
+                    <ol class="decisions">
+                      {c.decisions.map((d, k) => (
+                        <li tabindex="0" data-nodes={d.nodes.join(' ')}>
+                          <span class="dec-n" aria-hidden="true">
+                            {pad(k + 1)}
+                          </span>
+                          <p>
+                            <strong>{d.title}.</strong> {d.text}
+                          </p>
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                  <figure class="case-fig">
+                    <div class="fig-frame">
+                      <Diagram id={c.slug} diagram={c.diagram} label={`System diagram for ${c.domain}`} />
+                    </div>
+                    <figcaption class="fig-cap">Hover a decision to see where it lives.</figcaption>
+                    <ul class="stack" aria-label="Built with">
+                      {c.stack.map((s) => (
+                        <li>{s}</li>
+                      ))}
+                    </ul>
+                  </figure>
                 </div>
-              </div>
+              </article>
             </li>
           ))
         }
       </ol>
     </section>
 
-    <section class="vk-section" id="now" aria-labelledby="now-title">
-      <header class="vk-head" data-reveal>
-        <p class="n">02 · Now</p>
-        <h2 id="now-title" class="vk-title">Building <em>Qwantarc.</em></h2>
-        <p class="vk-lede">Software that follows one design system, from cognition to comfort. A few things I’ve made there.</p>
+    <section class="toolkit" id="toolkit" data-shape="helix" aria-labelledby="toolkit-title">
+      <div class="toolkit-stage" data-anchor aria-hidden="true"></div>
+      <header class="sec-head" data-reveal>
+        <p class="kicker"><span class="kicker-n">02</span> Toolkit</p>
+        <h2 id="toolkit-title" class="sec-title">Deep in <em>healthcare,</em> fluent in the rest.</h2>
       </header>
-      <div class="vk-cards">
+      <div class="areas">
         {
-          NOW.map((c) => (
-            <a class="vk-card" href={c.href} target="_blank" rel="noopener" data-reveal>
-              <span class="vk-art">
-                <canvas data-art={c.art} aria-hidden="true" />
-              </span>
-              <span class="vk-cname">{c.name}</span>
-              <span class="vk-ctext">{c.text}</span>
-              <span class="vk-go">
-                Visit
-                <Fragment set:html={arrow} />
-              </span>
-            </a>
-          ))
-        }
-      </div>
-    </section>
-
-    <section class="vk-section" aria-labelledby="skills-title">
-      <header class="vk-head" data-reveal>
-        <p class="n">03 · Expertise</p>
-        <h2 id="skills-title" class="vk-title">Deep in <em>healthcare,</em> fluent in the rest.</h2>
-      </header>
-      <div class="vk-areas">
-        {
-          EXPERTISE.map((e, i) => (
-            <div class:list={['vk-area', { 'is-lead': i === 0 }]} data-reveal>
-              <h3>{e.area}</h3>
-              <p>{e.note}</p>
-              <ul>
-                {e.items.map((x) => (
+          TOOLKIT.map((a) => (
+            <div class="area" style={`--c: ${a.color}`} data-reveal>
+              <h3 class="area-title">{a.area}</h3>
+              <p class="area-note">{a.note}</p>
+              <ul class="area-items">
+                {a.items.map((x) => (
                   <li>{x}</li>
                 ))}
               </ul>
@@ -157,50 +199,58 @@ const arrow =
           ))
         }
       </div>
+
+      <div class="ways">
+        <h3 class="ways-title" data-reveal>How I work</h3>
+        <ol class="ways-list">
+          {
+            WAYS.map((w, i) => (
+              <li data-reveal>
+                <span class="ways-n">{pad(i + 1)}</span>
+                <h4>{w.title}</h4>
+                <p>{w.text}</p>
+              </li>
+            ))
+          }
+        </ol>
+        <p class="aside" data-reveal>Off the clock, I’m probably enjoying a jackfruit or learning something new.</p>
+      </div>
     </section>
 
-    <section class="vk-section" aria-labelledby="ways-title">
-      <header class="vk-head" data-reveal>
-        <p class="n">04 · How I work</p>
-        <h2 id="ways-title" class="vk-title">Everyone gets <em>better.</em></h2>
-      </header>
-      <ol class="vk-ways">
-        {
-          WAYS.map((w, i) => (
-            <li data-reveal>
-              <span class="vk-num">{pad(i + 1)}</span>
-              <h3>{w.title}</h3>
-              <p>{w.text}</p>
-            </li>
-          ))
-        }
-      </ol>
-      <p class="vk-aside" data-reveal>Off the clock, I’m probably enjoying a jackfruit or learning something new.</p>
+    <section class="quest" id="side-quest" data-shape="plant" data-play aria-labelledby="quest-title">
+      <div class="quest-stage" data-anchor aria-hidden="true"></div>
+      <div class="quest-copy" data-noplay data-reveal>
+        <p class="kicker"><span class="kicker-n">03</span> Side quest</p>
+        <h2 id="quest-title" class="sec-title">{SIDE_QUEST.name}</h2>
+        <p class="sec-lede">{SIDE_QUEST.text}</p>
+        <a class="btn is-solid" href={SIDE_QUEST.href} target="_blank" rel="noopener" data-magnet>
+          <span>Visit the Nursery</span><Fragment set:html={arrow} />
+        </a>
+      </div>
     </section>
 
-    <section class="vk-contact" id="contact" aria-labelledby="contact-title">
-      <div class="vk-contact-grid">
-        <div>
-          <p class="n">05 · Contact</p>
-          <h2 id="contact-title" class="vk-title">Let’s build something <em>careful.</em></h2>
-          <p class="vk-lede">A project, a role, mentorship or just a hello. Every message reaches me directly.</p>
-          <div class="direct">
-            <p class="direct-label">Or write directly</p>
-            <p class="direct-value">{PERSON.email}</p>
-            <div class="direct-actions">
-              <button class="btn" type="button" data-copy={PERSON.email}><span data-copy-label>Copy Address</span></button>
-              {
-                PERSON.links.map((l) => (
+    <section class="contact" id="contact" data-shape="hello" aria-labelledby="contact-title">
+      <div class="contact-stage" data-anchor data-play aria-hidden="true"></div>
+      <div class="contact-grid">
+        <div class="contact-intro" data-reveal>
+          <p class="kicker"><span class="kicker-n">04</span> Contact</p>
+          <h2 id="contact-title" class="sec-title">Let’s build something <em>careful.</em></h2>
+          <p class="sec-lede">A project, a role, mentorship or just a hello. Every message reaches me directly.</p>
+          <ul class="links is-row">
+            {
+              PERSON.links.map((l) => (
+                <li>
                   <a class="btn" href={l.href} target="_blank" rel="noopener">
                     {l.label}
+                    <Fragment set:html={arrow} />
                   </a>
-                ))
-              }
-            </div>
-          </div>
+                </li>
+              ))
+            }
+          </ul>
         </div>
 
-        <form class="form" data-form novalidate>
+        <form class="form" data-form novalidate data-reveal>
           <fieldset>
             <legend class="label">What is it about?</legend>
             <div class="chips">
@@ -216,8 +266,8 @@ const arrow =
           </fieldset>
           <div class="row">
             <div class="field">
-              <label class="label" for="name">Name</label>
-              <input id="name" name="name" type="text" autocomplete="name" required placeholder="Your name" />
+              <label class="label" for="name-field">Name</label>
+              <input id="name-field" name="name" type="text" autocomplete="name" required placeholder="Your name" />
               <p class="error" data-error-for="name">Enter your name.</p>
             </div>
             <div class="field">
@@ -240,26 +290,34 @@ const arrow =
               <span data-send-label>Send Message</span>
               <Fragment set:html={arrow} />
             </button>
-            <p class="hint" data-hint role="status" aria-live="polite">It goes straight to my inbox.</p>
+            <p class="hint" data-form-hint role="status" aria-live="polite">It goes straight to my inbox.</p>
           </div>
         </form>
 
         <section class="sent" data-sent hidden tabindex="-1" aria-labelledby="sent-title">
-          <p class="n">Sent</p>
+          <p class="kicker">Sent</p>
           <h3 id="sent-title" class="sent-title">Thank you<span data-sent-name></span>.</h3>
-          <p class="sent-text">Your message is on its way. I’ll reply to <span data-sent-email></span> soon.</p>
+          <p class="sec-lede">Your message is on its way. I’ll reply to <span data-sent-email></span> soon.</p>
           <button class="btn is-solid" type="button" data-again>Send Another</button>
         </section>
       </div>
     </section>
   </main>
 
-  <footer class="foot vk-foot">
+  <footer class="foot">
     <div class="foot-row">
       <span>© {new Date().getFullYear()} {PERSON.name}</span>
-      <span>{PERSON.email}</span>
-      <a class="foot-dev" href="https://qwantarc.com">Qwantarc<Fragment set:html={arrow} /></a>
       <span>Care, carefully built.</span>
+      <span class="foot-links">
+        {
+          PERSON.links.map((l) => (
+            <a href={l.href} target="_blank" rel="noopener">
+              {l.label}
+              <Fragment set:html={arrow} />
+            </a>
+          ))
+        }
+      </span>
     </div>
     <p class="foot-mark" aria-hidden="true">Vimu</p>
   </footer>
@@ -268,12 +326,226 @@ const arrow =
 <script>
   import { gsap } from 'gsap';
   import { ScrollTrigger } from 'gsap/ScrollTrigger';
-  import { createPortrait } from '../../components/ethchor/portrait';
-  import { PERSON } from '../../lib/ethchor/profile';
+  import { createHeart } from '../../components/ethchor/heart';
+  import { createMonitor } from '../../components/ethchor/monitor';
+  import type { Form, Organism, Stage } from '../../components/ethchor/organism';
+  import { CASES } from '../../lib/ethchor/profile';
 
   gsap.registerPlugin(ScrollTrigger);
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const finePointer = matchMedia('(pointer: fine)').matches;
+  const fine = matchMedia('(pointer: fine)').matches;
+  const root = document.documentElement;
+  const hero = document.querySelector<HTMLElement>('[data-hero]')!;
+  // Styles that animate things in (diagrams) only apply when motion is welcome.
+  if (!reduce) root.classList.add('motion');
+
+  /* ---------- The heartbeat: the monitor, and the readout in the bar ---------- */
+  const heart = createHeart(62);
+  const monitorEl = document.querySelector<HTMLElement>('[data-monitor]')!;
+  const monitor = createMonitor(monitorEl, heart, { reduce });
+  const hint = monitorEl.querySelector<HTMLElement>('[data-hint]')!;
+  const restingHint = fine ? 'It quickens when you do. Click to pulse, hold to charge.' : 'It quickens when you do. Tap to pulse.';
+  hint.textContent = restingHint;
+  if (!fine) document.querySelectorAll('.fig-cap').forEach((c) => (c.textContent = 'Tap a decision to see where it lives.'));
+  const readout = document.querySelector<HTMLElement>('[data-readout]')!;
+  const bpm = readout.querySelector<HTMLElement>('[data-bpm]')!;
+  heart.onBeat((v) => {
+    bpm.textContent = String(Math.round(v));
+    readout.classList.remove('is-beat');
+    void readout.offsetWidth;
+    readout.classList.add('is-beat');
+  });
+
+  /* ---------- The organism: the particles behind the page ---------- */
+  const canvas = document.querySelector<HTMLCanvasElement>('[data-organism]')!;
+  const stages: Stage[] = [...document.querySelectorAll<HTMLElement>('[data-shape]')].map((section) => ({
+    form: section.dataset.shape as Form,
+    section,
+    anchor: section.querySelector<HTMLElement>('[data-anchor]')!,
+  }));
+  let organism: Organism | null = null;
+  let born = 0;
+
+  async function wake() {
+    try {
+      // The closing word is drawn in the display face, so wait for it (briefly).
+      await Promise.race([document.fonts.load('800 220px "Bricolage Grotesque"'), new Promise((r) => setTimeout(r, 2500))]);
+      const { createOrganism } = await import('../../components/ethchor/organism');
+      const small = innerWidth < 760;
+      const cores = navigator.hardwareConcurrency || 8;
+      organism = createOrganism(canvas, {
+        heart,
+        stages,
+        introAnchor: hero,
+        intro: !reduce && scrollY < 40,
+        count: small ? 7000 : cores <= 4 ? 10000 : 16000,
+        maxDpr: small ? 1.5 : 1.75,
+        font: '"Bricolage Grotesque", system-ui, sans-serif',
+      });
+      born = performance.now();
+      root.classList.add('has-organism');
+      if (reduce) {
+        // No animation of its own: draw once, then again only when the page moves.
+        const still = () => organism!.frame(0, 1);
+        still();
+        addEventListener('scroll', still, { passive: true });
+        addEventListener('resize', () => (organism!.resize(), still()));
+      } else {
+        let lastW = innerWidth;
+        let lastH = innerHeight;
+        addEventListener('resize', () => {
+          // Ignore the address bar sliding on phones; resize for real changes.
+          if (innerWidth !== lastW || Math.abs(innerHeight - lastH) > 140) {
+            lastW = innerWidth;
+            lastH = innerHeight;
+            organism!.resize();
+          }
+        });
+      }
+    } catch (err) {
+      console.warn('No WebGL, so no particles:', err);
+      root.classList.add('no-webgl');
+    }
+  }
+  wake();
+
+  /* ---------- Pointer: part the particles, pulse, charge ---------- */
+  const playable = (el: EventTarget | null) =>
+    el instanceof Element && !!el.closest('[data-play]') && !el.closest('a, button, input, textarea, select, label, [data-noplay]');
+  let last = { x: 0, y: 0, t: 0 };
+  let touchOff = 0;
+  addEventListener(
+    'pointermove',
+    (e) => {
+      if (e.pointerType === 'mouse') organism?.setPointer(e.clientX, e.clientY, true);
+      // Moving fast quickens the pulse.
+      const speed = Math.hypot(e.clientX - last.x, e.clientY - last.y) / Math.max(1, e.timeStamp - last.t);
+      if (speed > 1.4) heart.excite(Math.min(1.5, (speed - 1.4) * 0.3));
+      last = { x: e.clientX, y: e.clientY, t: e.timeStamp };
+      if (charging) {
+        chargeX = e.clientX;
+        chargeY = e.clientY;
+      }
+    },
+    { passive: true },
+  );
+  document.documentElement.addEventListener('pointerleave', () => organism?.setPointer(last.x, last.y, false));
+
+  let charging = false;
+  let chargeStart = 0;
+  let chargeX = 0;
+  let chargeY = 0;
+  let level = 0;
+  let clearTimer = 0;
+  addEventListener('pointerdown', (e) => {
+    if (reduce || !organism || !playable(e.target)) return;
+    if (e.pointerType === 'mouse') {
+      if (e.button !== 0) return;
+      e.preventDefault();
+      charging = true;
+      chargeStart = performance.now();
+      chargeX = e.clientX;
+      chargeY = e.clientY;
+    } else {
+      clearTimeout(touchOff);
+      organism.setPointer(e.clientX, e.clientY, true);
+      organism.pulse(e.clientX, e.clientY);
+      heart.kick(5);
+      touchOff = window.setTimeout(() => organism?.setPointer(e.clientX, e.clientY, false), 450);
+    }
+  });
+  const release = () => {
+    if (!charging || !organism) return;
+    charging = false;
+    if (level < 0.2) {
+      organism.pulse(chargeX, chargeY);
+      organism.charge(0, chargeX, chargeY);
+      heart.kick(5);
+    } else {
+      organism.burst(chargeX, chargeY, 0.35 + level * 0.95);
+      heart.kick(10 + level * 26);
+      hint.textContent = 'Clear.';
+      monitorEl.classList.add('is-shock');
+      clearTimeout(clearTimer);
+      clearTimer = window.setTimeout(() => {
+        hint.textContent = restingHint;
+        monitorEl.classList.remove('is-shock');
+      }, 1400);
+    }
+    level = 0;
+    monitorEl.classList.remove('is-charging');
+  };
+  addEventListener('pointerup', release);
+  addEventListener('pointercancel', release);
+
+  const tickCharge = () => {
+    if (!charging || !organism) return;
+    // A short click shouldn't charge: it starts after a beat of holding.
+    level = Math.max(0, Math.min(1, (performance.now() - chargeStart - 160) / 1300));
+    if (level > 0) {
+      organism.charge(level, chargeX, chargeY);
+      monitorEl.classList.add('is-charging');
+      hint.textContent = `Charging ${Math.round(level * 100)}%`;
+    }
+  };
+
+  /* ---------- The name stretches and warms where the cursor is ---------- */
+  const letters = [...document.querySelectorAll<HTMLElement>('.name .l')];
+  const lw = letters.map(() => ({ wght: 720, wdth: 88, heat: 0 }));
+  let nx = -9999;
+  let ny = -9999;
+  let near = false;
+  const nameEl = document.querySelector<HTMLElement>('.name')!;
+  hero.addEventListener('pointermove', (e) => {
+    if (e.pointerType !== 'mouse') return;
+    nx = e.clientX;
+    ny = e.clientY;
+    // Only when the cursor comes near the name; elsewhere it rests at full weight.
+    const b = nameEl.getBoundingClientRect();
+    near = nx < b.right + 160 && ny > b.top - 120 && ny < b.bottom + 120;
+  });
+  hero.addEventListener('pointerleave', () => (near = false));
+  const HOT = [255, 61, 139];
+  const WARM = [255, 181, 71];
+  const tickLetters = () => {
+    if (!fine || reduce) return;
+    letters.forEach((el, i) => {
+      let wght = 720;
+      let wdth = 88;
+      let heat = 0;
+      if (near) {
+        const b = el.getBoundingClientRect();
+        const d = Math.hypot(nx - (b.left + b.width / 2), ny - (b.top + b.height / 2));
+        heat = Math.exp(-(d * d) / (2 * 140 * 140));
+        wght = 380 + 420 * heat;
+        wdth = 75 + 25 * heat;
+      }
+      const s = lw[i];
+      s.wght += (wght - s.wght) * 0.14;
+      s.wdth += (wdth - s.wdth) * 0.14;
+      s.heat += (heat - s.heat) * 0.14;
+      el.style.fontVariationSettings = `'wght' ${s.wght.toFixed(0)}, 'wdth' ${s.wdth.toFixed(1)}`;
+      if (s.heat > 0.02) {
+        const k = s.heat;
+        const c = HOT.map((h, j) => Math.round(245 + (h - 245) * Math.min(1, k * 1.6) + (WARM[j] - h) * Math.max(0, k - 0.6)));
+        el.style.color = `rgb(${c.join(' ')})`;
+      } else el.style.color = '';
+    });
+  };
+
+  /* ---------- One loop for everything that moves ---------- */
+  let prev = performance.now();
+  const loop = (now: number) => {
+    const dt = Math.min(0.1, (now - prev) / 1000);
+    prev = now;
+    heart.tick(dt);
+    monitor.frame(dt);
+    tickCharge();
+    tickLetters();
+    organism?.frame((now - born) / 1000, dt);
+    requestAnimationFrame(loop);
+  };
+  if (!reduce) requestAnimationFrame(loop);
 
   /* ---------- Bar ---------- */
   const bar = document.querySelector<HTMLElement>('[data-bar]')!;
@@ -281,209 +553,99 @@ const arrow =
   addEventListener('scroll', onScroll, { passive: true });
   onScroll();
 
-  /* ---------- Hero: the particle portrait and the name ---------- */
-  const hero = document.querySelector<HTMLElement>('[data-hero]')!;
-  const portrait = createPortrait(document.querySelector<HTMLCanvasElement>('[data-portrait]')!, hero, { reduce });
-  const copy = document.querySelector<HTMLElement>('[data-hero-copy]')!;
-  if (!reduce) {
-    gsap.set('.vk-ch', { yPercent: 110 });
-    gsap.set('[data-fade]', { opacity: 0, y: 16 });
+  /* ---------- Motion: intro, rotor, reveals ---------- */
+  const rotor = document.querySelector<HTMLElement>('[data-rotor]')!;
+  const rotorWords = [...rotor.children] as HTMLElement[];
+  if (reduce) {
+    rotorWords.forEach((w, i) => (w.style.opacity = i === 0 ? '1' : '0'));
+    document.querySelectorAll<SVGSVGElement>('[data-diagram]').forEach((svg) => svg.pauseAnimations());
+  } else {
+    gsap.set('.name .l', { yPercent: 115 });
+    gsap.set('[data-fade]', { opacity: 0, y: 18 });
     gsap
-      .timeline({ delay: 0.5 })
-      .to('.vk-ch', { yPercent: 0, duration: 1.3, ease: 'expo.out', stagger: 0.05 })
-      .to('[data-fade]', { opacity: 1, y: 0, duration: 1, ease: 'expo.out', stagger: 0.08 }, 0.5);
-    ScrollTrigger.create({
-      trigger: hero,
-      start: 'top top',
-      end: 'bottom top',
-      scrub: 0.6,
-      onUpdate: (self) => {
-        portrait.state.scatter = self.progress;
-        copy.style.opacity = String(1 - Math.min(1, self.progress * 1.8));
-        copy.style.transform = `translateY(${-self.progress * 80}px)`;
-      },
-    });
+      .timeline({ delay: 0.9 })
+      .to('.name .l', { yPercent: 0, duration: 1.3, ease: 'expo.out', stagger: 0.045 })
+      .to('[data-fade]', { opacity: 1, y: 0, duration: 1, ease: 'expo.out', stagger: 0.08 }, 0.45)
+      .from('[data-monitor]', { opacity: 0, y: 20, duration: 1, ease: 'expo.out' }, 0.9);
 
-    // The name's weight follows the pointer, as the Qwantarc wordmark does.
-    const letters = [...document.querySelectorAll<HTMLElement>('.vk-ch')];
-    const weights = letters.map(() => 600);
-    let mx = -9999;
-    let my = -9999;
-    let near = false;
-    if (finePointer) {
-      hero.addEventListener('pointermove', (e) => {
-        mx = e.clientX;
-        my = e.clientY;
-        near = true;
-      });
-      hero.addEventListener('pointerleave', () => (near = false));
-      const tick = () => {
-        const reach = 160;
-        letters.forEach((el, i) => {
-          let target = 600;
-          if (near) {
-            const b = el.getBoundingClientRect();
-            const d = Math.hypot(mx - (b.left + b.width / 2), my - (b.top + b.height / 2));
-            target = 200 + 700 * Math.exp(-(d * d) / (2 * reach * reach));
-          }
-          weights[i] += (target - weights[i]) * 0.12;
-          el.style.fontVariationSettings = `'wght' ${weights[i].toFixed(0)}`;
-        });
-        requestAnimationFrame(tick);
-      };
-      requestAnimationFrame(tick);
-    }
+    let w = 0;
+    gsap.set(rotorWords, { yPercent: 100, opacity: 0 });
+    gsap.set(rotorWords[0], { yPercent: 0, opacity: 1 });
+    setInterval(() => {
+      const next = (w + 1) % rotorWords.length;
+      gsap.to(rotorWords[w], { yPercent: -100, opacity: 0, duration: 0.55, ease: 'expo.in' });
+      gsap.fromTo(rotorWords[next], { yPercent: 100, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.9, ease: 'expo.out', delay: 0.35 });
+      w = next;
+    }, 2600);
 
-    /* ---------- Manifesto: words light up as you read ---------- */
+    // The manifesto lights up as you read it.
     gsap.fromTo(
       '[data-words] .w',
-      { opacity: 0.12 },
-      { opacity: 1, ease: 'none', stagger: 0.12, scrollTrigger: { trigger: '[data-words]', start: 'top 78%', end: 'bottom 42%', scrub: 0.6 } },
+      { opacity: 0.14 },
+      { opacity: 1, ease: 'none', stagger: 0.12, scrollTrigger: { trigger: '[data-words]', start: 'top 80%', end: 'bottom 45%', scrub: 0.6 } },
     );
 
-    /* ---------- Sections arrive ---------- */
     gsap.utils.toArray<HTMLElement>('[data-reveal]').forEach((el) =>
-      gsap.from(el, { y: 30, opacity: 0, duration: 1.1, ease: 'expo.out', scrollTrigger: { trigger: el, start: 'top 88%', once: true } }),
+      gsap.from(el, { y: 40, opacity: 0, duration: 1.1, ease: 'expo.out', scrollTrigger: { trigger: el, start: 'top 88%', once: true } }),
     );
-    gsap.from('[data-item]', {
-      y: 24,
-      opacity: 0,
-      duration: 0.9,
-      ease: 'expo.out',
-      stagger: 0.06,
-      scrollTrigger: { trigger: '.vk-list', start: 'top 85%', once: true },
+
+    // Each case slides in, and its diagram builds itself (the drawing is CSS, see .is-drawn).
+    gsap.utils.toArray<HTMLElement>('[data-case]').forEach((card) => {
+      gsap.from(card, { y: 70, opacity: 0, duration: 1.2, ease: 'expo.out', scrollTrigger: { trigger: card, start: 'top 85%', once: true } });
+      const svg = card.querySelector('[data-diagram]')!;
+      ScrollTrigger.create({ trigger: svg, start: 'top 82%', once: true, onEnter: () => svg.classList.add('is-drawn') });
     });
   }
 
-  /* ---------- Work: rows open to the details ---------- */
-  document.querySelectorAll<HTMLButtonElement>('[data-toggle]').forEach((btn) => {
-    const panel = document.getElementById(btn.getAttribute('aria-controls')!)!;
-    btn.addEventListener('click', () => {
-      const open = btn.getAttribute('aria-expanded') !== 'true';
-      btn.setAttribute('aria-expanded', String(open));
-      btn.closest('[data-item]')!.classList.toggle('is-open', open);
-      if (reduce) {
-        panel.style.height = open ? 'auto' : '0px';
-        return;
-      }
-      gsap.killTweensOf(panel);
-      if (open) {
-        gsap.fromTo(panel, { height: panel.offsetHeight }, { height: 'auto', duration: 0.7, ease: 'expo.out', onComplete: () => ScrollTrigger.refresh() });
-        gsap.fromTo(panel.querySelector('.vk-panel-in'), { y: 14, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: 'expo.out', delay: 0.05 });
-      } else {
-        gsap.to(panel, { height: 0, duration: 0.5, ease: 'expo.inOut', onComplete: () => ScrollTrigger.refresh() });
-      }
+  /* ---------- Work: the project on screen lights its node in the network ---------- */
+  document.querySelectorAll<HTMLElement>('[data-case]').forEach((card, i) => {
+    ScrollTrigger.create({
+      trigger: card,
+      start: 'top 60%',
+      end: 'bottom 40%',
+      onToggle: (self) => {
+        card.classList.toggle('is-active', self.isActive);
+        if (self.isActive) organism?.setActive(i, CASES[i].color);
+      },
     });
   });
 
-  /* ---------- Now: a small picture for each thing ---------- */
-  const paintArt = (cv: HTMLCanvasElement) => {
-    const w = cv.clientWidth;
-    const h = cv.clientHeight;
-    if (!w || !h) return;
-    const dpr = Math.min(devicePixelRatio || 1, 2);
-    cv.width = Math.round(w * dpr);
-    cv.height = Math.round(h * dpr);
-    const ctx = cv.getContext('2d')!;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    const kind = cv.dataset.art;
-    if (kind === 'plant') {
-      // A potted plant in the Farms style: terracotta, and broad leaves lit from the left.
-      const s = h / 100;
-      const cx = w / 2;
-      const soil = h * 0.62;
-      const leaves: [number, number, number][] = [
-        [-1.1, 30, 22],
-        [-0.6, 40, 25],
-        [-0.12, 46, 26],
-        [0.38, 40, 24],
-        [0.88, 32, 22],
-      ];
-      for (const [a, stem, len] of leaves) {
-        const ang = -Math.PI / 2 + a;
-        const ex = cx + Math.cos(ang) * stem * s;
-        const ey = soil + Math.sin(ang) * stem * s;
-        ctx.strokeStyle = '#4d6b35';
-        ctx.lineWidth = 1.5 * s;
-        ctx.beginPath();
-        ctx.moveTo(cx, soil);
-        ctx.quadraticCurveTo(cx + Math.cos(ang) * stem * s * 0.4, soil + Math.sin(ang) * stem * s * 0.7, ex, ey);
-        ctx.stroke();
-        // A heart-shaped blade in two halves: the one facing the light is brighter.
-        const la = ang + Math.sign(a) * 0.55;
-        const L = len * s;
-        const dx = Math.cos(la);
-        const dy = Math.sin(la);
-        for (const side of [1, -1]) {
-          const nx = -dy * side;
-          const ny = dx * side;
-          const half = new Path2D();
-          half.moveTo(ex, ey);
-          half.bezierCurveTo(ex - dx * L * 0.3 + nx * L * 0.62, ey - dy * L * 0.3 + ny * L * 0.62, ex + dx * L * 0.55 + nx * L * 0.5, ey + dy * L * 0.55 + ny * L * 0.5, ex + dx * L, ey + dy * L);
-          half.lineTo(ex, ey);
-          const lit = nx * -0.55 + ny * -0.84 > 0;
-          ctx.fillStyle = lit ? '#3f7a3a' : '#25502a';
-          ctx.fill(half);
-        }
-        ctx.strokeStyle = 'rgb(140 190 120 / 0.55)';
-        ctx.lineWidth = 0.8 * s;
-        ctx.beginPath();
-        ctx.moveTo(ex, ey);
-        ctx.lineTo(ex + dx * L * 0.85, ey + dy * L * 0.85);
-        ctx.stroke();
-      }
-      const top = soil + 2 * s;
-      const pot = ctx.createLinearGradient(cx - 17 * s, 0, cx + 17 * s, 0);
-      pot.addColorStop(0, '#c8774f');
-      pot.addColorStop(0.45, '#b65a36');
-      pot.addColorStop(1, '#8a4027');
-      ctx.fillStyle = pot;
-      ctx.beginPath();
-      ctx.moveTo(cx - 15 * s, top + 5 * s);
-      ctx.lineTo(cx + 15 * s, top + 5 * s);
-      ctx.lineTo(cx + 11 * s, top + 30 * s);
-      ctx.lineTo(cx - 11 * s, top + 30 * s);
-      ctx.closePath();
-      ctx.fill();
-      ctx.fillStyle = '#c96d43';
-      ctx.fillRect(cx - 17 * s, top, 34 * s, 6 * s);
-      ctx.fillStyle = 'rgb(40 30 20 / 0.25)';
-      ctx.beginPath();
-      ctx.ellipse(cx, top + 31 * s, 14 * s, 2 * s, 0, 0, Math.PI * 2);
-      ctx.fill();
-    } else if (kind === 'arc') {
-      const cx = w / 2;
-      const cy = h * 1.25;
-      for (let k = 0; k < 16; k++) {
-        const r = h * 0.45 + k * h * 0.07;
-        ctx.strokeStyle = k === 7 ? 'rgb(255 112 67)' : `rgb(236 233 227 / ${0.06 + (16 - k) * 0.012})`;
-        ctx.lineWidth = k === 7 ? 1.6 : 1;
-        ctx.beginPath();
-        ctx.arc(cx, cy, r, Math.PI * 1.08, Math.PI * 1.92);
-        ctx.stroke();
-      }
-    } else {
-      // The guide's orb: a ring of ember particles.
-      const cx = w / 2;
-      const cy = h / 2;
-      const R = Math.min(w, h) * 0.28;
-      for (let i = 0; i < 140; i++) {
-        const a = (i / 140) * Math.PI * 2;
-        const rr = R + Math.sin(i * 7.3) * R * 0.12;
-        const s = 1 + ((i * 37) % 10) / 6;
-        ctx.fillStyle = `rgb(255 ${110 + ((i * 13) % 60)} 67 / ${0.45 + ((i * 17) % 10) / 20})`;
-        ctx.beginPath();
-        ctx.arc(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr, s, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-  };
-  const arts = [...document.querySelectorAll<HTMLCanvasElement>('[data-art]')];
-  const seen = new IntersectionObserver(
-    (entries) => entries.forEach((e) => e.isIntersecting && (paintArt(e.target as HTMLCanvasElement), seen.unobserve(e.target))),
-    { rootMargin: '400px 0px' },
-  );
-  arts.forEach((a) => seen.observe(a));
+  /* ---------- Decisions light up the parts of the diagram they are about ---------- */
+  document.querySelectorAll<HTMLElement>('[data-case]').forEach((card) => {
+    const svg = card.querySelector<SVGSVGElement>('[data-diagram]')!;
+    const nodes = [...svg.querySelectorAll<SVGGElement>('.node')];
+    const links = [...svg.querySelectorAll<SVGPathElement>('.link')];
+    card.querySelectorAll<HTMLElement>('[data-nodes]').forEach((li) => {
+      const ids = li.dataset.nodes!.split(' ');
+      const on = () => {
+        svg.classList.add('is-focus');
+        nodes.forEach((n) => n.classList.toggle('is-hot', ids.includes(n.dataset.node!)));
+        links.forEach((l) => l.classList.toggle('is-hot', ids.includes(l.dataset.a!) || ids.includes(l.dataset.b!)));
+        li.classList.add('is-on');
+      };
+      const off = () => {
+        svg.classList.remove('is-focus');
+        nodes.forEach((n) => n.classList.remove('is-hot'));
+        links.forEach((l) => l.classList.remove('is-hot'));
+        li.classList.remove('is-on');
+      };
+      li.addEventListener('pointerenter', on);
+      li.addEventListener('pointerleave', () => document.activeElement !== li && off());
+      li.addEventListener('focus', on);
+      li.addEventListener('blur', off);
+    });
+  });
+
+  /* ---------- Buttons lean toward the cursor ---------- */
+  if (fine && !reduce) {
+    document.querySelectorAll<HTMLElement>('[data-magnet]').forEach((el) => {
+      el.addEventListener('pointermove', (e) => {
+        const b = el.getBoundingClientRect();
+        gsap.to(el, { x: (e.clientX - (b.left + b.width / 2)) * 0.22, y: (e.clientY - (b.top + b.height / 2)) * 0.3, duration: 0.5, ease: 'power3.out' });
+      });
+      el.addEventListener('pointerleave', () => gsap.to(el, { x: 0, y: 0, duration: 0.9, ease: 'elastic.out(1, 0.4)' }));
+    });
+  }
 
   /* ---------- Contact ---------- */
   const form = document.querySelector<HTMLFormElement>('[data-form]')!;
@@ -502,13 +664,13 @@ const arrow =
   };
   for (const name of ['name', 'email', 'message']) field(name).addEventListener('blur', () => check(name));
 
-  // Messages go to the qwantarc.com Worker. Local development can point elsewhere.
+  // Messages go to the enquiry Worker. Local development can point elsewhere.
   const ENDPOINT = import.meta.env.PUBLIC_ENQUIRY_URL || 'https://qwantarc.com/api/enquiry';
   const opened = performance.now();
   const send = form.querySelector<HTMLButtonElement>('[data-send]')!;
   const sendLabel = form.querySelector<HTMLElement>('[data-send-label]')!;
-  const hint = form.querySelector<HTMLElement>('[data-hint]')!;
-  const hintText = hint.textContent;
+  const formHint = form.querySelector<HTMLElement>('[data-form-hint]')!;
+  const formHintText = formHint.textContent;
   const sent = document.querySelector<HTMLElement>('[data-sent]')!;
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -530,8 +692,8 @@ const arrow =
     };
     send.disabled = true;
     sendLabel.textContent = 'Sending…';
-    hint.classList.remove('is-error');
-    hint.textContent = hintText;
+    formHint.classList.remove('is-error');
+    formHint.textContent = formHintText;
     try {
       const res = await fetch(ENDPOINT, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload) });
       const out = await res.json().catch(() => ({ ok: false }));
@@ -541,10 +703,15 @@ const arrow =
       form.hidden = true;
       sent.hidden = false;
       sent.focus();
+      if (organism) {
+        const b = document.querySelector<HTMLElement>('.contact-stage')!.getBoundingClientRect();
+        organism.burst(b.left + b.width / 2, b.top + b.height / 2, 0.8);
+      }
+      heart.kick(12);
     } catch (err) {
       const msg = err instanceof Error && err.message !== 'Failed to fetch' ? err.message : 'Couldn’t reach the server. Check your connection and try again.';
-      hint.classList.add('is-error');
-      hint.textContent = `${msg} You can also write to ${PERSON.email}.`;
+      formHint.classList.add('is-error');
+      formHint.textContent = `${msg} You can also reach me on LinkedIn.`;
     } finally {
       send.disabled = false;
       sendLabel.textContent = 'Send Message';
@@ -555,16 +722,5 @@ const arrow =
     sent.hidden = true;
     form.hidden = false;
     field('name').focus();
-  });
-  const copyBtn = document.querySelector<HTMLButtonElement>('[data-copy]');
-  const copyLabel = document.querySelector<HTMLElement>('[data-copy-label]');
-  copyBtn?.addEventListener('click', async () => {
-    try {
-      await navigator.clipboard.writeText(copyBtn.dataset.copy!);
-      copyLabel!.textContent = 'Copied';
-    } catch {
-      copyLabel!.textContent = 'Select and copy above';
-    }
-    setTimeout(() => (copyLabel!.textContent = 'Copy Address'), 2000);
   });
 </script>
