@@ -1,26 +1,76 @@
-/* ethchor.qwantarc.com: Vimu Kale's portfolio. Its own look, not Qwantarc's: a night-clinic dark,
-   patient-monitor colours (one per project), Bricolage Grotesque and JetBrains Mono, and a field of
-   particles behind everything (see components/ethchor/organism.ts). Each section's [data-anchor]
-   is where its particle form sits; --form-opacity dims a form where text runs over it. */
+/* ethchor.qwantarc.com: Vimu Kale's portfolio, with a field of particles behind everything
+   (components/ethchor/organism.ts). Each section's [data-anchor] is where its particle form sits;
+   --form-opacity dims a form where text runs over it.
+
+   The whole look is the custom properties in :root: type, surfaces, the accent, the monitor, the
+   particles' palettes (three stops per form) and whether their light adds up (dark pages) or sits
+   on top like ink (light pages). Change the theme there and nothing else. */
 
 :root {
-  color-scheme: dark;
+  color-scheme: var(--scheme);
+  --scheme: dark;
+
+  /* Type */
+  --display: 'Geist', system-ui, sans-serif;
+  --body: 'Geist', system-ui, sans-serif;
+  --mono: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --display-weight: 650;
+  --display-tracking: -0.04em;
+  /* The name rests at --name-weight; near the cursor its letters thin to --name-thin and the
+     closest swell to --name-bold, warming toward --name-heat. */
+  --name-weight: 700;
+  --name-thin: 300;
+  --name-bold: 850;
+  --name-heat: #ff3d8b;
+  --em-style: normal;
+  --em-weight: inherit;
+
+  /* Surfaces */
   --bg: #07070c;
   --text: #f5f2ec;
   --text-2: rgb(245 242 236 / 0.7);
   --text-3: rgb(245 242 236 / 0.46);
   --line: rgb(245 242 236 / 0.1);
   --line-2: rgb(245 242 236 / 0.2);
-  --glass: rgb(16 16 28 / 0.58);
-  --ecg: #3dff9a;
-  --spo2: #2ee6ff;
-  --violet: #8b6cff;
-  --bp: #ff3d8b;
-  --resp: #ffd23f;
-  --temp: #ff7a3d;
-  --blue: #5b8cff;
-  --display: 'Bricolage Grotesque', system-ui, sans-serif;
-  --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --glass: rgb(16 16 28 / 0.62);
+  --deep: rgb(5 5 10 / 0.72);
+  --node: rgb(12 12 22 / 0.96);
+  --bar: rgb(7 7 12 / 0.6);
+  --wash: 0.6;
+  --grain: 0.04;
+  --card-glow: 0.6;
+  --frame-glow: 1;
+
+  /* Accent, and the colours that carry a meaning */
+  --accent: #3dff9a;
+  --accent-ink: #03100b;
+  --em: #2ee6ff;
+  --danger: #ff3d8b;
+  --charge: #ffd23f;
+  --heart-icon: #ff3d8b;
+  --rotor-0: #3dff9a;
+  --rotor-1: #2ee6ff;
+  --rotor-2: #ff3d8b;
+  --rotor-3: #ffd23f;
+
+  /* The monitor (hex only: its canvas reads them), and the trace's glow in pixels */
+  --monitor: #3dff9a;
+  --monitor-2: #2ee6ff;
+  --trace-glow: 8;
+
+  /* Particles: three stops along each form's tone, hex only */
+  --p-ecg: #3dff9a #3dff9a #2ee6ff;
+  --p-heart: #c8206f #ff3d8b #ff9a5c;
+  --p-wave: #2ee6ff #8b6cff #ff3d8b;
+  --p-network: #2ee6ff #3dff9a #8b6cff;
+  --p-helix: #8b6cff #ff3d8b #2ee6ff;
+  --p-plant: #3dff9a #a8f06a #ff7a3d;
+  --p-hello: #ff3d8b #ffd23f #2ee6ff;
+  --p-glow: #ffffff;
+  --p-halo: #2ee6ff;
+  --p-packet: #eafff3;
+  --p-blend: additive;
+
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
   --gutter: clamp(18px, 4.4vw, 64px);
 }
@@ -38,7 +88,7 @@ body {
   margin: 0;
   color: var(--text);
   background: var(--bg);
-  font-family: var(--display);
+  font-family: var(--body);
   font-size: 17px;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
@@ -51,10 +101,11 @@ body::before {
   inset: 0;
   z-index: 0;
   pointer-events: none;
+  opacity: var(--wash);
   background:
-    radial-gradient(55vw 45vh at 88% 6%, rgb(255 61 139 / 0.11), transparent 70%),
-    radial-gradient(45vw 55vh at -4% 42%, rgb(46 230 255 / 0.07), transparent 70%),
-    radial-gradient(65vw 55vh at 60% 104%, rgb(139 108 255 / 0.11), transparent 70%);
+    radial-gradient(55vw 45vh at 88% 6%, color-mix(in srgb, var(--rotor-2) 12%, transparent), transparent 70%),
+    radial-gradient(45vw 55vh at -4% 42%, color-mix(in srgb, var(--rotor-1) 8%, transparent), transparent 70%),
+    radial-gradient(65vw 55vh at 60% 104%, color-mix(in srgb, var(--em) 9%, transparent), transparent 70%);
 }
 main,
 .bar,
@@ -63,15 +114,15 @@ main,
   z-index: 1;
 }
 ::selection {
-  background: var(--ecg);
-  color: #04110a;
+  background: var(--accent);
+  color: var(--accent-ink);
 }
 a {
   color: inherit;
   text-decoration: none;
 }
 :focus-visible {
-  outline: 2px solid var(--ecg);
+  outline: 2px solid var(--accent);
   outline-offset: 4px;
   border-radius: 6px;
 }
@@ -111,7 +162,7 @@ h4 {
   inset: 0;
   z-index: 60;
   pointer-events: none;
-  opacity: 0.045;
+  opacity: var(--grain);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
@@ -126,32 +177,29 @@ h4 {
   color: var(--text-2);
 }
 .kicker-n {
-  color: var(--ecg);
+  color: var(--accent);
 }
 .kicker-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--ecg);
-  box-shadow: 0 0 12px var(--ecg);
+  background: var(--accent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 70%, transparent);
 }
 .sec-title {
   margin-top: 18px;
+  font-family: var(--display);
   font-size: clamp(46px, 6.8vw, 118px);
-  font-weight: 760;
-  font-variation-settings: 'wdth' 84;
-  line-height: 0.92;
-  letter-spacing: -0.035em;
+  font-weight: var(--display-weight);
+  line-height: 0.95;
+  letter-spacing: var(--display-tracking);
   text-wrap: balance;
 }
 .sec-title em,
 .manifesto-text em {
-  font-style: normal;
-  font-weight: 800;
-  background: linear-gradient(95deg, var(--ecg), var(--spo2) 60%, var(--violet));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  font-style: var(--em-style);
+  font-weight: var(--em-weight);
+  color: var(--em);
 }
 .sec-lede {
   max-width: 50ch;
@@ -170,11 +218,11 @@ h4 {
   padding: 0 26px;
   border: 1px solid var(--line-2);
   border-radius: 999px;
-  background: rgb(245 242 236 / 0.03);
+  background: transparent;
   color: inherit;
   font: inherit;
   font-size: 15px;
-  font-weight: 620;
+  font-weight: 600;
   cursor: pointer;
   will-change: transform;
   transition:
@@ -195,13 +243,12 @@ h4 {
   transform: translate(2px, -2px);
 }
 .btn.is-solid {
-  border-color: transparent;
-  background: linear-gradient(100deg, var(--ecg), var(--spo2));
-  color: #03100b;
-  box-shadow: 0 10px 40px -14px rgb(61 255 154 / 0.7);
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-ink);
 }
 .btn.is-solid:hover {
-  box-shadow: 0 14px 54px -10px rgb(46 230 255 / 0.85);
+  box-shadow: 0 12px 44px -12px color-mix(in srgb, var(--accent) 75%, transparent);
 }
 .btn:disabled {
   opacity: 0.6;
@@ -226,7 +273,7 @@ h4 {
   transition: color 0.3s;
 }
 .links a:hover {
-  color: var(--ecg);
+  color: var(--accent);
 }
 .links svg {
   width: 13px;
@@ -258,7 +305,7 @@ h4 {
   inset: 0;
   z-index: -1;
   border-bottom: 1px solid var(--line);
-  background: rgb(7 7 12 / 0.55);
+  background: var(--bar);
   -webkit-backdrop-filter: blur(20px) saturate(160%);
   backdrop-filter: blur(20px) saturate(160%);
   opacity: 0;
@@ -271,25 +318,25 @@ h4 {
   display: inline-flex;
   align-items: center;
   gap: 10px;
+  font-family: var(--display);
   font-size: 17px;
-  font-weight: 720;
+  font-weight: var(--display-weight);
   letter-spacing: -0.01em;
 }
 .mark-dot {
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  background: var(--ecg);
-  box-shadow: 0 0 0 0 rgb(61 255 154 / 0.6);
+  background: var(--accent);
   animation: ping 2.4s var(--ease) infinite;
 }
 @keyframes ping {
   0% {
-    box-shadow: 0 0 0 0 rgb(61 255 154 / 0.55);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent);
   }
   70%,
   100% {
-    box-shadow: 0 0 0 10px rgb(61 255 154 / 0);
+    box-shadow: 0 0 0 10px color-mix(in srgb, var(--accent) 0%, transparent);
   }
 }
 .nav {
@@ -297,7 +344,7 @@ h4 {
   gap: 26px;
   margin-left: auto;
   font-size: 15px;
-  font-weight: 520;
+  font-weight: 500;
 }
 .nav a {
   color: var(--text-2);
@@ -311,24 +358,24 @@ h4 {
   align-items: center;
   gap: 6px;
   padding: 7px 12px;
-  border: 1px solid rgb(61 255 154 / 0.26);
+  border: 1px solid color-mix(in srgb, var(--monitor) 28%, transparent);
   border-radius: 999px;
-  background: rgb(61 255 154 / 0.06);
+  background: color-mix(in srgb, var(--monitor) 7%, transparent);
   font: 600 13px/1 var(--mono);
   font-variant-numeric: tabular-nums;
-  color: var(--ecg);
+  color: var(--monitor);
 }
 .readout svg {
   width: 14px;
   height: 14px;
-  color: var(--bp);
+  color: var(--heart-icon);
 }
 .readout.is-beat svg {
   animation: thump 0.38s var(--ease);
 }
 .readout-u {
   font-weight: 400;
-  color: rgb(61 255 154 / 0.6);
+  opacity: 0.6;
 }
 @keyframes thump {
   0% {
@@ -359,7 +406,7 @@ h4 {
   cursor: crosshair;
 }
 .no-webgl .hero-stage {
-  background: radial-gradient(closest-side, rgb(255 61 139 / 0.28), rgb(139 108 255 / 0.12) 55%, transparent);
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--accent) 22%, transparent), transparent);
 }
 .hero-copy {
   position: absolute;
@@ -369,11 +416,11 @@ h4 {
 }
 .name {
   margin-top: 18px;
+  font-family: var(--display);
   font-size: clamp(78px, 12.4vw, 216px);
-  font-weight: 720;
-  font-variation-settings: 'wght' 720, 'wdth' 88;
-  line-height: 0.84;
-  letter-spacing: -0.035em;
+  font-weight: var(--name-weight);
+  line-height: 0.86;
+  letter-spacing: var(--display-tracking);
 }
 .name-word {
   display: block;
@@ -381,18 +428,19 @@ h4 {
 .name-clip {
   display: inline-block;
   overflow: hidden;
-  padding: 0.08em 0.01em 0.12em;
-  margin-bottom: -0.12em;
+  padding: 0.08em 0.01em 0.14em;
+  margin-bottom: -0.14em;
 }
 .name .l {
   display: inline-block;
-  font-variation-settings: 'wght' 720, 'wdth' 88;
-  transition: color 0.2s;
+  /* --heat (0 to 1) is set per letter by the cursor effect. */
+  color: color-mix(in srgb, var(--name-heat) calc(var(--heat, 0) * 100%), var(--text));
 }
 .hero-line {
   margin-top: 26px;
+  font-family: var(--display);
   font-size: clamp(22px, 2.3vw, 34px);
-  font-weight: 560;
+  font-weight: 500;
   line-height: 1.25;
   letter-spacing: -0.015em;
 }
@@ -405,20 +453,20 @@ h4 {
 }
 .rotor-w {
   grid-area: 1 / 1;
-  font-weight: 760;
+  font-style: var(--em-style);
   white-space: nowrap;
 }
 .rotor-0 {
-  color: var(--ecg);
+  color: var(--rotor-0);
 }
 .rotor-1 {
-  color: var(--spo2);
+  color: var(--rotor-1);
 }
 .rotor-2 {
-  color: var(--bp);
+  color: var(--rotor-2);
 }
 .rotor-3 {
-  color: var(--resp);
+  color: var(--rotor-3);
 }
 .hero-sub {
   max-width: 44ch;
@@ -441,9 +489,9 @@ h4 {
   z-index: 3;
   width: 300px;
   padding: 13px 16px 12px;
-  border: 1px solid rgb(61 255 154 / 0.2);
+  border: 1px solid color-mix(in srgb, var(--monitor) 22%, transparent);
   border-radius: 20px;
-  background: rgb(6 9 10 / 0.62);
+  background: var(--deep);
   -webkit-backdrop-filter: blur(14px);
   backdrop-filter: blur(14px);
   font-family: var(--mono);
@@ -463,13 +511,13 @@ h4 {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  color: var(--ecg);
+  color: var(--monitor);
 }
 .mon-dot {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: var(--ecg);
+  background: var(--monitor);
   animation: blink 1.6s steps(1) infinite;
 }
 @keyframes blink {
@@ -497,10 +545,10 @@ h4 {
   font-weight: 600;
   line-height: 1;
   font-variant-numeric: tabular-nums;
-  color: var(--ecg);
+  color: var(--monitor);
 }
 .is-o2 .mon-v {
-  color: var(--spo2);
+  color: var(--monitor-2);
 }
 .mon-u {
   font-size: 11px;
@@ -511,10 +559,10 @@ h4 {
 }
 @keyframes flare {
   0% {
-    text-shadow: 0 0 22px rgb(61 255 154 / 0.95);
+    text-shadow: 0 0 22px color-mix(in srgb, var(--monitor) 90%, transparent);
   }
   100% {
-    text-shadow: 0 0 0 rgb(61 255 154 / 0);
+    text-shadow: 0 0 0 transparent;
   }
 }
 .mon-ecg {
@@ -530,18 +578,18 @@ h4 {
   color: var(--text-3);
 }
 .monitor.is-charging {
-  border-color: rgb(255 210 63 / 0.6);
-  box-shadow: 0 0 40px -10px rgb(255 210 63 / 0.6);
+  border-color: color-mix(in srgb, var(--charge) 60%, transparent);
+  box-shadow: 0 0 40px -10px color-mix(in srgb, var(--charge) 60%, transparent);
 }
 .monitor.is-charging .mon-hint {
-  color: var(--resp);
+  color: var(--charge);
 }
 .monitor.is-shock {
-  border-color: rgb(255 61 139 / 0.7);
-  box-shadow: 0 0 50px -6px rgb(255 61 139 / 0.7);
+  border-color: color-mix(in srgb, var(--danger) 70%, transparent);
+  box-shadow: 0 0 50px -6px color-mix(in srgb, var(--danger) 70%, transparent);
 }
 .monitor.is-shock .mon-hint {
-  color: var(--bp);
+  color: var(--danger);
 }
 
 .scroll-cue {
@@ -560,7 +608,7 @@ h4 {
 .scroll-cue span {
   width: 1px;
   height: 34px;
-  background: linear-gradient(var(--ecg), transparent);
+  background: var(--accent);
   animation: drip 2s var(--ease) infinite;
   transform-origin: top;
 }
@@ -595,14 +643,12 @@ h4 {
 .manifesto-text {
   grid-column: 1;
   grid-row: 1;
+  font-family: var(--display);
   font-size: clamp(36px, 4.5vw, 80px);
-  font-weight: 540;
+  font-weight: calc(var(--display-weight) - 100);
   line-height: 1.08;
-  letter-spacing: -0.028em;
+  letter-spacing: calc(var(--display-tracking) * 0.75);
   text-wrap: balance;
-}
-.manifesto-text em:last-of-type {
-  background-image: linear-gradient(95deg, var(--bp), var(--temp) 70%, var(--resp));
 }
 
 /* ---- Work ---- */
@@ -634,13 +680,16 @@ h4 {
   padding: 0;
   list-style: none;
 }
+.case {
+  --c: var(--case-color, var(--own));
+}
 .case-card {
   position: relative;
   overflow: hidden;
   padding: clamp(24px, 3.4vw, 54px);
   border: 1px solid var(--line);
   border-radius: 30px;
-  background: linear-gradient(180deg, rgb(255 255 255 / 0.05), rgb(255 255 255 / 0.012)), var(--glass);
+  background: var(--glass);
   -webkit-backdrop-filter: blur(18px) saturate(140%);
   backdrop-filter: blur(18px) saturate(140%);
   transition:
@@ -657,15 +706,12 @@ h4 {
   aspect-ratio: 1;
   background: radial-gradient(circle, color-mix(in srgb, var(--c) 20%, transparent), transparent 66%);
   pointer-events: none;
-  opacity: 0.7;
+  opacity: var(--card-glow);
   transition: opacity 0.8s var(--ease);
 }
 .case.is-active .case-card {
   border-color: color-mix(in srgb, var(--c) 40%, transparent);
-  box-shadow: 0 30px 120px -50px color-mix(in srgb, var(--c) 60%, transparent);
-}
-.case.is-active .case-card::before {
-  opacity: 1;
+  box-shadow: 0 30px 120px -50px color-mix(in srgb, var(--c) calc(var(--card-glow) * 60%), transparent);
 }
 .case-head,
 .case-body {
@@ -695,15 +741,14 @@ h4 {
   height: 7px;
   border-radius: 50%;
   background: var(--c);
-  box-shadow: 0 0 10px var(--c);
 }
 .case-title {
   margin-top: 18px;
+  font-family: var(--display);
   font-size: clamp(34px, 4.2vw, 66px);
-  font-weight: 720;
-  font-variation-settings: 'wdth' 86;
-  line-height: 0.98;
-  letter-spacing: -0.03em;
+  font-weight: var(--display-weight);
+  line-height: 1;
+  letter-spacing: var(--display-tracking);
   text-wrap: balance;
 }
 .case-role {
@@ -771,7 +816,7 @@ h4 {
   color: var(--c);
 }
 .decisions strong {
-  font-weight: 680;
+  font-weight: 650;
   color: var(--text);
 }
 .case-fig {
@@ -781,8 +826,8 @@ h4 {
   padding: 14px;
   border: 1px solid var(--line);
   border-radius: 22px;
-  background: rgb(5 5 10 / 0.72);
-  box-shadow: inset 0 0 70px -24px color-mix(in srgb, var(--c) 45%, transparent);
+  background: var(--deep);
+  box-shadow: inset 0 0 70px -24px color-mix(in srgb, var(--c) calc(var(--frame-glow) * 45%), transparent);
 }
 .fig-cap {
   margin-top: 10px;
@@ -815,7 +860,7 @@ h4 {
 }
 .diagram .link {
   fill: none;
-  stroke: rgb(245 242 236 / 0.24);
+  stroke: color-mix(in srgb, var(--text) 24%, transparent);
   stroke-width: 1.4;
   stroke-dasharray: 1;
   stroke-dashoffset: 0;
@@ -866,14 +911,14 @@ h4 {
   stroke-width: 5;
 }
 .diagram .packet.is-back {
-  fill: #fff;
-  stroke: color-mix(in srgb, #fff 25%, transparent);
+  fill: var(--text);
+  stroke: color-mix(in srgb, var(--text) 25%, transparent);
 }
 .diagram .node {
   transition: opacity 0.3s;
 }
 .diagram .node rect {
-  fill: rgb(12 12 22 / 0.96);
+  fill: var(--node);
   stroke: color-mix(in srgb, var(--c) 46%, transparent);
   stroke-width: 1.2;
   transition:
@@ -885,7 +930,7 @@ h4 {
   font: 500 12.5px var(--mono);
 }
 .diagram .node.is-hot rect {
-  fill: color-mix(in srgb, var(--c) 24%, #0c0c16);
+  fill: color-mix(in srgb, var(--c) 24%, var(--node));
   stroke: var(--c);
 }
 .diagram.is-focus .node:not(.is-hot),
@@ -923,6 +968,7 @@ h4 {
   gap: 16px;
 }
 .area {
+  --c: var(--case-color, var(--own));
   padding: 26px 26px 24px;
   border: 1px solid var(--line);
   border-radius: 24px;
@@ -935,8 +981,9 @@ h4 {
   border-color: color-mix(in srgb, var(--c) 45%, transparent);
 }
 .area-title {
+  font-family: var(--display);
   font-size: 26px;
-  font-weight: 720;
+  font-weight: var(--display-weight);
   letter-spacing: -0.02em;
   color: var(--c);
 }
@@ -973,9 +1020,10 @@ h4 {
   margin-top: 12vh;
 }
 .ways-title {
+  font-family: var(--display);
   font-size: clamp(30px, 3.2vw, 48px);
-  font-weight: 720;
-  letter-spacing: -0.025em;
+  font-weight: var(--display-weight);
+  letter-spacing: var(--display-tracking);
 }
 .ways-list {
   display: grid;
@@ -987,12 +1035,12 @@ h4 {
 }
 .ways-n {
   font: 600 13px var(--mono);
-  color: var(--violet);
+  color: var(--accent);
 }
 .ways-list h4 {
   margin-top: 10px;
   font-size: 21px;
-  font-weight: 680;
+  font-weight: 650;
 }
 .ways-list p {
   margin-top: 8px;
@@ -1017,15 +1065,6 @@ h4 {
 .quest-stage {
   height: min(78vh, 720px);
   cursor: crosshair;
-}
-.quest .kicker-n {
-  color: var(--resp);
-}
-.quest .sec-title {
-  background: linear-gradient(95deg, var(--ecg), #a8f06a 55%, var(--temp));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
 }
 .quest .btn {
   margin-top: 34px;
@@ -1096,12 +1135,12 @@ h4 {
     color 0.25s;
 }
 .chip input:checked + span {
-  border-color: var(--ecg);
-  background: rgb(61 255 154 / 0.12);
-  color: var(--ecg);
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--text);
 }
 .chip input:focus-visible + span {
-  outline: 2px solid var(--ecg);
+  outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
 .row {
@@ -1118,7 +1157,7 @@ h4 {
   padding: 14px 16px;
   border: 1px solid var(--line-2);
   border-radius: 14px;
-  background: rgb(5 5 10 / 0.55);
+  background: var(--deep);
   color: var(--text);
   font: inherit;
   font-size: 16px;
@@ -1131,20 +1170,20 @@ h4 {
 .field input:focus,
 .field textarea:focus {
   outline: none;
-  border-color: var(--ecg);
+  border-color: var(--accent);
 }
 .field input::placeholder,
 .field textarea::placeholder {
   color: var(--text-3);
 }
 .field [aria-invalid='true'] {
-  border-color: var(--bp);
+  border-color: var(--danger);
 }
 .error {
   display: none;
   margin-top: 8px;
   font-size: 14px;
-  color: var(--bp);
+  color: var(--danger);
 }
 .error.is-on {
   display: block;
@@ -1165,13 +1204,14 @@ h4 {
   color: var(--text-3);
 }
 .hint.is-error {
-  color: var(--bp);
+  color: var(--danger);
 }
 .sent-title {
   margin-top: 14px;
+  font-family: var(--display);
   font-size: clamp(34px, 4vw, 56px);
-  font-weight: 720;
-  letter-spacing: -0.03em;
+  font-weight: var(--display-weight);
+  letter-spacing: var(--display-tracking);
 }
 .sent .btn {
   margin-top: 28px;
@@ -1204,7 +1244,7 @@ h4 {
   transition: color 0.3s;
 }
 .foot-links a:hover {
-  color: var(--ecg);
+  color: var(--accent);
 }
 .foot-links svg {
   width: 12px;
@@ -1212,17 +1252,15 @@ h4 {
 }
 .foot-mark {
   margin: 0 0 -0.18em;
+  font-family: var(--display);
   font-size: 27vw;
-  font-weight: 800;
-  font-variation-settings: 'wdth' 80;
+  font-weight: var(--name-weight);
   line-height: 0.8;
-  letter-spacing: -0.06em;
+  letter-spacing: var(--display-tracking);
   text-align: center;
   white-space: nowrap;
-  background: linear-gradient(90deg, var(--ecg), var(--spo2) 30%, var(--violet) 62%, var(--bp));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--text);
+  opacity: 0.9;
   -webkit-mask-image: linear-gradient(180deg, #000 20%, transparent 95%);
   mask-image: linear-gradient(180deg, #000 20%, transparent 95%);
   pointer-events: none;
@@ -1284,7 +1322,7 @@ h4 {
     position: relative;
     inset: auto;
     width: 100%;
-    height: 52svh;
+    height: 48svh;
     flex: none;
   }
   .hero-copy {
@@ -1292,7 +1330,7 @@ h4 {
     left: auto;
     bottom: auto;
     width: auto;
-    margin-top: -4svh;
+    margin-top: -2svh;
     padding: 0 var(--gutter);
   }
   .name {
@@ -1321,7 +1359,7 @@ h4 {
   .manifesto-stage {
     grid-column: 1;
     grid-row: 1;
-    height: 40svh;
+    height: 34svh;
   }
   .manifesto-text {
     grid-column: 1;

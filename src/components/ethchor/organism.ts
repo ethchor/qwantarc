@@ -1,11 +1,12 @@
 /**
  * The organism: one cloud of particles behind the whole page that takes a new form for each section.
- * It opens as an ECG trace that beats itself into a portrait, then becomes a heart, a network of
- * systems, a double helix, a potted plant and finally a hello, morphing as you scroll.
+ * It opens as an ECG trace that beats itself into a heart, then becomes a choppy sea that calms as you
+ * read, a network of systems, a double helix, a potted plant and finally a hello, morphing as you scroll.
  *
  * Every form lives on the GPU at once, as vertex attributes, and the shader flies each particle from
- * one form to the next. Each form is fitted to an anchor element on the page, so the layout (and
- * its breakpoints) decides where it sits; this file only follows. The cursor parts the particles,
+ * one form to the next. Each form is fitted to an anchor element on the page, so the layout (and its
+ * breakpoints) decides where it sits; this file only follows. Colours come from the stylesheet
+ * (--p-<form>, --p-glow, --p-blend), so the theme lives in one place. The cursor parts the particles,
  * a click sends a ring through them, and holding charges a burst. The page's heartbeat swells them.
  */
 import {
@@ -14,6 +15,7 @@ import {
   BufferGeometry,
   Color,
   Group,
+  NormalBlending,
   PerspectiveCamera,
   Points,
   Scene,
@@ -23,21 +25,32 @@ import {
   WebGLRenderer,
 } from 'three';
 import type { Heart } from './heart';
-import { ecgLine, heart as heartForm, helix, network, plant, portrait, rng, word, type Shape } from './shapes';
+import { ecgLine, heart as heartForm, helix, network, plant, rng, wave, word, type Shape } from './shapes';
 
-export type Form = 'ecg' | 'portrait' | 'heart' | 'network' | 'helix' | 'plant' | 'hello';
-const FORMS: Form[] = ['ecg', 'portrait', 'heart', 'network', 'helix', 'plant', 'hello'];
+export type Form = 'ecg' | 'heart' | 'wave' | 'network' | 'helix' | 'plant' | 'hello';
+const FORMS: Form[] = ['ecg', 'heart', 'wave', 'network', 'helix', 'plant', 'hello'];
+const WAVE = FORMS.indexOf('wave');
 
-/** Per form: its palette along the tone, how much the heartbeat swells it, its spin and its sway. */
-const LOOK: Record<Form, { ramp: [string, string, string]; beat: number; spin: number; sway: number; fill: number }> = {
-  ecg: { ramp: ['#3dff9a', '#3dff9a', '#2ee6ff'], beat: 0, spin: 0, sway: 0, fill: 1 },
-  // A thermal camera's palette: cool violet, warming through magenta to amber where the skin is.
-  portrait: { ramp: ['#6c5cff', '#ff3d8b', '#ffb547'], beat: 0.012, spin: 0, sway: 0.14, fill: 0.98 },
-  heart: { ramp: ['#c8206f', '#ff3d8b', '#ff9a5c'], beat: 0.075, spin: 0.32, sway: 0, fill: 0.88 },
-  network: { ramp: ['#2ee6ff', '#3dff9a', '#8b6cff'], beat: 0.02, spin: 0.1, sway: 0, fill: 0.92 },
-  helix: { ramp: ['#8b6cff', '#ff3d8b', '#2ee6ff'], beat: 0.015, spin: 0.55, sway: 0, fill: 0.95 },
-  plant: { ramp: ['#3dff9a', '#a8f06a', '#ff7a3d'], beat: 0.012, spin: 0, sway: 0.16, fill: 0.95 },
-  hello: { ramp: ['#ff3d8b', '#ffd23f', '#2ee6ff'], beat: 0.03, spin: 0, sway: 0.08, fill: 0.95 },
+/** Per form: how much the heartbeat swells it, its spin, sway and tilt, and how much of its anchor it fills. */
+const MOTION: Record<Form, { beat: number; spin: number; sway: number; tilt: number; fill: number }> = {
+  ecg: { beat: 0, spin: 0, sway: 0, tilt: 0, fill: 1 },
+  heart: { beat: 0.075, spin: 0, sway: 0.5, tilt: 0, fill: 0.86 },
+  wave: { beat: 0.01, spin: 0, sway: 0.12, tilt: -0.6, fill: 0.95 },
+  network: { beat: 0.02, spin: 0.1, sway: 0, tilt: 0, fill: 0.92 },
+  helix: { beat: 0.015, spin: 0.55, sway: 0, tilt: 0, fill: 0.95 },
+  plant: { beat: 0.012, spin: 0, sway: 0.16, tilt: 0, fill: 0.95 },
+  hello: { beat: 0.03, spin: 0, sway: 0.08, tilt: 0, fill: 0.95 },
+};
+
+/** Fallback palettes, three stops along each form's tone, if the stylesheet doesn't set them. */
+const PALETTE: Record<Form, [string, string, string]> = {
+  ecg: ['#3dff9a', '#3dff9a', '#2ee6ff'],
+  heart: ['#c8206f', '#ff3d8b', '#ff9a5c'],
+  wave: ['#2ee6ff', '#8b6cff', '#ff3d8b'],
+  network: ['#2ee6ff', '#3dff9a', '#8b6cff'],
+  helix: ['#8b6cff', '#ff3d8b', '#2ee6ff'],
+  plant: ['#3dff9a', '#a8f06a', '#ff7a3d'],
+  hello: ['#ff3d8b', '#ffd23f', '#2ee6ff'],
 };
 
 export interface Stage {
@@ -75,6 +88,8 @@ uniform vec4 uBurst;
 uniform float uBurstAt;
 uniform float uScan;
 uniform vec3 uRamp[21];
+uniform vec3 uGlow;
+uniform float uCalm;
 
 attribute vec3 aS0;
 attribute vec3 aS1;
@@ -87,7 +102,6 @@ attribute vec3 aT0;
 attribute vec3 aT1;
 attribute vec3 aT2;
 attribute float aSeed;
-attribute float aLum;
 
 varying vec3 vColor;
 varying float vAlpha;
@@ -127,8 +141,14 @@ void main() {
   vec3 a = formPos(uFrom);
   vec3 p = mix(a, formPos(uTo), t);
   vec3 col = mix(ramp(uFrom, formTone(uFrom)), ramp(uTo, formTone(uTo)), t);
-  // In the portrait, points are bigger and brighter where the photo is bright, like a halftone.
-  float pw = (uFrom == 1 ? 1.0 - t : 0.0) + (uTo == 1 ? t : 0.0);
+
+  // The sea rolls, and its chop settles as uCalm rises.
+  float sea = (uFrom == ${WAVE} ? 1.0 - t : 0.0) + (uTo == ${WAVE} ? t : 0.0);
+  if (sea > 0.0) {
+    float chop = 1.0 - uCalm;
+    p.y += (sin(p.x * 3.0 + uTime * 0.9) * 0.06 + sin(p.z * 4.0 - uTime * 0.7 + p.x) * 0.05) * sea;
+    p.y += (sin(p.x * 13.0 + p.z * 7.0 + uTime * 3.4) * 0.045 + sin(p.x * 29.0 - uTime * 5.1 + p.z * 11.0) * 0.025) * chop * sea;
+  }
 
   // Mid-flight they swirl instead of sliding straight across.
   float flight = sin(t * 3.14159265);
@@ -189,14 +209,14 @@ void main() {
 
   vec4 mv = modelViewMatrix * vec4(p, 1.0);
   gl_Position = projectionMatrix * mv;
-  float grain = mix(0.55 + aT2.z * 0.9, 0.36 + aLum * 1.4, pw);
-  gl_PointSize = uSize * grain * (1.0 + glow * 0.45 + uSqueeze * 0.18) * uPR * (uCamZ / -mv.z);
-  vColor = mix(col * mix(1.0, 0.6 + 0.6 * aLum, pw), vec3(1.0), clamp(glow * 0.35, 0.0, 0.65));
-  vAlpha = uOpacity * mix(0.72 + 0.28 * aT2.y, 0.42 + 0.58 * aLum, pw);
+  gl_PointSize = uSize * (0.55 + aT2.z * 0.9) * (1.0 + glow * 0.45 + uSqueeze * 0.18) * uPR * (uCamZ / -mv.z);
+  vColor = mix(col, uGlow, clamp(glow * 0.35, 0.0, 0.65));
+  vAlpha = uOpacity * (0.72 + 0.28 * aT2.y);
 }
 `;
 
 const FRAGMENT = /* glsl */ `
+uniform float uAdditive;
 varying vec3 vColor;
 varying float vAlpha;
 void main() {
@@ -204,7 +224,8 @@ void main() {
   if (d > 0.5) discard;
   float a = pow(1.0 - smoothstep(0.0, 0.5, d), 1.5);
   float core = 1.0 - smoothstep(0.0, 0.18, d);
-  gl_FragColor = vec4(vColor * (0.75 + 0.7 * core), a * vAlpha);
+  // Light adds up on a dark page; on a light page the points are ink, so no bright core.
+  gl_FragColor = vec4(vColor * mix(1.0, 0.75 + 0.7 * core, uAdditive), a * vAlpha);
 }
 `;
 
@@ -215,6 +236,8 @@ uniform float uCamZ;
 uniform float uTime;
 uniform float uActive;
 uniform vec3 uActiveColor;
+uniform vec3 uHaloColor;
+uniform vec3 uPacketColor;
 uniform float uOpacity;
 attribute vec4 aInfo;
 varying vec3 vColor;
@@ -228,7 +251,7 @@ void main() {
   float beat = 0.5 + 0.5 * sin(uTime * 3.2 + aInfo.w);
   float size = mix(mix(8.0, 22.0, halo), 54.0 + beat * 12.0, on);
   gl_PointSize = size * uPR * (uCamZ / -mv.z);
-  vColor = mix(mix(vec3(0.92, 1.0, 0.96), vec3(0.18, 0.9, 1.0), halo), uActiveColor, on);
+  vColor = mix(mix(uPacketColor, uHaloColor, halo), uActiveColor, on);
   vAlpha = uOpacity * mix(mix(0.95, 0.32, halo), 1.0, on);
   vHalo = halo;
 }
@@ -266,6 +289,23 @@ const clamp01 = (x: number) => Math.max(0, Math.min(1, x));
 const wrap = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
 const lerpAngle = (a: number, b: number, t: number) => a + wrap(b - a) * t;
 
+/** The theme's particle colours and blending, read from the stylesheet. */
+function readTheme() {
+  const css = getComputedStyle(document.documentElement);
+  const value = (name: string, fallback: string) => css.getPropertyValue(name).trim() || fallback;
+  const ramp = FORMS.flatMap((f) => {
+    const stops = value(`--p-${f}`, '').split(/\s+/).filter(Boolean);
+    return (stops.length === 3 ? stops : PALETTE[f]).map((c) => new Color(c));
+  });
+  return {
+    ramp,
+    glow: new Color(value('--p-glow', '#ffffff')),
+    halo: new Color(value('--p-halo', '#2ee6ff')),
+    packet: new Color(value('--p-packet', '#eafff3')),
+    additive: value('--p-blend', 'additive') !== 'normal',
+  };
+}
+
 export function createOrganism(canvas: HTMLCanvasElement, opts: OrganismOptions) {
   const renderer = new WebGLRenderer({ canvas, alpha: true, antialias: false, powerPreference: 'high-performance' });
   renderer.setClearColor(0x000000, 0);
@@ -275,6 +315,8 @@ export function createOrganism(canvas: HTMLCanvasElement, opts: OrganismOptions)
   camera.position.z = CAM_Z;
   const group = new Group();
   scene.add(group);
+  const theme = readTheme();
+  const blending = theme.additive ? AdditiveBlending : NormalBlending;
 
   /* ---------- The forms ---------- */
   const N = opts.count;
@@ -282,8 +324,8 @@ export function createOrganism(canvas: HTMLCanvasElement, opts: OrganismOptions)
   const net = network(N, r);
   const shapes: Record<Form, Shape> = {
     ecg: ecgLine(N, r),
-    portrait: portrait(N, r),
     heart: heartForm(N, r),
+    wave: wave(N, r),
     network: net,
     helix: helix(N, r),
     plant: plant(N, r),
@@ -294,7 +336,7 @@ export function createOrganism(canvas: HTMLCanvasElement, opts: OrganismOptions)
   FORMS.forEach((f, i) => {
     const attr = new BufferAttribute(shapes[f].pos, 3);
     geo.setAttribute(`aS${i}`, attr);
-    if (f === 'portrait') geo.setAttribute('position', attr);
+    if (f === 'heart') geo.setAttribute('position', attr);
   });
   const tones = [new Float32Array(N * 3), new Float32Array(N * 3), new Float32Array(N * 3)];
   const seeds = new Float32Array(N);
@@ -307,9 +349,7 @@ export function createOrganism(canvas: HTMLCanvasElement, opts: OrganismOptions)
   }
   tones.forEach((t, k) => geo.setAttribute(`aT${k}`, new BufferAttribute(t, 3)));
   geo.setAttribute('aSeed', new BufferAttribute(seeds, 1));
-  geo.setAttribute('aLum', new BufferAttribute(shapes.portrait.lum ?? new Float32Array(N).fill(1), 1));
 
-  const ramp = FORMS.flatMap((f) => LOOK[f].ramp.map((c) => new Color(c)));
   const uniforms = {
     uTime: { value: 0 },
     uPR: { value: 1 },
@@ -330,7 +370,10 @@ export function createOrganism(canvas: HTMLCanvasElement, opts: OrganismOptions)
     uBurst: { value: new Vector4() },
     uBurstAt: { value: -99 },
     uScan: { value: -9 },
-    uRamp: { value: ramp },
+    uRamp: { value: theme.ramp },
+    uGlow: { value: theme.glow },
+    uCalm: { value: 1 },
+    uAdditive: { value: theme.additive ? 1 : 0 },
   };
   const material = new ShaderMaterial({
     uniforms,
@@ -339,7 +382,7 @@ export function createOrganism(canvas: HTMLCanvasElement, opts: OrganismOptions)
     transparent: true,
     depthWrite: false,
     depthTest: false,
-    blending: AdditiveBlending,
+    blending,
   });
   const points = new Points(geo, material);
   points.frustumCulled = false;
@@ -370,6 +413,8 @@ export function createOrganism(canvas: HTMLCanvasElement, opts: OrganismOptions)
     uTime: uniforms.uTime,
     uActive: { value: -1 },
     uActiveColor: { value: new Color('#3dff9a') },
+    uHaloColor: { value: theme.halo },
+    uPacketColor: { value: theme.packet },
     uOpacity: { value: 0 },
   };
   const overlay = new Points(
@@ -381,7 +426,7 @@ export function createOrganism(canvas: HTMLCanvasElement, opts: OrganismOptions)
       transparent: true,
       depthWrite: false,
       depthTest: false,
-      blending: AdditiveBlending,
+      blending,
     }),
   );
   overlay.frustumCulled = false;
@@ -433,14 +478,13 @@ export function createOrganism(canvas: HTMLCanvasElement, opts: OrganismOptions)
     return {
       x: (b.left + b.width / 2 - cw / 2) * wpp,
       y: -(b.top + b.height / 2 - ch / 2) * wpp,
-      s: Math.min((b.width * wpp) / sh.w, (b.height * wpp) / sh.h) * LOOK[form].fill,
+      s: Math.min((b.width * wpp) / sh.w, (b.height * wpp) / sh.h) * MOTION[form].fill,
     };
   };
 
   /* ---------- Interaction ---------- */
   const pointer = { x: 0, y: 0, on: 0, target: 0, nx: 0, ny: 0, tx: 0, ty: 0 };
-  const toLocal = (x: number, y: number) =>
-    group.worldToLocal(new Vector3((x - cw / 2) * wpp, -(y - ch / 2) * wpp, 0));
+  const toLocal = (x: number, y: number) => group.worldToLocal(new Vector3((x - cw / 2) * wpp, -(y - ch / 2) * wpp, 0));
   let pulseIndex = 0;
   let time = 0;
 
@@ -493,21 +537,19 @@ export function createOrganism(canvas: HTMLCanvasElement, opts: OrganismOptions)
     group.position.set(cur.x, cur.y, 0);
     group.scale.setScalar(cur.s);
 
-    // Spin and sway per form, blended the short way round, plus a tilt toward the cursor.
+    // Spin, sway and tilt per form, blended the short way round, plus a tilt toward the cursor.
     pointer.nx += (pointer.tx - pointer.nx) * (1 - Math.exp(-dt * 4));
     pointer.ny += (pointer.ty - pointer.ny) * (1 - Math.exp(-dt * 4));
-    const angle = (f: Form) => wrap(LOOK[f].spin * t + LOOK[f].sway * Math.sin(t * 0.45));
+    const angle = (f: Form) => wrap(MOTION[f].spin * t + MOTION[f].sway * Math.sin(t * 0.45));
     group.rotation.y = lerpAngle(angle(fromForm), angle(toForm), e) + pointer.nx * 0.24;
-    group.rotation.x = -pointer.ny * 0.14;
+    group.rotation.x = MOTION[fromForm].tilt + (MOTION[toForm].tilt - MOTION[fromForm].tilt) * e - pointer.ny * 0.14;
     group.updateMatrixWorld();
 
-    const fi = FORMS.indexOf(fromForm);
-    const ti = FORMS.indexOf(toForm);
-    uniforms.uFrom.value = fi;
-    uniforms.uTo.value = ti;
+    uniforms.uFrom.value = FORMS.indexOf(fromForm);
+    uniforms.uTo.value = FORMS.indexOf(toForm);
     uniforms.uMix.value = m;
-    uniforms.uBeatFrom.value = LOOK[fromForm].beat;
-    uniforms.uBeatTo.value = LOOK[toForm].beat;
+    uniforms.uBeatFrom.value = MOTION[fromForm].beat;
+    uniforms.uBeatTo.value = MOTION[toForm].beat;
     uniforms.uSqueeze.value = opts.heart.squeeze;
     uniforms.uScan.value = inIntro ? -1.25 + clamp01(introT / 1.1) * 2.5 : -9;
     const opFrom = inIntro ? 1 : opacityOf.get(fromEl) ?? 1;
@@ -574,6 +616,10 @@ export function createOrganism(canvas: HTMLCanvasElement, opts: OrganismOptions)
       uniforms.uBurst.value.set(p.x, p.y, p.z, strength);
       uniforms.uBurstAt.value = time;
       uniforms.uCharge.value = 0;
+    },
+    /** How settled the sea is, from 0 (choppy) to 1 (calm). */
+    setCalm(v: number) {
+      uniforms.uCalm.value = clamp01(v);
     },
     /** Light the node for the project on screen, in its colour. */
     setActive(index: number, color: string) {

@@ -38,7 +38,7 @@ const heartIcon =
   </header>
 
   <main id="top">
-    <section class="hero" data-shape="portrait" data-hero data-play aria-labelledby="name">
+    <section class="hero" data-shape="heart" data-hero data-play aria-labelledby="name">
       <div class="hero-stage" data-anchor aria-hidden="true"></div>
       <div class="hero-copy" data-noplay>
         <p class="kicker" data-fade><span class="kicker-dot" aria-hidden="true"></span>{PERSON.handle} · {PERSON.role}</p>
@@ -99,7 +99,7 @@ const heartIcon =
       <a class="scroll-cue" href="#manifesto" aria-label="Scroll to the next section"><span aria-hidden="true"></span>Scroll</a>
     </section>
 
-    <section class="manifesto" id="manifesto" data-shape="heart" data-play aria-label="What I believe">
+    <section class="manifesto" id="manifesto" data-shape="wave" data-play aria-label="What I believe">
       <div class="manifesto-stage" data-anchor aria-hidden="true"></div>
       <p class="manifesto-text" data-words data-noplay>
         {
@@ -125,7 +125,7 @@ const heartIcon =
       <ol class="cases">
         {
           CASES.map((c, i) => (
-            <li class="case" data-case={i} style={`--c: ${c.color}`}>
+            <li class="case" data-case={i} style={`--own: ${c.color}`}>
               <article class="case-card" aria-labelledby={`case-${c.slug}`}>
                 <header class="case-head">
                   <p class="case-meta">
@@ -187,7 +187,7 @@ const heartIcon =
       <div class="areas">
         {
           TOOLKIT.map((a) => (
-            <div class="area" style={`--c: ${a.color}`} data-reveal>
+            <div class="area" style={`--own: ${a.color}`} data-reveal>
               <h3 class="area-title">{a.area}</h3>
               <p class="area-note">{a.note}</p>
               <ul class="area-items">
@@ -369,7 +369,8 @@ const heartIcon =
   async function wake() {
     try {
       // The closing word is drawn in the display face, so wait for it (briefly).
-      await Promise.race([document.fonts.load('800 220px "Bricolage Grotesque"'), new Promise((r) => setTimeout(r, 2500))]);
+      const display = getComputedStyle(root).getPropertyValue('--display').trim() || 'system-ui, sans-serif';
+      await Promise.race([document.fonts.load(`800 220px ${display}`), new Promise((r) => setTimeout(r, 2500))]);
       const { createOrganism } = await import('../../components/ethchor/organism');
       const small = innerWidth < 760;
       const cores = navigator.hardwareConcurrency || 8;
@@ -380,7 +381,7 @@ const heartIcon =
         intro: !reduce && scrollY < 40,
         count: small ? 7000 : cores <= 4 ? 10000 : 16000,
         maxDpr: small ? 1.5 : 1.75,
-        font: '"Bricolage Grotesque", system-ui, sans-serif',
+        font: display,
       });
       born = performance.now();
       root.classList.add('has-organism');
@@ -489,13 +490,23 @@ const heartIcon =
     }
   };
 
-  /* ---------- The name stretches and warms where the cursor is ---------- */
+  /* ---------- The name thickens and warms where the cursor is ---------- */
   const letters = [...document.querySelectorAll<HTMLElement>('.name .l')];
-  const lw = letters.map(() => ({ wght: 720, wdth: 88, heat: 0 }));
+  const nameEl = document.querySelector<HTMLElement>('.name')!;
+  // Weights from the stylesheet: the name rests at its own; near the cursor, letters thin to
+  // --name-thin and the closest swell to --name-bold. The warmth is --name-heat (see .name .l).
+  const nameCss = getComputedStyle(nameEl);
+  const num = (prop: string, fallback: number) => {
+    const v = parseFloat(nameCss.getPropertyValue(prop));
+    return Number.isFinite(v) ? v : fallback;
+  };
+  const REST = num('font-weight', 700);
+  const THIN = num('--name-thin', REST - 300);
+  const BOLD = num('--name-bold', REST + 100);
+  const lw = letters.map(() => ({ w: REST, heat: 0 }));
   let nx = -9999;
   let ny = -9999;
   let near = false;
-  const nameEl = document.querySelector<HTMLElement>('.name')!;
   hero.addEventListener('pointermove', (e) => {
     if (e.pointerType !== 'mouse') return;
     nx = e.clientX;
@@ -505,31 +516,22 @@ const heartIcon =
     near = nx < b.right + 160 && ny > b.top - 120 && ny < b.bottom + 120;
   });
   hero.addEventListener('pointerleave', () => (near = false));
-  const HOT = [255, 61, 139];
-  const WARM = [255, 181, 71];
   const tickLetters = () => {
     if (!fine || reduce) return;
     letters.forEach((el, i) => {
-      let wght = 720;
-      let wdth = 88;
+      let w = REST;
       let heat = 0;
       if (near) {
         const b = el.getBoundingClientRect();
         const d = Math.hypot(nx - (b.left + b.width / 2), ny - (b.top + b.height / 2));
         heat = Math.exp(-(d * d) / (2 * 140 * 140));
-        wght = 380 + 420 * heat;
-        wdth = 75 + 25 * heat;
+        w = THIN + (BOLD - THIN) * heat;
       }
       const s = lw[i];
-      s.wght += (wght - s.wght) * 0.14;
-      s.wdth += (wdth - s.wdth) * 0.14;
+      s.w += (w - s.w) * 0.14;
       s.heat += (heat - s.heat) * 0.14;
-      el.style.fontVariationSettings = `'wght' ${s.wght.toFixed(0)}, 'wdth' ${s.wdth.toFixed(1)}`;
-      if (s.heat > 0.02) {
-        const k = s.heat;
-        const c = HOT.map((h, j) => Math.round(245 + (h - 245) * Math.min(1, k * 1.6) + (WARM[j] - h) * Math.max(0, k - 0.6)));
-        el.style.color = `rgb(${c.join(' ')})`;
-      } else el.style.color = '';
+      el.style.fontWeight = s.w.toFixed(0);
+      el.style.setProperty('--heat', Math.min(1, s.heat * 1.4).toFixed(3));
     });
   };
 
@@ -578,11 +580,22 @@ const heartIcon =
       w = next;
     }, 2600);
 
-    // The manifesto lights up as you read it.
+    // The manifesto lights up as you read it, and the sea beside it calms.
     gsap.fromTo(
       '[data-words] .w',
       { opacity: 0.14 },
-      { opacity: 1, ease: 'none', stagger: 0.12, scrollTrigger: { trigger: '[data-words]', start: 'top 80%', end: 'bottom 45%', scrub: 0.6 } },
+      {
+        opacity: 1,
+        ease: 'none',
+        stagger: 0.12,
+        scrollTrigger: {
+          trigger: '[data-words]',
+          start: 'top 80%',
+          end: 'bottom 45%',
+          scrub: 0.6,
+          onUpdate: (self) => organism?.setCalm(self.progress),
+        },
+      },
     );
 
     gsap.utils.toArray<HTMLElement>('[data-reveal]').forEach((el) =>
@@ -605,7 +618,8 @@ const heartIcon =
       end: 'bottom 40%',
       onToggle: (self) => {
         card.classList.toggle('is-active', self.isActive);
-        if (self.isActive) organism?.setActive(i, CASES[i].color);
+        // The card's colour as the theme resolves it (its own, or the theme's single case colour).
+        if (self.isActive) organism?.setActive(i, getComputedStyle(card).getPropertyValue('--c').trim() || CASES[i].color);
       },
     });
   });

@@ -3,15 +3,11 @@
  * normalised units (about -1 to 1), with a tone per point (0 to 1) that picks its colour from the
  * section's palette, and its width and height so it can be fitted to the space the page leaves for it.
  */
-import { PORTRAIT } from '../../lib/ethchor/portrait';
-
 export interface Shape {
   pos: Float32Array;
   tone: Float32Array;
   w: number;
   h: number;
-  /** Brightness per point, where a form has one (the portrait): bigger, brighter points where it's bright. */
-  lum?: Float32Array;
 }
 
 export type Rand = () => number;
@@ -62,48 +58,23 @@ export function ecgLine(n: number, r: Rand): Shape {
   return { ...out, w: 2, h: 0.4 };
 }
 
-const decode = (b64: string) => Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
-
-/**
- * The portrait in relief: points fall where the photo is bright, more of them where it is
- * brighter, and brighter areas sit closer, so the face has depth when it turns.
- */
-export function portrait(n: number, r: Rand): Shape {
+/** A sea of points: a rolling surface tilted toward you (the shader rolls it, and calms it). */
+export function wave(n: number, r: Rand): Shape {
   const out = make(n);
-  const bright = new Float32Array(n);
-  const lum = decode(PORTRAIT.lum);
-  const warm = decode(PORTRAIT.warm);
-  const { cols, rows } = PORTRAIT;
-  const cells: number[] = [];
-  const acc: number[] = [];
-  let total = 0;
-  for (let i = 0; i < lum.length; i++) {
-    if (!lum[i]) continue;
-    total += 0.15 + Math.pow(lum[i] / 255, 1.1);
-    cells.push(i);
-    acc.push(total);
-  }
-  const aspect = cols / rows;
+  const W = 1.35;
+  const D = 0.95;
+  const ROWS = 26;
+  // Particles sit on evenly spaced lines across the sea, so it reads as a surface of ridgelines
+  // rather than a cloud. Each picks its line at random, so any prefix of them (when a slow device
+  // draws fewer) still covers the whole sea.
   for (let k = 0; k < n; k++) {
-    const t = r() * total;
-    let lo = 0;
-    let hi = acc.length - 1;
-    while (lo < hi) {
-      const mid = (lo + hi) >> 1;
-      if (acc[mid] < t) lo = mid + 1;
-      else hi = mid;
-    }
-    const i = cells[lo];
-    const c = i % cols;
-    const row = Math.floor(i / cols);
-    const l = lum[i] / 255;
-    const x = ((c + r()) / cols - 0.5) * 2 * aspect;
-    const y = -((row + r()) / rows - 0.5) * 2;
-    out.pos.set([x, y, (l - 0.5) * 0.5 + gauss(r) * 0.012], k * 3);
-    out.tone[k] = Math.min(1, (warm[i] / 255) * 1.15);
-    bright[k] = l;
+    const x = (r() * 2 - 1) * W;
+    const z = ((Math.floor(r() * ROWS) + 0.5) / ROWS) * 2 * D - D;
+    out.pos.set([x, Math.sin(x * 2.2) * 0.05 + Math.cos(z * 3.1 + x) * 0.04, z], k * 3);
+    out.tone[k] = (z / D + 1) / 2;
   }
-  return { ...out, w: aspect * 2, h: 2, lum: bright };
+  // Seen from above at an angle, it is wide and not very tall.
+  return { ...out, w: 2.7, h: 1.6 };
 }
 
 /** Taubin's heart surface, (x² + 9/4 y² + z² − 1)³ − x² z³ − 9/80 y² z³ = 0, mostly as a shell. */
