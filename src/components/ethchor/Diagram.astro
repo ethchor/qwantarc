@@ -1,9 +1,10 @@
 ---
 /**
  * A case's system diagram: nodes on a 420 by 230 grid, links between them and packets of data
- * travelling along the links, in the case's colour. When it scrolls into view the page adds
- * .is-drawn: the links draw themselves and the nodes pop in (styles in ethchor.css). Hovering or
- * focusing an architecture decision lights the nodes it is about; the packets stop for reduced motion.
+ * travelling along the links. When it comes into view the page adds .is-drawn: the links draw
+ * themselves and the nodes pop in (styles in ethchor.css). Node widths are estimated here and
+ * measured again in the browser once the font has loaded (see fitDiagrams in the page script).
+ * Hovering or focusing an architecture decision lights the nodes it is about.
  */
 import type { Diagram } from '../../lib/ethchor/profile';
 
@@ -16,9 +17,9 @@ interface Props {
 const { id, diagram, label } = Astro.props;
 const W = 420;
 const H = 230;
-/** Advance of the mono labels at 12 units. */
-const CHAR = 7.25;
-const nodes = diagram.nodes.map((n) => ({ ...n, w: Math.round(n.label.length * CHAR + 24), h: 30 }));
+/** Average advance of the labels at 12.5px. */
+const CHAR = 6.6;
+const nodes = diagram.nodes.map((n) => ({ ...n, w: Math.round(n.label.length * CHAR + 26), h: 30 }));
 const at = Object.fromEntries(nodes.map((n) => [n.id, n]));
 const edges = diagram.edges.map(([a, b, both], i) => {
   const A = at[a];
@@ -45,13 +46,13 @@ const edges = diagram.edges.map(([a, b, both], i) => {
     {
       edges.map((e) => (
         <>
-          <circle class="packet" r="3.2">
+          <circle class="packet" r="3">
             <animateMotion dur={`${e.dur}s`} begin={`${e.begin}s`} repeatCount="indefinite" calcMode="linear">
               <mpath href={`#${e.id}`} />
             </animateMotion>
           </circle>
           {e.both && (
-            <circle class="packet is-back" r="2.6">
+            <circle class="packet is-back" r="2.4">
               <animateMotion
                 dur={`${e.dur}s`}
                 begin={`${(Number(e.begin) + Number(e.dur) / 2).toFixed(2)}s`}
@@ -71,10 +72,10 @@ const edges = diagram.edges.map(([a, b, both], i) => {
   <g class="nodes">
     {
       nodes.map((n, i) => (
-        <g class="node" data-node={n.id} transform={`translate(${n.x - n.w / 2} ${n.y - n.h / 2})`}>
+        <g class="node" data-node={n.id} data-cx={n.x} data-cy={n.y} transform={`translate(${n.x - n.w / 2} ${n.y - n.h / 2})`}>
           <g class="node-in" style={`--i: ${i}`}>
-            <rect width={n.w} height={n.h} rx="9" />
-            <text x={n.w / 2} y={n.h / 2 + 4.2} text-anchor="middle">
+            <rect width={n.w} height={n.h} rx="15" />
+            <text x={n.w / 2} y={n.h / 2 + 4.3} text-anchor="middle">
               {n.label}
             </text>
           </g>

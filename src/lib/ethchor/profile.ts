@@ -1,7 +1,7 @@
 /**
  * Vimu Kale's portfolio (ethchor.qwantarc.com): everything the page says, in one place.
  *
- * Client and product names stay private. Each case is told by its domain, the work, and the
+ * Client and product names stay private. Each case leads with the problem, then the work and the
  * architecture decisions behind it, with a small system diagram: nodes sit on a 420 by 230 grid,
  * and each decision lists the nodes it is about, so hovering it lights them up.
  */
@@ -10,26 +10,34 @@ export const PERSON = {
   name: 'Vimu Kale',
   handle: 'ethchor',
   origin: 'https://ethchor.qwantarc.com',
-  role: 'Full stack engineer',
+  role: 'Software engineer',
   links: [
     { label: 'GitHub', href: 'https://github.com/ethchor' },
     { label: 'LinkedIn', href: 'https://www.linkedin.com/in/vimu-kale-808186191/' },
   ],
 };
 
-/** Patient-monitor colours: every case gets its own channel. */
-export const CHANNELS = {
-  ecg: '#3dff9a',
-  spo2: '#2ee6ff',
-  violet: '#8b6cff',
-  bp: '#ff3d8b',
-  resp: '#ffd23f',
-  temp: '#ff7a3d',
-  blue: '#5b8cff',
-} as const;
+/** What the work is about, in the hero. */
+export const FOCUS = ['AI', 'Architecture', 'Optimisation'];
 
-/** Who the software is for, cycled in the hero. */
-export const AUDIENCES = ['clinicians', 'patients', 'care teams', 'people who care'];
+/** How a tangle becomes a solution. The red thread draws a figure for each step. */
+export const METHOD = [
+  {
+    title: 'Find the shape',
+    text: 'Most problems are hard because nobody has framed them yet. I work out what would make the problem go away before deciding what to build.',
+    figure: 'The shape',
+  },
+  {
+    title: 'Design the simplest system',
+    text: 'Then the smallest architecture that solves it: clear boundaries, standard interfaces, nothing clever without a reason.',
+    figure: 'The system',
+  },
+  {
+    title: 'Make it fast',
+    text: 'Finally I measure, and optimise where the numbers say it matters, not where it feels like it might.',
+    figure: 'The speed',
+  },
+];
 
 export interface DiagramNode {
   id: string;
@@ -53,80 +61,32 @@ export interface Decision {
 
 export interface Case {
   slug: string;
+  /** The problem it solved, as a headline. */
+  title: string;
+  /** Where it lives. Never the client or product. */
   domain: string;
-  field: string;
+  /** What kind of problem it was. */
+  tags: string[];
   role: string;
-  summary: string;
+  /** What made it hard. */
+  problem: string;
+  /** What I built. */
   did: string;
   decisions: Decision[];
   stack: string[];
-  healthcare: boolean;
-  color: string;
   diagram: Diagram;
 }
 
 export const CASES: Case[] = [
   {
-    slug: 'workflow',
-    domain: 'Clinical workflow orchestration',
-    field: 'Healthcare · Interoperability',
-    role: 'Full stack developer',
-    summary: 'Clinical and administrative work, end to end, for providers, patients and care teams.',
-    did: 'I architected and built both sides: the API that moves clinical data, and the screens care teams work in all day, from scheduling and clinical documentation to care plans and real-time insights.',
-    decisions: [
-      {
-        title: 'FHIR as the data model',
-        text: 'Clinical records live as FHIR resources on Medplum rather than in a schema of our own, so the data stays portable and every integration speaks the same language.',
-        nodes: ['fhir'],
-      },
-      {
-        title: 'One module per workflow',
-        text: 'The NestJS API is split into modules for scheduling, documentation and care plans, each with its own boundaries, so one can change without breaking the others.',
-        nodes: ['sched', 'docs', 'plans'],
-      },
-      {
-        title: 'Access through the standard',
-        text: 'Patients and clinicians sign in with SMART on FHIR and OAuth2, so permissions follow the standard instead of custom rules.',
-        nodes: ['smart'],
-      },
-      {
-        title: 'Forms from components',
-        text: 'Complex medical forms are assembled from reusable React components, so each new form builds on the ones before it.',
-        nodes: ['patient', 'team'],
-      },
-    ],
-    stack: ['React', 'NestJS', 'TypeScript', 'Medplum', 'FHIR', 'SMART on FHIR', 'OAuth2'],
-    healthcare: true,
-    color: CHANNELS.ecg,
-    diagram: {
-      nodes: [
-        { id: 'patient', label: 'Patient app', x: 130, y: 30 },
-        { id: 'team', label: 'Care team', x: 290, y: 30 },
-        { id: 'smart', label: 'SMART on FHIR', x: 210, y: 90 },
-        { id: 'sched', label: 'Scheduling', x: 80, y: 150 },
-        { id: 'docs', label: 'Documentation', x: 210, y: 150 },
-        { id: 'plans', label: 'Care plans', x: 340, y: 150 },
-        { id: 'fhir', label: 'Medplum', x: 210, y: 205 },
-      ],
-      edges: [
-        ['patient', 'smart', true],
-        ['team', 'smart', true],
-        ['smart', 'sched'],
-        ['smart', 'docs'],
-        ['smart', 'plans'],
-        ['sched', 'fhir', true],
-        ['docs', 'fhir', true],
-        ['plans', 'fhir', true],
-      ],
-    },
-  },
-  {
     slug: 'monitoring',
+    title: 'Early warnings from a live stream of vitals',
     domain: 'Remote patient monitoring',
-    field: 'Healthcare · AI',
+    tags: ['AI', 'Real-time data'],
     role: 'Senior full stack engineer',
-    summary: 'Vitals from medical devices, followed as they happen, with AI that spots who needs attention.',
-    did: 'I built the provider dashboard for real-time monitoring, the predictive analytics that flag patients whose health is slipping, and the automated alerts, all connected to medical devices and EHR systems.',
+    problem:
+      'Medical devices send readings around the clock, and a care team can only watch so many screens. What matters is the trend in someone’s numbers, not any single reading.',
+    did: 'I built the real-time provider dashboard, the predictive analytics that flag patients whose health is slipping, and the automated alerts, connected to medical devices and EHR systems.',
     decisions: [
       {
         title: 'Live on screen, history in the database',
@@ -135,18 +95,16 @@ export const CASES: Case[] = [
       },
       {
         title: 'Predictions that raise a hand',
-        text: 'Predictive analytics watch each patient’s readings and turn a slipping trend into an alert for the care team.',
+        text: 'A risk model watches each patient’s readings and turns a slipping trend into an alert for the care team.',
         nodes: ['model', 'alerts'],
       },
       {
-        title: 'FHIR at the edges',
-        text: 'Devices and EHR systems connect through FHIR, so readings can flow into the patient record.',
+        title: 'Standards at the edges',
+        text: 'Devices and EHR systems connect through FHIR, so readings flow into the patient record.',
         nodes: ['ehr'],
       },
     ],
-    stack: ['React', 'Node.js', 'PostgreSQL', 'AI and ML', 'FHIR'],
-    healthcare: true,
-    color: CHANNELS.spo2,
+    stack: ['React', 'Node.js', 'PostgreSQL', 'Machine learning', 'FHIR'],
     diagram: {
       nodes: [
         { id: 'devices', label: 'Devices', x: 46, y: 60 },
@@ -169,57 +127,58 @@ export const CASES: Case[] = [
     },
   },
   {
-    slug: 'integration',
-    domain: 'EHR integration for patient assistance',
-    field: 'Healthcare · Integration',
-    role: 'Healthcare integration specialist',
-    summary: 'Connecting a patient assistance platform to the hospital record in Epic.',
-    did: 'I built the integration layer between the platform and Epic: patient data sync, medication management and clinical workflow automation.',
+    slug: 'prediction',
+    title: 'A prediction model that learns from every outcome',
+    domain: 'Maternal health',
+    tags: ['Machine learning', 'End to end'],
+    role: 'ML engineer and full stack developer',
+    problem:
+      'Expectant mothers and their doctors plan for birth with incomplete information. A model can help, but only if it stays accurate as new outcomes come in.',
+    did: 'I trained a predictive model on historical birth data, served it behind an API, and built the web app patients and doctors use, plus the secure pipeline that feeds new outcomes back into training.',
     decisions: [
       {
-        title: 'One layer in between',
-        text: 'A single integration layer owns every connection to the hospital record, so the platform never talks to the EHR directly and changes on either side stay contained.',
-        nodes: ['layer'],
+        title: 'The model as a service',
+        text: 'The TensorFlow model is served through FastAPI, so the model and the interface ship on their own schedules.',
+        nodes: ['api'],
       },
       {
-        title: 'FHIR and HL7 side by side',
-        text: 'The layer speaks both FHIR and HL7, and each workflow uses the interface it needs.',
-        nodes: ['fhirapi', 'hl7'],
+        title: 'A loop that keeps learning',
+        text: 'New outcomes flow back through a secure pipeline into training, so predictions improve over time.',
+        nodes: ['pipeline', 'train'],
       },
       {
-        title: 'Compliance from the first line',
-        text: 'HIPAA compliance and data security were requirements from day one, not a later audit.',
-        nodes: ['hipaa'],
+        title: 'One app, two audiences',
+        text: 'Patients and doctors use the same React app, each with views of their own.',
+        nodes: ['app'],
       },
     ],
-    stack: ['FHIR', 'HL7', 'Epic APIs', 'SMART on FHIR', 'Medplum', 'Node.js'],
-    healthcare: true,
-    color: CHANNELS.violet,
+    stack: ['Python', 'TensorFlow', 'FastAPI', 'React', 'PostgreSQL'],
     diagram: {
       nodes: [
-        { id: 'platform', label: 'Platform', x: 58, y: 115 },
-        { id: 'smart', label: 'SMART on FHIR', x: 200, y: 36 },
-        { id: 'layer', label: 'Integration layer', x: 200, y: 115 },
-        { id: 'hipaa', label: 'HIPAA controls', x: 200, y: 194 },
-        { id: 'fhirapi', label: 'Epic FHIR', x: 360, y: 64 },
-        { id: 'hl7', label: 'Epic HL7', x: 360, y: 166 },
+        { id: 'history', label: 'Past outcomes', x: 70, y: 60 },
+        { id: 'train', label: 'TensorFlow', x: 210, y: 60 },
+        { id: 'api', label: 'FastAPI', x: 352, y: 60 },
+        { id: 'pipeline', label: 'Secure pipeline', x: 210, y: 176 },
+        { id: 'app', label: 'React app', x: 352, y: 176 },
       ],
       edges: [
-        ['platform', 'layer', true],
-        ['smart', 'layer'],
-        ['layer', 'hipaa'],
-        ['layer', 'fhirapi', true],
-        ['layer', 'hl7', true],
+        ['history', 'train'],
+        ['train', 'api'],
+        ['api', 'app', true],
+        ['app', 'pipeline'],
+        ['pipeline', 'train'],
       ],
     },
   },
   {
-    slug: 'mental-health',
-    domain: 'Mental health assistant',
-    field: 'Healthcare · AI',
+    slug: 'assistant',
+    title: 'A language model where trust matters most',
+    domain: 'Mental health support',
+    tags: ['LLMs', 'Product'],
     role: 'AI integration lead',
-    summary: 'Support between sessions: personal recommendations, and mood tracked over time.',
-    did: 'I led the AI integration for a conversational assistant for mental health support, alongside secure video therapy sessions and a dashboard where therapists follow each patient’s progress.',
+    problem:
+      'People need support between therapy sessions. A conversational assistant can help, but only if its prompts, safety rules and data are handled with real care.',
+    did: 'I led the AI integration for a conversational assistant that offers personal recommendations and tracks mood over time, alongside secure video sessions and a dashboard where therapists follow progress.',
     decisions: [
       {
         title: 'The model sits behind the API',
@@ -228,7 +187,7 @@ export const CASES: Case[] = [
       },
       {
         title: 'Video straight between people',
-        text: 'Therapy sessions run on WebRTC, peer to peer between therapist and patient.',
+        text: 'Sessions run on WebRTC, peer to peer between therapist and patient.',
         nodes: ['video'],
       },
       {
@@ -238,8 +197,6 @@ export const CASES: Case[] = [
       },
     ],
     stack: ['React', 'OpenAI API', 'NestJS', 'MongoDB', 'WebRTC'],
-    healthcare: true,
-    color: CHANNELS.bp,
     diagram: {
       nodes: [
         { id: 'patient', label: 'Patient app', x: 66, y: 58 },
@@ -260,55 +217,61 @@ export const CASES: Case[] = [
     },
   },
   {
-    slug: 'birth',
-    domain: 'Childbirth planning model',
-    field: 'Healthcare · Machine learning',
-    role: 'ML engineer and full stack developer',
-    summary: 'A machine learning model that helps expectant mothers and their doctors plan for birth.',
-    did: 'I trained a predictive model on historical birth data, and built the web interface patients and doctors use and the secure data pipeline that keeps the model improving.',
+    slug: 'platform',
+    title: 'A platform built to change one piece at a time',
+    domain: 'Healthcare operations',
+    tags: ['Architecture', 'Platform'],
+    role: 'Full stack developer',
+    problem:
+      'Scheduling, documentation and care plans each have their own rules, and all of them touch the same records. Built as one block, every change would risk the rest.',
+    did: 'I architected and built both sides: the modular API that moves the data, and the screens teams work in all day, from scheduling and documentation to care plans and real-time insights.',
     decisions: [
       {
-        title: 'The model as a service',
-        text: 'The TensorFlow model is served through FastAPI, so the model and the interface can ship on their own schedules.',
-        nodes: ['api'],
+        title: 'One module per workflow',
+        text: 'The NestJS API is split into modules for scheduling, documentation and care plans, each with its own boundaries, so one can change without breaking the others.',
+        nodes: ['sched', 'docs', 'plans'],
       },
       {
-        title: 'A loop that keeps learning',
-        text: 'New outcomes flow back through a secure pipeline into training, so predictions improve over time.',
-        nodes: ['pipeline', 'train'],
+        title: 'A standard as the data model',
+        text: 'Records live as FHIR resources on Medplum rather than in a schema of our own, so the data stays portable and every integration speaks the same language.',
+        nodes: ['fhir'],
       },
       {
-        title: 'One app, two audiences',
-        text: 'Patients and doctors use the same React app, each with views of their own.',
-        nodes: ['app'],
+        title: 'Access through the standard',
+        text: 'People sign in with SMART on FHIR and OAuth2, so permissions follow the standard instead of custom rules.',
+        nodes: ['smart'],
       },
     ],
-    stack: ['Python', 'TensorFlow', 'FastAPI', 'React', 'PostgreSQL'],
-    healthcare: true,
-    color: CHANNELS.resp,
+    stack: ['React', 'NestJS', 'TypeScript', 'Medplum', 'FHIR', 'SMART on FHIR', 'OAuth2'],
     diagram: {
       nodes: [
-        { id: 'history', label: 'Birth records', x: 70, y: 60 },
-        { id: 'train', label: 'TensorFlow', x: 210, y: 60 },
-        { id: 'api', label: 'FastAPI', x: 352, y: 60 },
-        { id: 'pipeline', label: 'Secure pipeline', x: 210, y: 176 },
-        { id: 'app', label: 'React app', x: 352, y: 176 },
+        { id: 'patient', label: 'Patient app', x: 130, y: 30 },
+        { id: 'team', label: 'Team app', x: 290, y: 30 },
+        { id: 'smart', label: 'SMART on FHIR', x: 210, y: 90 },
+        { id: 'sched', label: 'Scheduling', x: 80, y: 150 },
+        { id: 'docs', label: 'Documentation', x: 210, y: 150 },
+        { id: 'plans', label: 'Care plans', x: 340, y: 150 },
+        { id: 'fhir', label: 'Medplum', x: 210, y: 205 },
       ],
       edges: [
-        ['history', 'train'],
-        ['train', 'api'],
-        ['api', 'app', true],
-        ['app', 'pipeline'],
-        ['pipeline', 'train'],
+        ['patient', 'smart', true],
+        ['team', 'smart', true],
+        ['smart', 'sched'],
+        ['smart', 'docs'],
+        ['smart', 'plans'],
+        ['sched', 'fhir', true],
+        ['docs', 'fhir', true],
+        ['plans', 'fhir', true],
       ],
     },
   },
   {
-    slug: 'bi',
-    domain: 'Collaborative business intelligence',
-    field: 'Data · Real time',
+    slug: 'collaboration',
+    title: 'Many people, one live report',
+    domain: 'Business intelligence',
+    tags: ['Real-time', 'Frontend architecture'],
     role: 'Frontend architect',
-    summary: 'Teams create, share and iterate on reports together, in real time.',
+    problem: 'Teams wanted to build and edit reports together, live, instead of passing files around and waiting for refreshes.',
     did: 'I architected the frontend: a real-time collaborative interface for data visualisation, a drag-and-drop report builder, and sharing with fine-grained permissions.',
     decisions: [
       {
@@ -328,8 +291,6 @@ export const CASES: Case[] = [
       },
     ],
     stack: ['React', 'Redux Toolkit', 'D3.js', 'WebSocket', 'Material UI'],
-    healthcare: false,
-    color: CHANNELS.temp,
     diagram: {
       nodes: [
         { id: 'a', label: 'Editor', x: 40, y: 52 },
@@ -351,12 +312,59 @@ export const CASES: Case[] = [
     },
   },
   {
-    slug: 'credit-apis',
-    domain: 'Credit data API subscriptions',
-    field: 'Fintech · APIs',
+    slug: 'integration',
+    title: 'One clean layer between a platform and a hospital',
+    domain: 'Hospital records',
+    tags: ['Systems integration'],
+    role: 'Integration specialist',
+    problem:
+      'A patient assistance platform needed data from Epic, which speaks two standards and changes on its own schedule. Wired straight to it, the platform would inherit every quirk.',
+    did: 'I built the integration layer between the platform and Epic: patient data sync, medication management and workflow automation, with HIPAA compliance from day one.',
+    decisions: [
+      {
+        title: 'One layer in between',
+        text: 'A single integration layer owns every connection to the hospital record, so changes on either side stay contained.',
+        nodes: ['layer'],
+      },
+      {
+        title: 'FHIR and HL7 side by side',
+        text: 'The layer speaks both standards, and each workflow uses the interface it needs.',
+        nodes: ['fhirapi', 'hl7'],
+      },
+      {
+        title: 'Compliance from the first line',
+        text: 'HIPAA compliance and data security were requirements from day one, not a later audit.',
+        nodes: ['hipaa'],
+      },
+    ],
+    stack: ['FHIR', 'HL7', 'Epic APIs', 'SMART on FHIR', 'Medplum', 'Node.js'],
+    diagram: {
+      nodes: [
+        { id: 'platform', label: 'Platform', x: 58, y: 115 },
+        { id: 'smart', label: 'SMART on FHIR', x: 200, y: 36 },
+        { id: 'layer', label: 'Integration layer', x: 200, y: 115 },
+        { id: 'hipaa', label: 'HIPAA controls', x: 200, y: 194 },
+        { id: 'fhirapi', label: 'Epic FHIR', x: 360, y: 64 },
+        { id: 'hl7', label: 'Epic HL7', x: 360, y: 166 },
+      ],
+      edges: [
+        ['platform', 'layer', true],
+        ['smart', 'layer'],
+        ['layer', 'hipaa'],
+        ['layer', 'fhirapi', true],
+        ['layer', 'hl7', true],
+      ],
+    },
+  },
+  {
+    slug: 'metering',
+    title: 'Metering and limits that hold on every server',
+    domain: 'Fintech data APIs',
+    tags: ['APIs', 'Distributed systems'],
     role: 'Full stack developer',
-    summary: 'Financial and credit data APIs, sold by subscription in tiers.',
-    did: 'I built usage-based billing on Stripe, API rate limiting, an analytics dashboard and automated customer onboarding.',
+    problem:
+      'Selling data APIs by subscription means counting every call, enforcing each tier’s limits and billing for usage, consistently, however many servers are running.',
+    did: 'I built usage-based billing on Stripe, distributed rate limiting, an analytics dashboard and automated customer onboarding.',
     decisions: [
       {
         title: 'Pay for what you use',
@@ -375,8 +383,6 @@ export const CASES: Case[] = [
       },
     ],
     stack: ['Next.js', 'Stripe', 'PostgreSQL', 'Redis', 'Docker'],
-    healthcare: false,
-    color: CHANNELS.blue,
     diagram: {
       nodes: [
         { id: 'client', label: 'Customers', x: 52, y: 115 },
@@ -398,47 +404,32 @@ export const CASES: Case[] = [
   },
 ];
 
-export const TOOLKIT = [
+export const CAPABILITIES = [
   {
-    area: 'Healthcare',
-    note: 'Interoperability, clinical workflows and compliance.',
-    color: CHANNELS.bp,
-    items: ['FHIR', 'HL7', 'SMART on FHIR', 'Medplum', 'Epic integration', 'EHR systems', 'HIPAA'],
+    area: 'AI and machine learning',
+    note: 'Models where they earn their place, and everything around them.',
+    items: ['LLM integration', 'OpenAI API', 'On-device AI', 'MCP', 'TensorFlow', 'Python', 'FastAPI', 'Predictive models'],
   },
   {
-    area: 'Frontend',
-    note: 'Interfaces that stay calm under complexity.',
-    color: CHANNELS.spo2,
-    items: ['React', 'TypeScript', 'Next.js', 'Astro', 'Redux Toolkit', 'Material UI', 'Tailwind CSS', 'GSAP', 'Three.js'],
+    area: 'Architecture',
+    note: 'Systems that stay simple as they grow.',
+    items: ['System design', 'Modular APIs', 'NestJS', 'Real-time: WebSocket and WebRTC', 'Integration layers', 'FHIR and HL7', 'Docker', 'AWS'],
   },
   {
-    area: 'Backend',
-    note: 'Services and data that scale.',
-    color: CHANNELS.violet,
-    items: ['Node.js', 'NestJS', 'Express', 'PostgreSQL', 'MongoDB', 'Redis', 'Cloudflare Workers'],
+    area: 'Performance and scale',
+    note: 'Measure first, then make it fast.',
+    items: ['Redis', 'PostgreSQL', 'MongoDB', 'Rate limiting', 'Cloudflare Workers', 'WebGL'],
   },
   {
-    area: 'AI and tools',
-    note: 'Models where they help, and the tools to ship.',
-    color: CHANNELS.ecg,
-    items: ['OpenAI API', 'On-device AI', 'MCP', 'Machine learning', 'Docker', 'AWS', 'Jest'],
+    area: 'Product engineering',
+    note: 'The interface is part of the solution.',
+    items: ['React', 'TypeScript', 'Next.js', 'Node.js', 'Astro', 'D3.js', 'GSAP', 'Three.js'],
   },
 ];
 
-export const WAYS = [
-  {
-    title: 'Mentoring',
-    text: 'I mentor junior developers through code quality, design patterns and career decisions, from their first pull request on.',
-  },
-  {
-    title: 'Pairing and reviews',
-    text: 'I pair on the hard problems and review code to share the why, not just to catch bugs.',
-  },
-  {
-    title: 'Sharing what I know',
-    text: 'One-to-ones, tech talks and documentation. The best teams are the ones where everyone teaches and everyone learns.',
-  },
-];
+/** The domains the work shipped in, and what happens around the code. */
+export const ALSO =
+  'Shipped in healthcare, fintech and business intelligence. Around the code, I mentor developers, pair on the hard parts and review to share the why, not just the what.';
 
 /** The one thing outside client work that the page links to. */
 export const SIDE_QUEST = {
@@ -447,4 +438,4 @@ export const SIDE_QUEST = {
   text: 'A plant nursery online, where every plant is drawn by code, leans toward your cursor and follows the sun as you scroll.',
 };
 
-export const TOPICS = ['A project', 'Hiring', 'Mentorship', 'Just saying hello'];
+export const TOPICS = ['A hard problem', 'A role', 'Mentorship', 'Just saying hello'];

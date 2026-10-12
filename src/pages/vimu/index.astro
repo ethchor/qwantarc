@@ -1,246 +1,257 @@
 ---
+import { existsSync, readdirSync } from 'node:fs';
+import { join } from 'node:path';
 import Base from '../../layouts/Base.astro';
 import Diagram from '../../components/ethchor/Diagram.astro';
 import '../../styles/ethchor.css';
-import { AUDIENCES, CASES, PERSON, SIDE_QUEST, TOOLKIT, TOPICS, WAYS } from '../../lib/ethchor/profile';
+import { ALSO, CAPABILITIES, CASES, FOCUS, METHOD, PERSON, SIDE_QUEST, TOPICS } from '../../lib/ethchor/profile';
 
-const TITLE = 'Vimu Kale | Full stack engineer for healthcare';
+const TITLE = 'Vimu Kale · Hard problems, untangled';
 const DESCRIPTION =
-  'Full stack engineer building software for healthcare: FHIR and HL7 interoperability, clinical workflows, AI in care and the screens patients see.';
-const manifesto =
-  'Healthcare runs on software that too often gets in the way. I build the kind that *doesn’t:* systems that speak FHIR, workflows that respect a clinician’s time, and screens that make the complex feel *calm.*'.split(
-    ' ',
-  );
+  'Vimu Kale is a software engineer for AI systems, software architecture and optimisation: the hard problems, untangled.';
 const pad = (n: number) => String(n).padStart(2, '0');
-const inCare = CASES.filter((c) => c.healthcare).length;
-const words = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'];
 const arrow =
   '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>';
-const heartIcon =
-  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7.5-4.6-7.5-10.1A4.4 4.4 0 0 1 12 7.3a4.4 4.4 0 0 1 7.5 2.6C19.5 15.4 12 20 12 20Z" fill="currentColor"></path></svg>';
+const down =
+  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>';
+
+/*
+ * Migra (Pangram Pangram) is the display face this page was designed around. It is a commercial
+ * font, so it isn't bundled: put licensed .woff2 (or .woff, .otf, .ttf) files in
+ * public/fonts/migra/ and the next build uses them, weights and italics read from the file names.
+ * Until then the display face is Boska, a free face in the same spirit.
+ */
+const migraDir = join(process.cwd(), 'public', 'fonts', 'migra');
+const WEIGHTS: [string, number][] = [
+  ['extralight', 200],
+  ['ultralight', 200],
+  ['semibold', 600],
+  ['extrabold', 800],
+  ['ultrabold', 800],
+  ['thin', 100],
+  ['light', 300],
+  ['regular', 400],
+  ['book', 400],
+  ['medium', 500],
+  ['bold', 700],
+  ['black', 900],
+];
+const FORMATS: Record<string, string> = { woff2: 'woff2', woff: 'woff', otf: 'opentype', ttf: 'truetype' };
+const order = Object.keys(FORMATS);
+const extOf = (f: string) => f.split('.').pop()!.toLowerCase();
+const faces = new Map<string, string[]>();
+if (existsSync(migraDir)) {
+  const files = readdirSync(migraDir)
+    .filter((f) => order.includes(extOf(f)))
+    .sort((a, b) => order.indexOf(extOf(a)) - order.indexOf(extOf(b)));
+  for (const f of files) {
+    const name = f.toLowerCase().replace(/[^a-z]/g, '');
+    const weight = WEIGHTS.find(([k]) => name.includes(k))?.[1] ?? 400;
+    const key = `${weight} ${name.includes('italic') ? 'italic' : 'normal'}`;
+    faces.set(key, [...(faces.get(key) ?? []), `url('/fonts/migra/${encodeURIComponent(f)}') format('${FORMATS[extOf(f)]}')`]);
+  }
+}
+const migraCss = faces.size
+  ? [...faces]
+      .map(([key, src]) => {
+        const [weight, style] = key.split(' ');
+        return `@font-face{font-family:'Migra';src:${src.join(',')};font-weight:${weight};font-style:${style};font-display:swap}`;
+      })
+      .join('') + `:root{--serif:'Migra','Boska',Georgia,serif}`
+  : '';
 ---
 
-<Base title={TITLE} description={DESCRIPTION} origin={PERSON.origin} themeColor="#07070c" fonts="vimu" icon="/vimu-icon.svg" siteName={PERSON.name}>
-  <canvas class="organism" data-organism aria-hidden="true"></canvas>
+<Base title={TITLE} description={DESCRIPTION} origin={PERSON.origin} themeColor="#0b0b0c" fonts="vimu" icon="/vimu-icon.svg" siteName={PERSON.name}>
+  {migraCss && <style slot="head" is:inline set:html={migraCss} />}
+
+  <svg class="thread" data-thread aria-hidden="true">
+    <path class="thread-glow" data-glow></path>
+    <path class="thread-line" data-line></path>
+    <g class="thread-tip" data-tip><circle class="tip-halo" r="13"></circle><circle class="tip-dot" r="4.5"></circle></g>
+  </svg>
   <div class="grain" aria-hidden="true"></div>
 
   <header class="bar" data-bar>
-    <a class="mark" href="#top" aria-label="Vimu Kale, top of the page"><span class="mark-dot" aria-hidden="true"></span>Vimu Kale</a>
+    <a class="mark" href="#top" aria-label="Vimu Kale, top of the page">
+      <svg class="mark-knot" viewBox="0 0 24 24" aria-hidden="true">
+        <path
+          d="M3 15c3 0 4-2 5.5-4.5S12 5 15 5s4.5 2.6 3 5.2-5.4 3.2-6.6.6S13 6 16 7.5 19.5 14 21 19"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"></path>
+      </svg>
+      Vimu Kale
+    </a>
     <nav class="nav" aria-label="Sections">
+      <a href="#method">Method</a>
       <a href="#work">Work</a>
-      <a href="#toolkit">Toolkit</a>
-      <a href="#side-quest">Side quest</a>
-      <a href="#contact">Contact</a>
+      <a href="#range">Range</a>
     </nav>
-    <span class="readout" data-readout title="The page’s pulse. It quickens when you move fast or click.">
-      <Fragment set:html={heartIcon} /><span data-bpm>62</span><span class="readout-u">bpm</span>
-    </span>
+    <a class="bar-cta" href="#contact" data-magnet>Let’s talk</a>
   </header>
 
   <main id="top">
-    <section class="hero" data-shape="heart" data-hero data-play aria-labelledby="name">
-      <div class="hero-stage" data-anchor aria-hidden="true"></div>
-      <div class="hero-copy" data-noplay>
-        <p class="kicker" data-fade><span class="kicker-dot" aria-hidden="true"></span>{PERSON.handle} · {PERSON.role}</p>
-        <h1 id="name" class="name" aria-label={PERSON.name}>
-          {
-            PERSON.name.split(' ').map((w) => (
-              <span class="name-word" aria-hidden="true">
-                {[...w].map((ch) => (
-                  <span class="name-clip">
-                    <span class="l">{ch}</span>
-                  </span>
-                ))}
-              </span>
-            ))
-          }
-        </h1>
-        <p class="hero-line" data-fade>
-          <span class="sr-only">I build software for clinicians, patients and care teams.</span>
-          <span aria-hidden="true">
-            I build software for{' '}
-            <span class="rotor" data-rotor>
-              {AUDIENCES.map((a, i) => <span class={`rotor-w rotor-${i}`}>{a}</span>)}
-            </span>
-          </span>
+    <section class="hero" data-hero aria-labelledby="hero-title">
+      <canvas class="knot" data-knot aria-hidden="true"></canvas>
+      <div class="hero-copy">
+        <p class="kicker" data-fade>{FOCUS.join(' · ')}</p>
+        <h1 id="hero-title" class="hero-title"><span>Hard problems,</span> <em>untangled.</em></h1>
+        <p class="hero-sub" data-fade>
+          I’m Vimu, a software engineer who designs AI systems and the architecture around them, then makes them fast. I do my best work when the
+          answer isn’t obvious yet.
         </p>
-        <p class="hero-sub" data-fade>FHIR and HL7 interoperability, clinical workflows, AI in care, and the screens patients actually see.</p>
         <div class="actions" data-fade>
-          <a class="btn is-solid" href="#work" data-magnet><span>See the Work</span><Fragment set:html={arrow} /></a>
-          <a class="btn" href="#contact" data-magnet><span>Say Hello</span></a>
+          <a class="btn is-red" href="#intro" data-magnet><span>Follow the thread</span><Fragment set:html={down} /></a>
+          <a class="btn" href="#contact" data-magnet><span>Say hello</span></a>
         </div>
-        <ul class="links" data-fade>
-          {
-            PERSON.links.map((l) => (
-              <li>
-                <a href={l.href} target="_blank" rel="noopener">
-                  {l.label}
-                  <Fragment set:html={arrow} />
-                </a>
-              </li>
-            ))
-          }
-        </ul>
       </div>
-
-      <aside class="monitor" data-monitor data-noplay aria-label="The page’s pulse">
-        <div class="mon-top">
-          <span class="mon-live"><span class="mon-dot" aria-hidden="true"></span>Live</span>
-          <span class="mon-k">Pulse</span>
-        </div>
-        <div class="mon-read">
-          <p><span class="mon-k">HR</span><span class="mon-v" data-hr>62</span><span class="mon-u">bpm</span></p>
-          <p class="is-o2"><span class="mon-k">SpO₂</span><span class="mon-v" data-spo2>98</span><span class="mon-u">%</span></p>
-        </div>
-        <canvas class="mon-ecg" data-ecg aria-hidden="true"></canvas>
-        <p class="mon-hint" data-hint>It quickens when you do. Click to pulse, hold to charge.</p>
-      </aside>
-
-      <a class="scroll-cue" href="#manifesto" aria-label="Scroll to the next section"><span aria-hidden="true"></span>Scroll</a>
+      <p class="hero-hint" data-hint aria-hidden="true"><span class="hint-dot"></span><span data-hint-text>Grab the thread</span></p>
+      <p class="scroll-hint" data-scroll-hint aria-hidden="true">Scroll to untangle</p>
+      <span class="thread-start" data-thread-start aria-hidden="true"></span>
     </section>
 
-    <section class="manifesto" id="manifesto" data-shape="wave" data-play aria-label="What I believe">
-      <div class="manifesto-stage" data-anchor aria-hidden="true"></div>
-      <p class="manifesto-text" data-words data-noplay>
-        {
-          manifesto.map((w) => {
-            const text = w.replace(/\*/g, '');
-            return w.startsWith('*') ? <em class="w">{text} </em> : <span class="w">{text} </span>;
-          })
-        }
+    <section class="intro" id="intro" data-intro aria-label="What I do">
+      <p class="intro-text" data-words>
+        I work across the whole problem: the model, the architecture, the data and the interface. Give me something tangled, and I’ll
+        <em>find the thread,</em> design the simplest system that holds, and make it fast.
       </p>
     </section>
 
-    <section class="work" id="work" data-shape="network" aria-labelledby="work-title">
-      <div class="work-stage" data-anchor aria-hidden="true"></div>
-      <header class="sec-head" data-reveal>
-        <p class="kicker"><span class="kicker-n">01</span> Selected work</p>
-        <h2 id="work-title" class="sec-title">Systems that <em>care.</em></h2>
-        <p class="sec-lede">
-          {words[CASES.length][0].toUpperCase() + words[CASES.length].slice(1)} systems, {words[inCare]} of them in healthcare. Client names
-          stay private; the domain, what I built and why I built it that way don’t.
-        </p>
-      </header>
-
-      <ol class="cases">
-        {
-          CASES.map((c, i) => (
-            <li class="case" data-case={i} style={`--own: ${c.color}`}>
-              <article class="case-card" aria-labelledby={`case-${c.slug}`}>
-                <header class="case-head">
-                  <p class="case-meta">
-                    <span class="case-ch">
-                      <span class="case-dot" aria-hidden="true" />
-                      CH {pad(i + 1)}
-                    </span>
-                    <span>{c.field}</span>
-                  </p>
-                  <h3 id={`case-${c.slug}`} class="case-title">
-                    {c.domain}
-                  </h3>
-                  <p class="case-role">{c.role}</p>
-                  <p class="case-sum">{c.summary}</p>
-                </header>
-                <div class="case-body">
-                  <div class="case-text">
-                    <h4 class="case-h">What I did</h4>
-                    <p class="case-did">{c.did}</p>
-                    <h4 class="case-h">Architecture decisions</h4>
-                    <ol class="decisions">
-                      {c.decisions.map((d, k) => (
-                        <li tabindex="0" data-nodes={d.nodes.join(' ')}>
-                          <span class="dec-n" aria-hidden="true">
-                            {pad(k + 1)}
-                          </span>
-                          <p>
-                            <strong>{d.title}.</strong> {d.text}
-                          </p>
-                        </li>
-                      ))}
-                    </ol>
-                  </div>
-                  <figure class="case-fig">
-                    <div class="fig-frame">
-                      <Diagram id={c.slug} diagram={c.diagram} label={`System diagram for ${c.domain}`} />
-                    </div>
-                    <figcaption class="fig-cap">Hover a decision to see where it lives.</figcaption>
-                    <ul class="stack" aria-label="Built with">
-                      {c.stack.map((s) => (
-                        <li>{s}</li>
-                      ))}
-                    </ul>
-                  </figure>
-                </div>
-              </article>
-            </li>
-          ))
-        }
-      </ol>
-    </section>
-
-    <section class="toolkit" id="toolkit" data-shape="helix" aria-labelledby="toolkit-title">
-      <div class="toolkit-stage" data-anchor aria-hidden="true"></div>
-      <header class="sec-head" data-reveal>
-        <p class="kicker"><span class="kicker-n">02</span> Toolkit</p>
-        <h2 id="toolkit-title" class="sec-title">Deep in <em>healthcare,</em> fluent in the rest.</h2>
-      </header>
-      <div class="areas">
-        {
-          TOOLKIT.map((a) => (
-            <div class="area" style={`--own: ${a.color}`} data-reveal>
-              <h3 class="area-title">{a.area}</h3>
-              <p class="area-note">{a.note}</p>
-              <ul class="area-items">
-                {a.items.map((x) => (
-                  <li>{x}</li>
-                ))}
-              </ul>
-            </div>
-          ))
-        }
-      </div>
-
-      <div class="ways">
-        <h3 class="ways-title" data-reveal>How I work</h3>
-        <ol class="ways-list">
+    <section class="method" id="method" aria-labelledby="method-title">
+      <div class="method-frame" data-method-frame>
+        <header class="sec-head">
+          <p class="kicker"><span class="kicker-n">01</span> Method</p>
+          <h2 id="method-title" class="sec-title" data-split>How I untangle <em>things.</em></h2>
+        </header>
+        <div class="figs" aria-hidden="true">
           {
-            WAYS.map((w, i) => (
-              <li data-reveal>
-                <span class="ways-n">{pad(i + 1)}</span>
-                <h4>{w.title}</h4>
-                <p>{w.text}</p>
+            METHOD.map((m, i) => (
+              <figure class="fig" data-fig={i}>
+                <div class="fig-box" data-fig-box />
+                <figcaption>{m.figure}</figcaption>
+              </figure>
+            ))
+          }
+        </div>
+        <ol class="steps">
+          {
+            METHOD.map((m, i) => (
+              <li class="step" data-step={i}>
+                <span class="step-n">{pad(i + 1)}</span>
+                <div>
+                  <h3>{m.title}</h3>
+                  <p>{m.text}</p>
+                </div>
               </li>
             ))
           }
         </ol>
-        <p class="aside" data-reveal>Off the clock, I’m probably enjoying a jackfruit or learning something new.</p>
       </div>
     </section>
 
-    <section class="quest" id="side-quest" data-shape="plant" data-play aria-labelledby="quest-title">
-      <div class="quest-stage" data-anchor aria-hidden="true"></div>
-      <div class="quest-copy" data-noplay data-reveal>
-        <p class="kicker"><span class="kicker-n">03</span> Side quest</p>
-        <h2 id="quest-title" class="sec-title">{SIDE_QUEST.name}</h2>
+    <section class="work" id="work" data-work aria-labelledby="work-title">
+      <header class="sec-head work-head" data-work-head>
+        <p class="kicker"><span class="kicker-n">02</span> Selected work</p>
+        <h2 id="work-title" class="sec-title" data-split>Seven problems, <em>solved.</em></h2>
+        <p class="sec-lede">Across AI, data, platforms and fintech. Client names stay private; the problem, the architecture and the reasoning behind it don’t.</p>
+      </header>
+      <div class="work-frame" data-work-frame>
+        <div class="track" data-track>
+          {
+            CASES.map((c, i) => (
+              <article class="panel" data-panel={i} aria-labelledby={`case-${c.slug}`}>
+                <div class="panel-main">
+                  <p class="panel-meta">
+                    <span class="panel-n">{pad(i + 1)}</span>
+                    <span>{c.tags.join(' · ')}</span>
+                  </p>
+                  <h3 id={`case-${c.slug}`} class="panel-title">
+                    {c.title}
+                  </h3>
+                  <p class="panel-role">
+                    {c.domain} · {c.role}
+                  </p>
+                  <h4 class="label">The problem</h4>
+                  <p class="panel-problem">{c.problem}</p>
+                  <h4 class="label">What I built</h4>
+                  <p class="panel-did">{c.did}</p>
+                </div>
+                <div class="panel-side">
+                  <figure class="fig-frame">
+                    <Diagram id={c.slug} diagram={c.diagram} label={`System diagram: ${c.title}`} />
+                  </figure>
+                  <h4 class="label">Decisions</h4>
+                  <ol class="decisions">
+                    {c.decisions.map((d) => (
+                      <li tabindex="0" data-nodes={d.nodes.join(' ')}>
+                        <strong>{d.title}.</strong> {d.text}
+                      </li>
+                    ))}
+                  </ol>
+                  <ul class="stack" aria-label="Built with">
+                    {c.stack.map((s) => (
+                      <li>{s}</li>
+                    ))}
+                  </ul>
+                </div>
+              </article>
+            ))
+          }
+        </div>
+        <div class="rail" data-rail aria-hidden="true">
+          {CASES.map((_, i) => <span class="rail-stop" data-stop style={`--i: ${i}; --n: ${CASES.length - 1}`} />)}
+        </div>
+        <p class="rail-count" aria-hidden="true"><span data-count>01</span> / {pad(CASES.length)}</p>
+      </div>
+    </section>
+
+    <section class="range" id="range" data-range aria-labelledby="range-title">
+      <header class="sec-head" data-range-head>
+        <p class="kicker"><span class="kicker-n">03</span> Range</p>
+        <h2 id="range-title" class="sec-title" data-split>All-rounder, <em>by design.</em></h2>
+      </header>
+      <ol class="caps">
+        {
+          CAPABILITIES.map((c) => (
+            <li class="cap" data-cap>
+              <div>
+                <h3 class="cap-title">{c.area}</h3>
+                <p class="cap-note">{c.note}</p>
+              </div>
+              <ul class="cap-items">
+                {c.items.map((x) => (
+                  <li>{x}</li>
+                ))}
+              </ul>
+            </li>
+          ))
+        }
+      </ol>
+      <p class="also" data-also>{ALSO}</p>
+    </section>
+
+    <section class="quest" id="side-quest" data-quest aria-labelledby="quest-title">
+      <div class="quest-fig" data-quest-fig aria-hidden="true"></div>
+      <div class="quest-copy">
+        <p class="kicker"><span class="kicker-n">04</span> Side quest</p>
+        <h2 id="quest-title" class="sec-title" data-split>{SIDE_QUEST.name}</h2>
         <p class="sec-lede">{SIDE_QUEST.text}</p>
-        <a class="btn is-solid" href={SIDE_QUEST.href} target="_blank" rel="noopener" data-magnet>
-          <span>Visit the Nursery</span><Fragment set:html={arrow} />
-        </a>
+        <a class="btn" href={SIDE_QUEST.href} target="_blank" rel="noopener" data-magnet><span>Visit the nursery</span><Fragment set:html={arrow} /></a>
       </div>
     </section>
 
-    <section class="contact" id="contact" data-shape="hello" aria-labelledby="contact-title">
-      <div class="contact-stage" data-anchor data-play aria-hidden="true"></div>
+    <section class="contact" id="contact" data-contact aria-labelledby="contact-title">
       <div class="contact-grid">
-        <div class="contact-intro" data-reveal>
-          <p class="kicker"><span class="kicker-n">04</span> Contact</p>
-          <h2 id="contact-title" class="sec-title">Let’s build something <em>careful.</em></h2>
-          <p class="sec-lede">A project, a role, mentorship or just a hello. Every message reaches me directly.</p>
-          <ul class="links is-row">
+        <div class="contact-intro">
+          <p class="kicker"><span class="kicker-n">05</span> Contact</p>
+          <h2 id="contact-title" class="sec-title" data-split>Got a tangle? <em>Let’s pull the thread.</em></h2>
+          <p class="sec-lede">A project, a role, an architecture review or just a hello. Every message reaches me directly.</p>
+          <ul class="links">
             {
               PERSON.links.map((l) => (
                 <li>
-                  <a class="btn" href={l.href} target="_blank" rel="noopener">
+                  <a href={l.href} target="_blank" rel="noopener">
                     {l.label}
                     <Fragment set:html={arrow} />
                   </a>
@@ -250,386 +261,371 @@ const heartIcon =
           </ul>
         </div>
 
-        <form class="form" data-form novalidate data-reveal>
-          <fieldset>
-            <legend class="label">What is it about?</legend>
-            <div class="chips">
-              {
-                TOPICS.map((t, i) => (
-                  <label class="chip">
-                    <input type="radio" name="topic" value={t} checked={i === 0} />
-                    <span>{t}</span>
-                  </label>
-                ))
-              }
+        <div class="contact-card">
+          <form class="form" data-form novalidate>
+            <fieldset>
+              <legend class="label">What is it about?</legend>
+              <div class="chips">
+                {
+                  TOPICS.map((t, i) => (
+                    <label class="chip">
+                      <input type="radio" name="topic" value={t} checked={i === 0} />
+                      <span>{t}</span>
+                    </label>
+                  ))
+                }
+              </div>
+            </fieldset>
+            <div class="row">
+              <div class="field">
+                <label class="label" for="name-field">Name</label>
+                <input id="name-field" name="name" type="text" autocomplete="name" required placeholder="Your name" />
+                <p class="error" data-error-for="name">Enter your name.</p>
+              </div>
+              <div class="field">
+                <label class="label" for="email">Email</label>
+                <input id="email" name="email" type="email" autocomplete="email" required placeholder="you@company.com" />
+                <p class="error" data-error-for="email">Enter an email address I can reply to.</p>
+              </div>
             </div>
-          </fieldset>
-          <div class="row">
             <div class="field">
-              <label class="label" for="name-field">Name</label>
-              <input id="name-field" name="name" type="text" autocomplete="name" required placeholder="Your name" />
-              <p class="error" data-error-for="name">Enter your name.</p>
+              <label class="label" for="message">Message</label>
+              <textarea id="message" name="message" rows="5" required placeholder="A few lines about the problem."></textarea>
+              <p class="error" data-error-for="message">Write a short message.</p>
             </div>
-            <div class="field">
-              <label class="label" for="email">Email</label>
-              <input id="email" name="email" type="email" autocomplete="email" required placeholder="you@company.com" />
-              <p class="error" data-error-for="email">Enter an email address I can reply to.</p>
+            <div class="trap" aria-hidden="true">
+              <label for="website">Website</label>
+              <input id="website" name="website" type="text" tabindex="-1" autocomplete="off" />
             </div>
-          </div>
-          <div class="field">
-            <label class="label" for="message">Message</label>
-            <textarea id="message" name="message" rows="5" required placeholder="A few lines about what you have in mind."></textarea>
-            <p class="error" data-error-for="message">Write a short message.</p>
-          </div>
-          <div class="trap" aria-hidden="true">
-            <label for="website">Website</label>
-            <input id="website" name="website" type="text" tabindex="-1" autocomplete="off" />
-          </div>
-          <div class="submit-row">
-            <button class="btn is-solid" type="submit" data-send>
-              <span data-send-label>Send Message</span>
-              <Fragment set:html={arrow} />
-            </button>
-            <p class="hint" data-form-hint role="status" aria-live="polite">It goes straight to my inbox.</p>
-          </div>
-        </form>
+            <div class="submit-row">
+              <p class="hint" data-form-hint role="status" aria-live="polite">It goes straight to my inbox.</p>
+              <button class="btn is-red" type="submit" data-send data-end>
+                <span data-send-label>Send message</span>
+                <Fragment set:html={arrow} />
+              </button>
+            </div>
+          </form>
 
-        <section class="sent" data-sent hidden tabindex="-1" aria-labelledby="sent-title">
-          <p class="kicker">Sent</p>
-          <h3 id="sent-title" class="sent-title">Thank you<span data-sent-name></span>.</h3>
-          <p class="sec-lede">Your message is on its way. I’ll reply to <span data-sent-email></span> soon.</p>
-          <button class="btn is-solid" type="button" data-again>Send Another</button>
-        </section>
+          <section class="sent" data-sent hidden tabindex="-1" aria-labelledby="sent-title">
+            <p class="kicker">Sent</p>
+            <h3 id="sent-title" class="sent-title">Thank you<span data-sent-name></span>.</h3>
+            <p class="sec-lede">Your message is on its way. I’ll reply to <span data-sent-email></span> soon.</p>
+            <div class="submit-row">
+              <span></span>
+              <button class="btn" type="button" data-again data-end>Send another</button>
+            </div>
+          </section>
+        </div>
       </div>
     </section>
   </main>
 
   <footer class="foot">
-    <div class="foot-row">
-      <span>© {new Date().getFullYear()} {PERSON.name}</span>
-      <span>Care, carefully built.</span>
-      <span class="foot-links">
-        {
-          PERSON.links.map((l) => (
-            <a href={l.href} target="_blank" rel="noopener">
-              {l.label}
-              <Fragment set:html={arrow} />
-            </a>
-          ))
-        }
-      </span>
-    </div>
-    <p class="foot-mark" aria-hidden="true">Vimu</p>
+    <span>© {new Date().getFullYear()} {PERSON.name}</span>
+    <span>Hand-made with Astro, GSAP and Three.js.</span>
+    <span class="foot-links">
+      {
+        PERSON.links.map((l) => (
+          <a href={l.href} target="_blank" rel="noopener">
+            {l.label}
+            <Fragment set:html={arrow} />
+          </a>
+        ))
+      }
+    </span>
   </footer>
 </Base>
 
 <script>
   import { gsap } from 'gsap';
   import { ScrollTrigger } from 'gsap/ScrollTrigger';
-  import { createHeart } from '../../components/ethchor/heart';
-  import { createMonitor } from '../../components/ethchor/monitor';
-  import type { Form, Organism, Stage } from '../../components/ethchor/organism';
-  import { CASES } from '../../lib/ethchor/profile';
+  import { SplitText } from 'gsap/SplitText';
+  import { buildRuns } from '../../components/ethchor/route';
+  import { createThread, type Thread } from '../../components/ethchor/thread';
+  import type { Knot, KnotLayout } from '../../components/ethchor/knot';
 
-  gsap.registerPlugin(ScrollTrigger);
+  gsap.registerPlugin(ScrollTrigger, SplitText);
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const fine = matchMedia('(pointer: fine)').matches;
   const root = document.documentElement;
-  const hero = document.querySelector<HTMLElement>('[data-hero]')!;
-  // Styles that animate things in (diagrams) only apply when motion is welcome.
+  const $ = <T extends Element = HTMLElement>(s: string, el: ParentNode = document) => el.querySelector<T>(s)!;
+  const $$ = <T extends Element = HTMLElement>(s: string, el: ParentNode = document) => [...el.querySelectorAll<T>(s)];
+  // Styles that animate things in only apply when motion is welcome.
   if (!reduce) root.classList.add('motion');
 
-  /* ---------- The heartbeat: the monitor, and the readout in the bar ---------- */
-  const heart = createHeart(62);
-  const monitorEl = document.querySelector<HTMLElement>('[data-monitor]')!;
-  const monitor = createMonitor(monitorEl, heart, { reduce });
-  const hint = monitorEl.querySelector<HTMLElement>('[data-hint]')!;
-  const restingHint = fine ? 'It quickens when you do. Click to pulse, hold to charge.' : 'It quickens when you do. Tap to pulse.';
-  hint.textContent = restingHint;
-  if (!fine) document.querySelectorAll('.fig-cap').forEach((c) => (c.textContent = 'Tap a decision to see where it lives.'));
-  const readout = document.querySelector<HTMLElement>('[data-readout]')!;
-  const bpm = readout.querySelector<HTMLElement>('[data-bpm]')!;
-  heart.onBeat((v) => {
-    bpm.textContent = String(Math.round(v));
-    readout.classList.remove('is-beat');
-    void readout.offsetWidth;
-    readout.classList.add('is-beat');
-  });
+  const RED = '#ff3b1f';
+  const hero = $('[data-hero]');
+  const canvas = $<HTMLCanvasElement>('[data-knot]');
+  const startMark = $('[data-thread-start]');
+  const hint = $('[data-hint]');
+  /** Half the page gutter (--gutter in the stylesheet): where the thread's lanes run. */
+  const lane = () => Math.min(64, Math.max(18, innerWidth * 0.044)) / 2;
 
-  /* ---------- The organism: the particles behind the page ---------- */
-  const canvas = document.querySelector<HTMLCanvasElement>('[data-organism]')!;
-  const stages: Stage[] = [...document.querySelectorAll<HTMLElement>('[data-shape]')].map((section) => ({
-    form: section.dataset.shape as Form,
-    section,
-    anchor: section.querySelector<HTMLElement>('[data-anchor]')!,
-  }));
-  let organism: Organism | null = null;
-  let born = 0;
+  /* ---------- The tangle: where it sits, and its loose end ---------- */
+  function layout(w: number, h: number): KnotLayout {
+    // On a phone the copy sits under the tangle, so the loose end leaves to the right and runs
+    // down the right lane beside it.
+    if (w < 760) return { cx: w * 0.5, cy: h * 0.27, r: Math.min(w * 0.34, h * 0.19), ex: w - lane(), ey: h, exit: -0.25 };
+    return { cx: w * 0.71, cy: h * 0.44, r: Math.min(w * 0.19, h * 0.31), ex: w * 0.71, ey: h };
+  }
+  function placeHero() {
+    const L = layout(hero.clientWidth, hero.clientHeight);
+    startMark.style.left = `${L.ex}px`;
+    startMark.style.top = `${L.ey}px`;
+    hint.style.left = `${Math.min(hero.clientWidth - 170, L.cx + L.r * 0.72)}px`;
+    hint.style.top = `${Math.max(84, L.cy - L.r * 0.95)}px`;
+  }
+  placeHero();
 
+  let knot: Knot | null = null;
+  let born = performance.now();
   async function wake() {
     try {
-      // The closing word is drawn in the display face, so wait for it (briefly).
-      const display = getComputedStyle(root).getPropertyValue('--display').trim() || 'system-ui, sans-serif';
-      await Promise.race([document.fonts.load(`800 220px ${display}`), new Promise((r) => setTimeout(r, 2500))]);
-      const { createOrganism } = await import('../../components/ethchor/organism');
-      const small = innerWidth < 760;
-      const cores = navigator.hardwareConcurrency || 8;
-      organism = createOrganism(canvas, {
-        heart,
-        stages,
-        introAnchor: hero,
-        intro: !reduce && scrollY < 40,
-        count: small ? 7000 : cores <= 4 ? 10000 : 16000,
-        maxDpr: small ? 1.5 : 1.75,
-        font: display,
+      const { createKnot } = await import('../../components/ethchor/knot');
+      knot = createKnot({
+        canvas,
+        surface: hero,
+        layout,
+        color: RED,
+        shade: '#5c140a',
+        reduce,
+        onTouch: () => hint.classList.add('is-done'),
       });
+      root.classList.add('has-knot');
       born = performance.now();
-      root.classList.add('has-organism');
-      if (reduce) {
-        // No animation of its own: draw once, then again only when the page moves.
-        const still = () => organism!.frame(0, 1);
-        still();
-        addEventListener('scroll', still, { passive: true });
-        addEventListener('resize', () => (organism!.resize(), still()));
-      } else {
-        let lastW = innerWidth;
-        let lastH = innerHeight;
-        addEventListener('resize', () => {
-          // Ignore the address bar sliding on phones; resize for real changes.
-          if (innerWidth !== lastW || Math.abs(innerHeight - lastH) > 140) {
-            lastW = innerWidth;
-            lastH = innerHeight;
-            organism!.resize();
-          }
-        });
+      if (reduce) knot.frame(0, 0);
+      else {
+        // It winds itself in, then waits to be untangled.
+        const wound = { v: 0 };
+        gsap.to(wound, { v: 1, duration: 2.6, ease: 'power2.inOut', delay: 0.15, onUpdate: () => knot?.setDrawn(wound.v) });
       }
     } catch (err) {
-      console.warn('No WebGL, so no particles:', err);
+      console.warn('No WebGL, so no tangle:', err);
       root.classList.add('no-webgl');
     }
   }
   wake();
+  if (!fine) $('[data-hint-text]').textContent = 'Tap the thread';
 
-  /* ---------- Pointer: part the particles, pulse, charge ---------- */
-  const playable = (el: EventTarget | null) =>
-    el instanceof Element && !!el.closest('[data-play]') && !el.closest('a, button, input, textarea, select, label, [data-noplay]');
-  let last = { x: 0, y: 0, t: 0 };
-  let touchOff = 0;
-  addEventListener(
-    'pointermove',
-    (e) => {
-      if (e.pointerType === 'mouse') organism?.setPointer(e.clientX, e.clientY, true);
-      // Moving fast quickens the pulse.
-      const speed = Math.hypot(e.clientX - last.x, e.clientY - last.y) / Math.max(1, e.timeStamp - last.t);
-      if (speed > 1.4) heart.excite(Math.min(1.5, (speed - 1.4) * 0.3));
-      last = { x: e.clientX, y: e.clientY, t: e.timeStamp };
-      if (charging) {
-        chargeX = e.clientX;
-        chargeY = e.clientY;
-      }
-    },
-    { passive: true },
-  );
-  document.documentElement.addEventListener('pointerleave', () => organism?.setPointer(last.x, last.y, false));
+  /* ---------- Scroll: pins, the sideways work rail, the sunrise, the thread ---------- */
+  const threadSvg = $<SVGSVGElement>('[data-thread]');
+  const methodFrame = $('[data-method-frame]');
+  const work = $('[data-work]');
+  const workFrame = $('[data-work-frame]');
+  const track = $('[data-track]');
+  const quest = $('[data-quest]');
+  const contact = $('[data-contact]');
+  const steps = $$('[data-step]');
+  const figs = $$('[data-fig]');
+  const stops = $$('[data-stop]');
+  const count = $('[data-count]');
+  const panels = $$('[data-panel]');
+  const scrollHint = $('[data-scroll-hint]');
+  let thread: Thread | null = null;
 
-  let charging = false;
-  let chargeStart = 0;
-  let chargeX = 0;
-  let chargeY = 0;
-  let level = 0;
-  let clearTimer = 0;
-  addEventListener('pointerdown', (e) => {
-    if (reduce || !organism || !playable(e.target)) return;
-    if (e.pointerType === 'mouse') {
-      if (e.button !== 0) return;
-      e.preventDefault();
-      charging = true;
-      chargeStart = performance.now();
-      chargeX = e.clientX;
-      chargeY = e.clientY;
+  const stepProgress = [0, 0, 0];
+  const onStep = (i: number, p: number) => {
+    stepProgress[i] = p;
+    let on = 0;
+    stepProgress.forEach((v, k) => v > 0 && (on = k));
+    steps.forEach((s, k) => s.classList.toggle('is-on', k === on));
+    figs[i].classList.toggle('is-done', p >= 0.999);
+  };
+  const onRail = (p: number) => {
+    const at = p * (stops.length - 1);
+    count.textContent = String(Math.min(stops.length, Math.round(at) + 1)).padStart(2, '0');
+    stops.forEach((s, k) => s.classList.toggle('is-tied', at >= k - 0.02));
+  };
+  /** The button the thread ends on: Send, or Send another once a message has gone. */
+  const visibleEnd = () => $$('[data-end]').find((b) => b.offsetParent !== null) ?? $('[data-send]');
+
+  const mm = gsap.matchMedia();
+  // A conditions object only runs when one of them matches, so 'all' keeps phones in.
+  mm.add({ all: 'all', wide: '(min-width: 900px) and (min-height: 560px)', still: '(prefers-reduced-motion: reduce)' }, (ctx) => {
+    const { wide, still } = ctx.conditions as { wide: boolean; still: boolean };
+    const rail = wide && !still;
+    work.classList.toggle('is-rail', rail);
+
+    const heroPin = still
+      ? null
+      : ScrollTrigger.create({
+          trigger: hero,
+          start: 'top top',
+          end: '+=90%',
+          pin: true,
+          scrub: true,
+          onUpdate: (self) => {
+            knot?.setProgress(self.progress);
+            scrollHint.style.opacity = String(Math.max(0, 1 - self.progress * 6));
+            hint.style.filter = `opacity(${Math.max(0, 1 - self.progress * 5)})`;
+          },
+        });
+    const methodPin = still ? null : ScrollTrigger.create({ trigger: methodFrame, start: 'top top', end: '+=240%', pin: true });
+
+    let workPin: ScrollTrigger | null = null;
+    if (rail) {
+      const distance = () => Math.max(0, track.scrollWidth - innerWidth);
+      const slide = gsap.to(track, {
+        x: () => -distance(),
+        ease: 'none',
+        scrollTrigger: { trigger: workFrame, start: 'top top', end: () => `+=${distance()}`, pin: true, scrub: 0.6, invalidateOnRefresh: true },
+      });
+      workPin = slide.scrollTrigger!;
+      panels.forEach((panel) =>
+        ScrollTrigger.create({ trigger: panel, containerAnimation: slide, start: 'left 78%', onEnter: () => panel.classList.add('is-in') }),
+      );
     } else {
-      clearTimeout(touchOff);
-      organism.setPointer(e.clientX, e.clientY, true);
-      organism.pulse(e.clientX, e.clientY);
-      heart.kick(5);
-      touchOff = window.setTimeout(() => organism?.setPointer(e.clientX, e.clientY, false), 450);
+      panels.forEach((panel) => ScrollTrigger.create({ trigger: panel, start: 'top 82%', onEnter: () => panel.classList.add('is-in') }));
     }
-  });
-  const release = () => {
-    if (!charging || !organism) return;
-    charging = false;
-    if (level < 0.2) {
-      organism.pulse(chargeX, chargeY);
-      organism.charge(0, chargeX, chargeY);
-      heart.kick(5);
-    } else {
-      organism.burst(chargeX, chargeY, 0.35 + level * 0.95);
-      heart.kick(10 + level * 26);
-      hint.textContent = 'Clear.';
-      monitorEl.classList.add('is-shock');
-      clearTimeout(clearTimer);
-      clearTimer = window.setTimeout(() => {
-        hint.textContent = restingHint;
-        monitorEl.classList.remove('is-shock');
-      }, 1400);
-    }
-    level = 0;
-    monitorEl.classList.remove('is-charging');
-  };
-  addEventListener('pointerup', release);
-  addEventListener('pointercancel', release);
 
-  const tickCharge = () => {
-    if (!charging || !organism) return;
-    // A short click shouldn't charge: it starts after a beat of holding.
-    level = Math.max(0, Math.min(1, (performance.now() - chargeStart - 160) / 1300));
-    if (level > 0) {
-      organism.charge(level, chargeX, chargeY);
-      monitorEl.classList.add('is-charging');
-      hint.textContent = `Charging ${Math.round(level * 100)}%`;
-    }
-  };
+    // Night turns to day over the side quest, which follows the sun anyway.
+    gsap.fromTo(root, { '--day': 0 }, { '--day': 1, ease: 'none', scrollTrigger: { trigger: quest, start: 'top 75%', end: 'center 45%', scrub: true } });
+    const questST = ScrollTrigger.create({ trigger: quest, start: 'top 70%', end: 'bottom 70%' });
+    const contactST = ScrollTrigger.create({ trigger: contact, start: 'top 90%', end: 'max' });
 
-  /* ---------- The name thickens and warms where the cursor is ---------- */
-  const letters = [...document.querySelectorAll<HTMLElement>('.name .l')];
-  const nameEl = document.querySelector<HTMLElement>('.name')!;
-  // Weights from the stylesheet: the name rests at its own; near the cursor, letters thin to
-  // --name-thin and the closest swell to --name-bold. The warmth is --name-heat (see .name .l).
-  const nameCss = getComputedStyle(nameEl);
-  const num = (prop: string, fallback: number) => {
-    const v = parseFloat(nameCss.getPropertyValue(prop));
-    return Number.isFinite(v) ? v : fallback;
-  };
-  const REST = num('font-weight', 700);
-  const THIN = num('--name-thin', REST - 300);
-  const BOLD = num('--name-bold', REST + 100);
-  const lw = letters.map(() => ({ w: REST, heat: 0 }));
-  let nx = -9999;
-  let ny = -9999;
-  let near = false;
-  hero.addEventListener('pointermove', (e) => {
-    if (e.pointerType !== 'mouse') return;
-    nx = e.clientX;
-    ny = e.clientY;
-    // Only when the cursor comes near the name; elsewhere it rests at full weight.
-    const b = nameEl.getBoundingClientRect();
-    near = nx < b.right + 160 && ny > b.top - 120 && ny < b.bottom + 120;
+    const range = (st: ScrollTrigger | null) => (): [number, number] => (st ? [st.start, st.end] : [0, 0]);
+    const make = () => {
+      thread = createThread({
+        svg: threadSvg,
+        still,
+        start: () => heroPin?.end ?? 0,
+        runs: buildRuns({
+          wide: rail,
+          lane: lane(),
+          start: startMark,
+          intro: $('[data-intro]'),
+          methodFrame,
+          methodRange: range(methodPin),
+          figs: $$('[data-fig-box]'),
+          workSection: work,
+          workHead: $('[data-work-head]'),
+          workFrame,
+          rail: $('[data-rail]'),
+          stops,
+          workRange: range(workPin),
+          panels,
+          range: $('[data-range]'),
+          rangeHead: $('[data-range-head]'),
+          caps: $$('[data-cap]'),
+          also: $('[data-also]'),
+          quest,
+          questFig: $('[data-quest-fig]'),
+          questRange: range(questST),
+          contact,
+          send: visibleEnd(),
+          contactRange: range(contactST),
+          onStep,
+          onRail,
+        }),
+      });
+      thread.sync();
+      thread.draw();
+    };
+    make();
+    ScrollTrigger.addEventListener('refresh', make);
+    return () => {
+      ScrollTrigger.removeEventListener('refresh', make);
+      thread = null;
+      root.style.removeProperty('--day');
+    };
   });
-  hero.addEventListener('pointerleave', () => (near = false));
-  const tickLetters = () => {
-    if (!fine || reduce) return;
-    letters.forEach((el, i) => {
-      let w = REST;
-      let heat = 0;
-      if (near) {
-        const b = el.getBoundingClientRect();
-        const d = Math.hypot(nx - (b.left + b.width / 2), ny - (b.top + b.height / 2));
-        heat = Math.exp(-(d * d) / (2 * 140 * 140));
-        w = THIN + (BOLD - THIN) * heat;
-      }
-      const s = lw[i];
-      s.w += (w - s.w) * 0.14;
-      s.heat += (heat - s.heat) * 0.14;
-      el.style.fontWeight = s.w.toFixed(0);
-      el.style.setProperty('--heat', Math.min(1, s.heat * 1.4).toFixed(3));
+
+  if (reduce) {
+    // Nothing moves on its own: draw the thread again only when the page does.
+    const redraw = () => thread?.draw();
+    addEventListener('scroll', redraw, { passive: true });
+    addEventListener('resize', () => {
+      placeHero();
+      knot?.resize();
+      knot?.frame(0, 0);
+      redraw();
     });
-  };
+  } else {
+    addEventListener('resize', () => {
+      placeHero();
+      knot?.resize();
+    });
+  }
 
   /* ---------- One loop for everything that moves ---------- */
   let prev = performance.now();
   const loop = (now: number) => {
     const dt = Math.min(0.1, (now - prev) / 1000);
     prev = now;
-    heart.tick(dt);
-    monitor.frame(dt);
-    tickCharge();
-    tickLetters();
-    organism?.frame((now - born) / 1000, dt);
+    // Only while the hero is on screen (checked directly: pinning moves it around).
+    if (knot) {
+      const b = hero.getBoundingClientRect();
+      if (b.bottom > 0 && b.top < innerHeight) knot.frame((now - born) / 1000, dt);
+    }
+    thread?.frame(dt);
     requestAnimationFrame(loop);
   };
   if (!reduce) requestAnimationFrame(loop);
 
-  /* ---------- Bar ---------- */
-  const bar = document.querySelector<HTMLElement>('[data-bar]')!;
-  const onScroll = () => bar.classList.toggle('is-scrolled', scrollY > 8);
-  addEventListener('scroll', onScroll, { passive: true });
-  onScroll();
-
-  /* ---------- Motion: intro, rotor, reveals ---------- */
-  const rotor = document.querySelector<HTMLElement>('[data-rotor]')!;
-  const rotorWords = [...rotor.children] as HTMLElement[];
-  if (reduce) {
-    rotorWords.forEach((w, i) => (w.style.opacity = i === 0 ? '1' : '0'));
-    document.querySelectorAll<SVGSVGElement>('[data-diagram]').forEach((svg) => svg.pauseAnimations());
-  } else {
-    gsap.set('.name .l', { yPercent: 115 });
+  /* ---------- Type: reveals as things arrive ---------- */
+  if (!reduce) {
     gsap.set('[data-fade]', { opacity: 0, y: 18 });
-    gsap
-      .timeline({ delay: 0.9 })
-      .to('.name .l', { yPercent: 0, duration: 1.3, ease: 'expo.out', stagger: 0.045 })
-      .to('[data-fade]', { opacity: 1, y: 0, duration: 1, ease: 'expo.out', stagger: 0.08 }, 0.45)
-      .from('[data-monitor]', { opacity: 0, y: 20, duration: 1, ease: 'expo.out' }, 0.9);
-
-    let w = 0;
-    gsap.set(rotorWords, { yPercent: 100, opacity: 0 });
-    gsap.set(rotorWords[0], { yPercent: 0, opacity: 1 });
-    setInterval(() => {
-      const next = (w + 1) % rotorWords.length;
-      gsap.to(rotorWords[w], { yPercent: -100, opacity: 0, duration: 0.55, ease: 'expo.in' });
-      gsap.fromTo(rotorWords[next], { yPercent: 100, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.9, ease: 'expo.out', delay: 0.35 });
-      w = next;
-    }, 2600);
-
-    // The manifesto lights up as you read it, and the sea beside it calms.
-    gsap.fromTo(
-      '[data-words] .w',
-      { opacity: 0.14 },
-      {
-        opacity: 1,
-        ease: 'none',
-        stagger: 0.12,
-        scrollTrigger: {
-          trigger: '[data-words]',
-          start: 'top 80%',
-          end: 'bottom 45%',
-          scrub: 0.6,
-          onUpdate: (self) => organism?.setCalm(self.progress),
-        },
-      },
-    );
-
-    gsap.utils.toArray<HTMLElement>('[data-reveal]').forEach((el) =>
-      gsap.from(el, { y: 40, opacity: 0, duration: 1.1, ease: 'expo.out', scrollTrigger: { trigger: el, start: 'top 88%', once: true } }),
-    );
-
-    // Each case slides in, and its diagram builds itself (the drawing is CSS, see .is-drawn).
-    gsap.utils.toArray<HTMLElement>('[data-case]').forEach((card) => {
-      gsap.from(card, { y: 70, opacity: 0, duration: 1.2, ease: 'expo.out', scrollTrigger: { trigger: card, start: 'top 85%', once: true } });
-      const svg = card.querySelector('[data-diagram]')!;
-      ScrollTrigger.create({ trigger: svg, start: 'top 82%', once: true, onEnter: () => svg.classList.add('is-drawn') });
+    SplitText.create('.hero-title', {
+      type: 'lines',
+      mask: 'lines',
+      autoSplit: true,
+      onSplit: (self) => gsap.from(self.lines, { yPercent: 125, duration: 1.4, ease: 'expo.out', stagger: 0.12, delay: 0.3 }),
     });
+    gsap.to('[data-fade]', { opacity: 1, y: 0, duration: 1.1, ease: 'expo.out', stagger: 0.1, delay: 0.75 });
+    gsap.fromTo(hint, { opacity: 0 }, { opacity: 1, duration: 1, delay: 2.4 });
+
+    $$('.sec-title[data-split]').forEach((el) =>
+      SplitText.create(el, {
+        type: 'lines',
+        mask: 'lines',
+        autoSplit: true,
+        onSplit: (self) =>
+          gsap.from(self.lines, { yPercent: 125, duration: 1.2, ease: 'expo.out', stagger: 0.1, scrollTrigger: { trigger: el, start: 'top 86%', once: true } }),
+      }),
+    );
+
+    // The statement lights up word by word as it is read.
+    SplitText.create('[data-words]', {
+      type: 'words',
+      autoSplit: true,
+      onSplit: (self) =>
+        gsap.fromTo(
+          self.words,
+          { opacity: 0.14 },
+          { opacity: 1, ease: 'none', stagger: 0.1, scrollTrigger: { trigger: '[data-words]', start: 'top 78%', end: 'bottom 50%', scrub: 0.5 } },
+        ),
+    });
+
+    gsap.utils.toArray<HTMLElement>('.cap, .also, .quest-copy > :not(.sec-title), .contact-intro > :not(.sec-title), .contact-card').forEach((el) =>
+      gsap.from(el, { y: 36, opacity: 0, duration: 1.1, ease: 'expo.out', scrollTrigger: { trigger: el, start: 'top 90%', once: true } }),
+    );
+  } else {
+    $$<SVGSVGElement>('[data-diagram]').forEach((svg) => svg.pauseAnimations());
   }
 
-  /* ---------- Work: the project on screen lights its node in the network ---------- */
-  document.querySelectorAll<HTMLElement>('[data-case]').forEach((card, i) => {
-    ScrollTrigger.create({
-      trigger: card,
-      start: 'top 60%',
-      end: 'bottom 40%',
-      onToggle: (self) => {
-        card.classList.toggle('is-active', self.isActive);
-        // The card's colour as the theme resolves it (its own, or the theme's single case colour).
-        if (self.isActive) organism?.setActive(i, getComputedStyle(card).getPropertyValue('--c').trim() || CASES[i].color);
-      },
+  /* ---------- Diagrams: fit each node to its label, light the nodes a decision is about ---------- */
+  function fitDiagrams() {
+    $$<SVGGElement>('.diagram .node').forEach((node) => {
+      const text = node.querySelector('text')!;
+      const rect = node.querySelector('rect')!;
+      const w = Math.ceil(text.getComputedTextLength()) + 28;
+      const cx = Number(node.dataset.cx);
+      const cy = Number(node.dataset.cy);
+      rect.setAttribute('width', String(w));
+      text.setAttribute('x', String(w / 2));
+      node.setAttribute('transform', `translate(${cx - w / 2} ${cy - 15})`);
     });
+  }
+  document.fonts.ready.then(() => {
+    fitDiagrams();
+    ScrollTrigger.refresh();
   });
 
-  /* ---------- Decisions light up the parts of the diagram they are about ---------- */
-  document.querySelectorAll<HTMLElement>('[data-case]').forEach((card) => {
-    const svg = card.querySelector<SVGSVGElement>('[data-diagram]')!;
-    const nodes = [...svg.querySelectorAll<SVGGElement>('.node')];
-    const links = [...svg.querySelectorAll<SVGPathElement>('.link')];
-    card.querySelectorAll<HTMLElement>('[data-nodes]').forEach((li) => {
+  panels.forEach((card) => {
+    const svg = $<SVGSVGElement>('[data-diagram]', card);
+    const nodes = $$<SVGGElement>('.node', svg);
+    const links = $$<SVGPathElement>('.link', svg);
+    $$('[data-nodes]', card).forEach((li) => {
       const ids = li.dataset.nodes!.split(' ');
       const on = () => {
         svg.classList.add('is-focus');
@@ -650,9 +646,15 @@ const heartIcon =
     });
   });
 
+  /* ---------- Bar ---------- */
+  const bar = $('[data-bar]');
+  const onScroll = () => bar.classList.toggle('is-scrolled', scrollY > 8);
+  addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
   /* ---------- Buttons lean toward the cursor ---------- */
   if (fine && !reduce) {
-    document.querySelectorAll<HTMLElement>('[data-magnet]').forEach((el) => {
+    $$('[data-magnet]').forEach((el) => {
       el.addEventListener('pointermove', (e) => {
         const b = el.getBoundingClientRect();
         gsap.to(el, { x: (e.clientX - (b.left + b.width / 2)) * 0.22, y: (e.clientY - (b.top + b.height / 2)) * 0.3, duration: 0.5, ease: 'power3.out' });
@@ -662,10 +664,10 @@ const heartIcon =
   }
 
   /* ---------- Contact ---------- */
-  const form = document.querySelector<HTMLFormElement>('[data-form]')!;
+  const form = $<HTMLFormElement>('[data-form]');
   const field = (name: string) => form.elements.namedItem(name) as HTMLInputElement;
   const showError = (name: string, on: boolean) => {
-    const err = form.querySelector<HTMLElement>(`[data-error-for="${name}"]`)!;
+    const err = $(`[data-error-for="${name}"]`, form);
     err.classList.toggle('is-on', on);
     field(name).setAttribute('aria-invalid', String(on));
     if (on) field(name).setAttribute('aria-describedby', err.id || (err.id = `${name}-error`));
@@ -681,11 +683,11 @@ const heartIcon =
   // Messages go to the enquiry Worker. Local development can point elsewhere.
   const ENDPOINT = import.meta.env.PUBLIC_ENQUIRY_URL || 'https://qwantarc.com/api/enquiry';
   const opened = performance.now();
-  const send = form.querySelector<HTMLButtonElement>('[data-send]')!;
-  const sendLabel = form.querySelector<HTMLElement>('[data-send-label]')!;
-  const formHint = form.querySelector<HTMLElement>('[data-form-hint]')!;
+  const send = $<HTMLButtonElement>('[data-send]', form);
+  const sendLabel = $('[data-send-label]', form);
+  const formHint = $('[data-form-hint]', form);
   const formHintText = formHint.textContent;
-  const sent = document.querySelector<HTMLElement>('[data-sent]')!;
+  const sent = $('[data-sent]');
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (send.disabled) return;
@@ -712,29 +714,27 @@ const heartIcon =
       const res = await fetch(ENDPOINT, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload) });
       const out = await res.json().catch(() => ({ ok: false }));
       if (!res.ok || !out.ok) throw new Error(out.error || 'Couldn’t send right now. Try again in a minute.');
-      document.querySelector('[data-sent-name]')!.textContent = `, ${payload.name.split(' ')[0]}`;
-      document.querySelector('[data-sent-email]')!.textContent = payload.email;
+      $('[data-sent-name]').textContent = `, ${payload.name.split(' ')[0]}`;
+      $('[data-sent-email]').textContent = payload.email;
       form.hidden = true;
       sent.hidden = false;
       sent.focus();
-      if (organism) {
-        const b = document.querySelector<HTMLElement>('.contact-stage')!.getBoundingClientRect();
-        organism.burst(b.left + b.width / 2, b.top + b.height / 2, 0.8);
-      }
-      heart.kick(12);
+      // The thread finds the new button and ties itself round it.
+      ScrollTrigger.refresh();
     } catch (err) {
       const msg = err instanceof Error && err.message !== 'Failed to fetch' ? err.message : 'Couldn’t reach the server. Check your connection and try again.';
       formHint.classList.add('is-error');
       formHint.textContent = `${msg} You can also reach me on LinkedIn.`;
     } finally {
       send.disabled = false;
-      sendLabel.textContent = 'Send Message';
+      sendLabel.textContent = 'Send message';
     }
   });
-  document.querySelector('[data-again]')!.addEventListener('click', () => {
+  $('[data-again]').addEventListener('click', () => {
     form.reset();
     sent.hidden = true;
     form.hidden = false;
     field('name').focus();
+    ScrollTrigger.refresh();
   });
 </script>
