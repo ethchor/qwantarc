@@ -1,0 +1,30 @@
+---
+/**
+ * A bitmap from lib/ethchor/pixels.ts as an SVG of crisp squares, merged into runs of one ink.
+ * Each run carries its order (bottom row first) as --i, for pixel-by-pixel reveals. Inks are set
+ * in style rather than the fill attribute, since presentation attributes can't read CSS variables.
+ */
+import { runs } from '../../lib/ethchor/pixels';
+
+interface Props {
+  map: string[];
+  class?: string;
+  label?: string;
+}
+
+const { map, class: cls, label } = Astro.props;
+const W = Math.max(...map.map((r) => r.length));
+const H = map.length;
+const list = runs(map);
+---
+
+<svg
+  class:list={['pixel', cls]}
+  viewBox={`0 0 ${W} ${H}`}
+  shape-rendering="crispEdges"
+  role={label ? 'img' : undefined}
+  aria-label={label}
+  aria-hidden={label ? undefined : 'true'}
+>
+  {list.map((r, i) => <rect x={r.x} y={r.y} width={r.w} height="1" style={`fill: ${r.ink}; --i: ${i}`} />)}
+</svg>

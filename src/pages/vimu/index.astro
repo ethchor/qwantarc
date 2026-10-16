@@ -3,7 +3,11 @@ import { existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import Base from '../../layouts/Base.astro';
 import Diagram from '../../components/ethchor/Diagram.astro';
+import Pixel from '../../components/ethchor/Pixel.astro';
 import '../../styles/ethchor.css';
+import { streams, topoRings } from '../../lib/ethchor/art';
+import { GLYPHS, KINDS } from '../../lib/ethchor/glyphs';
+import { CURSOR, ICONS, PLANT, SPOOL } from '../../lib/ethchor/pixels';
 import { ALSO, CAPABILITIES, CASES, FOCUS, METHOD, PERSON, SIDE_QUEST, TOPICS } from '../../lib/ethchor/profile';
 
 const TITLE = 'Vimu Kale · Hard problems, untangled';
@@ -11,9 +15,12 @@ const DESCRIPTION =
   'Vimu Kale is a software engineer for AI systems, software architecture and optimisation: the hard problems, untangled.';
 const pad = (n: number) => String(n).padStart(2, '0');
 const arrow =
-  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>';
+  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"></path></svg>';
 const down =
-  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>';
+  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"></path></svg>';
+/** The method's figures: a survey map of the problem, the parts of a system, and flow speeding up. */
+const rings = topoRings();
+const flows = streams();
 
 /*
  * Migra (Pangram Pangram) is the display face this page was designed around. It is a commercial
@@ -61,26 +68,40 @@ const migraCss = faces.size
   : '';
 ---
 
-<Base title={TITLE} description={DESCRIPTION} origin={PERSON.origin} themeColor="#0b0b0c" fonts="vimu" icon="/vimu-icon.svg" siteName={PERSON.name}>
+<Base title={TITLE} description={DESCRIPTION} origin={PERSON.origin} themeColor="#f1ece2" fonts="vimu" icon="/vimu-icon.svg" siteName={PERSON.name}>
   {migraCss && <style slot="head" is:inline set:html={migraCss} />}
 
-  <svg class="thread" data-thread aria-hidden="true">
-    <path class="thread-glow" data-glow></path>
-    <path class="thread-line" data-line></path>
-    <g class="thread-tip" data-tip><circle class="tip-halo" r="13"></circle><circle class="tip-dot" r="4.5"></circle></g>
+  <!--
+    The print. Shapes go through a risograph filter: the ink thins and speckles in places, and the
+    edges wander a little, as when a drum lays ink on paper. #riso is for shapes drawn at about
+    their size on screen, #riso-s for small ones drawn on a 100 unit box.
+  -->
+  <svg class="defs" width="0" height="0" aria-hidden="true" focusable="false">
+    <filter id="riso" x="-6%" y="-6%" width="112%" height="112%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="2" seed="4" result="grain"></feTurbulence>
+      <feColorMatrix in="grain" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -4 0 0 0 3.2" result="speckle"></feColorMatrix>
+      <feComposite in="SourceGraphic" in2="speckle" operator="in" result="inked"></feComposite>
+      <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="9" result="warp"></feTurbulence>
+      <feDisplacementMap in="inked" in2="warp" scale="5" xChannelSelector="R" yChannelSelector="G"></feDisplacementMap>
+    </filter>
+    <filter id="riso-s" x="-8%" y="-8%" width="116%" height="116%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="1.9" numOctaves="2" seed="4" result="grain"></feTurbulence>
+      <feColorMatrix in="grain" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -4 0 0 0 3.2" result="speckle"></feColorMatrix>
+      <feComposite in="SourceGraphic" in2="speckle" operator="in" result="inked"></feComposite>
+      <feTurbulence type="fractalNoise" baseFrequency="0.08" numOctaves="2" seed="9" result="warp"></feTurbulence>
+      <feDisplacementMap in="inked" in2="warp" scale="1.6" xChannelSelector="R" yChannelSelector="G"></feDisplacementMap>
+    </filter>
   </svg>
-  <div class="grain" aria-hidden="true"></div>
+  <canvas class="topo" data-topo aria-hidden="true"></canvas>
+  <svg class="thread" data-thread aria-hidden="true">
+    <path class="thread-echo" data-echo></path>
+    <path class="thread-line" data-line></path>
+    <g class="thread-tip" data-tip><rect class="tip-halo" x="-8" y="-8" width="16" height="16"></rect><rect class="tip-dot" x="-4" y="-4" width="8" height="8"></rect></g>
+  </svg>
 
   <header class="bar" data-bar>
     <a class="mark" href="#top" aria-label="Vimu Kale, top of the page">
-      <svg class="mark-knot" viewBox="0 0 24 24" aria-hidden="true">
-        <path
-          d="M3 15c3 0 4-2 5.5-4.5S12 5 15 5s4.5 2.6 3 5.2-5.4 3.2-6.6.6S13 6 16 7.5 19.5 14 21 19"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"></path>
-      </svg>
+      <Pixel map={SPOOL} class="mark-spool" />
       Vimu Kale
     </a>
     <nav class="nav" aria-label="Sections">
@@ -93,7 +114,17 @@ const migraCss = faces.size
 
   <main id="top">
     <section class="hero" data-hero aria-labelledby="hero-title">
-      <canvas class="knot" data-knot aria-hidden="true"></canvas>
+      <div class="hero-shapes" data-shapes aria-hidden="true">
+        <span class="shape" data-shape="circle"><svg viewBox="0 0 370 370"><circle class="f-blue" cx="185" cy="185" r="185" filter="url(#riso)"></circle></svg></span>
+        <span class="shape" data-shape="triangle"><svg viewBox="0 0 305 265"><path class="f-yellow" d="M152.5 0 305 265H0Z" filter="url(#riso)"></path></svg></span>
+        <span class="shape" data-shape="square"><svg viewBox="0 0 146 146"><rect class="f-red" width="146" height="146" filter="url(#riso)"></rect></svg></span>
+        <span class="shape" data-shape="bar"><svg viewBox="0 0 17 331" preserveAspectRatio="none"><rect class="f-ink" width="17" height="331" filter="url(#riso)"></rect></svg></span>
+        <span class="shape" data-shape="dot"><svg viewBox="0 0 66 66"><circle class="f-red" cx="33" cy="33" r="33" filter="url(#riso)"></circle></svg></span>
+        <span class="shape" data-shape="half"><svg viewBox="0 0 238 119"><path class="f-ink" d="M0 119a119 119 0 0 1 238 0Z" filter="url(#riso)"></path></svg></span>
+      </div>
+      <canvas class="flow flow-blue" data-flow-blue aria-hidden="true"></canvas>
+      <canvas class="flow flow-red" data-flow-red aria-hidden="true"></canvas>
+      <canvas class="flow flow-thread" data-flow-thread aria-hidden="true"></canvas>
       <div class="hero-copy">
         <p class="kicker" data-fade>{FOCUS.join(' · ')}</p>
         <h1 id="hero-title" class="hero-title"><span>Hard problems,</span> <em>untangled.</em></h1>
@@ -102,19 +133,18 @@ const migraCss = faces.size
           answer isn’t obvious yet.
         </p>
         <div class="actions" data-fade>
-          <a class="btn is-red" href="#intro" data-magnet><span>Follow the thread</span><Fragment set:html={down} /></a>
+          <a class="btn is-solid" href="#intro" data-magnet><span>Follow the thread</span><Fragment set:html={down} /></a>
           <a class="btn" href="#contact" data-magnet><span>Say hello</span></a>
         </div>
       </div>
-      <p class="hero-hint" data-hint aria-hidden="true"><span class="hint-dot"></span><span data-hint-text>Grab the thread</span></p>
+      <p class="hero-hint" data-hint aria-hidden="true"><Pixel map={CURSOR} class="hint-cursor" /><span data-hint-text>Stir the field</span></p>
       <p class="scroll-hint" data-scroll-hint aria-hidden="true">Scroll to untangle</p>
       <span class="thread-start" data-thread-start aria-hidden="true"></span>
     </section>
 
     <section class="intro" id="intro" data-intro aria-label="What I do">
       <p class="intro-text" data-words>
-        I work across the whole problem: the model, the architecture, the data and the interface. Give me something tangled, and I’ll
-        <em>find the thread,</em> design the simplest system that holds, and make it fast.
+        I work across the whole problem: the model, the architecture, the data and the interface. Give me something tangled, and I’ll <em>find the thread,</em> <mark data-mark>design the simplest system that holds,</mark> and make it fast.
       </p>
     </section>
 
@@ -128,7 +158,33 @@ const migraCss = faces.size
           {
             METHOD.map((m, i) => (
               <figure class="fig" data-fig={i}>
-                <div class="fig-box" data-fig-box />
+                <div class="fig-box" data-fig-box>
+                  {i === 0 && (
+                    <svg class="fig-art" viewBox="0 0 100 100">
+                      {rings.map((r) => (
+                        <path class:list={['ring', { 'is-index': r.index }]} d={r.d} />
+                      ))}
+                    </svg>
+                  )}
+                  {i === 1 && (
+                    <svg class="fig-art" viewBox="0 0 100 100">
+                      <g filter="url(#riso-s)">
+                        <path class="f-yellow" d="M15 42 23.5 57h-17Z" />
+                        <circle class="f-blue" cx="50" cy="50" r="9" />
+                        <rect class="f-red" x="43.5" y="7.5" width="13" height="13" />
+                        <path class="f-ink" d="M77.5 54a7.5 7.5 0 0 1 15 0Z" />
+                        <circle class="f-blue" cx="50" cy="86" r="6" />
+                      </g>
+                    </svg>
+                  )}
+                  {i === 2 && (
+                    <svg class="fig-art" viewBox="0 0 100 100">
+                      {flows.map((d) => (
+                        <path class="stream" d={d} />
+                      ))}
+                    </svg>
+                  )}
+                </div>
                 <figcaption>{m.figure}</figcaption>
               </figure>
             ))
@@ -155,6 +211,18 @@ const migraCss = faces.size
         <p class="kicker"><span class="kicker-n">02</span> Selected work</p>
         <h2 id="work-title" class="sec-title" data-split>Seven problems, <em>solved.</em></h2>
         <p class="sec-lede">Across AI, data, platforms and fintech. Client names stay private; the problem, the architecture and the reasoning behind it don’t.</p>
+        <ul class="legend" aria-label="How to read the diagrams">
+          {
+            KINDS.map((k) => (
+              <li>
+                <svg viewBox="0 0 30 30" aria-hidden="true">
+                  <Fragment set:html={GLYPHS[k.kind]} />
+                </svg>
+                {k.label}
+              </li>
+            ))
+          }
+        </ul>
       </header>
       <div class="work-frame" data-work-frame>
         <div class="track" data-track>
@@ -215,9 +283,12 @@ const migraCss = faces.size
         {
           CAPABILITIES.map((c) => (
             <li class="cap" data-cap>
-              <div>
-                <h3 class="cap-title">{c.area}</h3>
-                <p class="cap-note">{c.note}</p>
+              <div class="cap-head">
+                <Pixel map={ICONS[c.icon]} class="cap-icon" />
+                <div>
+                  <h3 class="cap-title">{c.area}</h3>
+                  <p class="cap-note">{c.note}</p>
+                </div>
               </div>
               <ul class="cap-items">
                 {c.items.map((x) => (
@@ -232,7 +303,11 @@ const migraCss = faces.size
     </section>
 
     <section class="quest" id="side-quest" data-quest aria-labelledby="quest-title">
-      <div class="quest-fig" data-quest-fig aria-hidden="true"></div>
+      <div class="quest-fig" data-quest-fig aria-hidden="true">
+        <span class="sun" data-sun><svg viewBox="0 0 220 220"><circle class="f-yellow" cx="110" cy="110" r="110" filter="url(#riso)"></circle></svg></span>
+        <span class="ground"></span>
+        <span class="plant" data-plant><Pixel map={PLANT} /></span>
+      </div>
       <div class="quest-copy">
         <p class="kicker"><span class="kicker-n">04</span> Side quest</p>
         <h2 id="quest-title" class="sec-title" data-split>{SIDE_QUEST.name}</h2>
@@ -262,6 +337,7 @@ const migraCss = faces.size
         </div>
 
         <div class="contact-card">
+          <span class="contact-sun" aria-hidden="true"><svg viewBox="0 0 260 260"><circle class="f-yellow" cx="130" cy="130" r="130" filter="url(#riso)"></circle></svg></span>
           <form class="form" data-form novalidate>
             <fieldset>
               <legend class="label">What is it about?</legend>
@@ -299,7 +375,7 @@ const migraCss = faces.size
             </div>
             <div class="submit-row">
               <p class="hint" data-form-hint role="status" aria-live="polite">It goes straight to my inbox.</p>
-              <button class="btn is-red" type="submit" data-send data-end>
+              <button class="btn is-solid" type="submit" data-send data-end>
                 <span data-send-label>Send message</span>
                 <Fragment set:html={arrow} />
               </button>
@@ -307,7 +383,7 @@ const migraCss = faces.size
           </form>
 
           <section class="sent" data-sent hidden tabindex="-1" aria-labelledby="sent-title">
-            <p class="kicker">Sent</p>
+            <p class="kicker"><Pixel map={SPOOL} class="sent-spool" /> Sent</p>
             <h3 id="sent-title" class="sent-title">Thank you<span data-sent-name></span>.</h3>
             <p class="sec-lede">Your message is on its way. I’ll reply to <span data-sent-email></span> soon.</p>
             <div class="submit-row">
@@ -321,8 +397,8 @@ const migraCss = faces.size
   </main>
 
   <footer class="foot">
-    <span>© {new Date().getFullYear()} {PERSON.name}</span>
-    <span>Hand-made with Astro, GSAP and Three.js.</span>
+    <span class="foot-mark"><Pixel map={SPOOL} class="foot-spool" />© {new Date().getFullYear()} {PERSON.name}</span>
+    <span>Hand-made with Astro and GSAP, printed in five inks.</span>
     <span class="foot-links">
       {
         PERSON.links.map((l) => (
@@ -340,9 +416,10 @@ const migraCss = faces.size
   import { gsap } from 'gsap';
   import { ScrollTrigger } from 'gsap/ScrollTrigger';
   import { SplitText } from 'gsap/SplitText';
+  import { createFlow } from '../../components/ethchor/flow';
   import { buildRuns } from '../../components/ethchor/route';
   import { createThread, type Thread } from '../../components/ethchor/thread';
-  import type { Knot, KnotLayout } from '../../components/ethchor/knot';
+  import { createTopo } from '../../components/ethchor/topo';
 
   gsap.registerPlugin(ScrollTrigger, SplitText);
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -352,60 +429,90 @@ const migraCss = faces.size
   const $$ = <T extends Element = HTMLElement>(s: string, el: ParentNode = document) => [...el.querySelectorAll<T>(s)];
   // Styles that animate things in only apply when motion is welcome.
   if (!reduce) root.classList.add('motion');
+  const inkOf = (name: string) => getComputedStyle(root).getPropertyValue(name).trim();
 
-  const RED = '#ff3b1f';
   const hero = $('[data-hero]');
-  const canvas = $<HTMLCanvasElement>('[data-knot]');
   const startMark = $('[data-thread-start]');
   const hint = $('[data-hint]');
   /** Half the page gutter (--gutter in the stylesheet): where the thread's lanes run. */
   const lane = () => Math.min(64, Math.max(18, innerWidth * 0.044)) / 2;
 
-  /* ---------- The tangle: where it sits, and its loose end ---------- */
-  function layout(w: number, h: number): KnotLayout {
-    // On a phone the copy sits under the tangle, so the loose end leaves to the right and runs
-    // down the right lane beside it.
-    if (w < 760) return { cx: w * 0.5, cy: h * 0.27, r: Math.min(w * 0.34, h * 0.19), ex: w - lane(), ey: h, exit: -0.25 };
-    return { cx: w * 0.71, cy: h * 0.44, r: Math.min(w * 0.19, h * 0.31), ex: w * 0.71, ey: h };
-  }
-  function placeHero() {
-    const L = layout(hero.clientWidth, hero.clientHeight);
-    startMark.style.left = `${L.ex}px`;
-    startMark.style.top = `${L.ey}px`;
-    hint.style.left = `${Math.min(hero.clientWidth - 170, L.cx + L.r * 0.72)}px`;
-    hint.style.top = `${Math.max(84, L.cy - L.r * 0.95)}px`;
-  }
-  placeHero();
+  /* ---------- The hero: a flow field that calms as you scroll ---------- */
+  /** The thread's loose end at the foot of the hero: under the shapes, or in the right lane on a phone. */
+  const endOf = (w: number, h: number) => (w < 760 ? { x: w - lane(), y: h } : { x: w * 0.71, y: h });
+  const placeEnd = () => {
+    const e = endOf(hero.clientWidth, hero.clientHeight);
+    startMark.style.left = `${e.x}px`;
+    startMark.style.top = `${e.y}px`;
+  };
+  placeEnd();
 
-  let knot: Knot | null = null;
-  let born = performance.now();
-  async function wake() {
-    try {
-      const { createKnot } = await import('../../components/ethchor/knot');
-      knot = createKnot({
-        canvas,
-        surface: hero,
-        layout,
-        color: RED,
-        shade: '#5c140a',
-        reduce,
-        onTouch: () => hint.classList.add('is-done'),
-      });
-      root.classList.add('has-knot');
-      born = performance.now();
-      if (reduce) knot.frame(0, 0);
-      else {
-        // It winds itself in, then waits to be untangled.
-        const wound = { v: 0 };
-        gsap.to(wound, { v: 1, duration: 2.6, ease: 'power2.inOut', delay: 0.15, onUpdate: () => knot?.setDrawn(wound.v) });
-      }
-    } catch (err) {
-      console.warn('No WebGL, so no tangle:', err);
-      root.classList.add('no-webgl');
-    }
+  const flow = createFlow({
+    blue: $<HTMLCanvasElement>('[data-flow-blue]'),
+    red: $<HTMLCanvasElement>('[data-flow-red]'),
+    thread: $<HTMLCanvasElement>('[data-flow-thread]'),
+    surface: hero,
+    end: endOf,
+    reduce,
+    colors: { blue: inkOf('--blue'), red: inkOf('--red') },
+    onTouch: () => hint.classList.add('is-done'),
+  });
+  if (reduce) {
+    // A still print: the field caught on its way to calm.
+    flow.setProgress(0.35);
+    flow.frame(0, 0);
+  } else {
+    // The lines print themselves in.
+    const printed = { v: 0 };
+    gsap.to(printed, { v: 1, duration: 2.6, ease: 'power2.out', delay: 0.2, onUpdate: () => flow.setGrow(printed.v) });
   }
-  wake();
-  if (!fine) $('[data-hint-text]').textContent = 'Tap the thread';
+  if (!fine) $('[data-hint-text]').textContent = 'Tap to stir';
+
+  /* ---------- The shapes: scattered at first, set in order as the flow calms ---------- */
+  const shapesBox = $('[data-shapes]');
+  const shapes = $$('[data-shape]');
+  /**
+   * Where each shape ends up, as shares of the box: its centre, its size (its width, or the bar's
+   * length) and its turn. The four kinds from the diagrams in a row on the bar, up and to the right
+   * of the title, and the dot as the full stop: untangled.
+   */
+  const ORDER: Record<string, { x: number; y: number; size: number; turn?: number; at: number }> = {
+    bar: { x: 0.5575, y: 0.368, size: 0.785, turn: 90, at: 0 },
+    square: { x: 0.235, y: 0.29, size: 0.14, at: 1 },
+    circle: { x: 0.41, y: 0.29, size: 0.14, at: 2 },
+    triangle: { x: 0.595, y: 0.2905, size: 0.16, at: 3 },
+    half: { x: 0.79, y: 0.32, size: 0.16, at: 4 },
+    dot: { x: 0.9275, y: 0.3375, size: 0.045, at: 5 },
+  };
+  let order: gsap.core.Timeline | null = null;
+  function setOrder() {
+    const at = order ? order.progress() : 0;
+    order?.progress(0).kill();
+    const S = shapesBox.clientWidth;
+    // One at a time: the rule first, then each shape onto it, and the full stop last.
+    const tl = gsap.timeline({ paused: true, defaults: { duration: 1, ease: 'power3.inOut' } });
+    shapes.forEach((el) => {
+      const t = ORDER[el.dataset.shape!];
+      const w = el.offsetWidth;
+      const h = el.offsetHeight;
+      // The bar only changes length, so its ink stays the same weight.
+      const size = el.dataset.shape === 'bar' ? { scaleX: 1, scaleY: (t.size * S) / h } : { scale: (t.size * S) / w };
+      tl.to(el, { x: t.x * S - (el.offsetLeft + w / 2), y: t.y * S - (el.offsetTop + h / 2), rotation: t.turn ?? 0, ...size }, t.at * 0.16);
+    });
+    tl.progress(at);
+    order = tl;
+  }
+  // On a phone the shapes take the room the copy leaves above it, so the copy is measured.
+  const heroCopy = $('.hero-copy');
+  const measureCopy = () => hero.style.setProperty('--copy', `${heroCopy.offsetHeight}px`);
+  measureCopy();
+  if (!reduce) setOrder();
+  /** How calm the hero is, from its pinned scroll, and the same eased so wheel steps don't jump. */
+  let calmTo = 0;
+  let calm = 0;
+
+  /* ---------- The ground: a contour map behind the page ---------- */
+  const topo = createTopo({ canvas: $<HTMLCanvasElement>('[data-topo]'), color: inkOf('--topo'), parallax: reduce ? 0 : 0.3 });
 
   /* ---------- Scroll: pins, the sideways work rail, the sunrise, the thread ---------- */
   const threadSvg = $<SVGSVGElement>('[data-thread]');
@@ -414,6 +521,8 @@ const migraCss = faces.size
   const workFrame = $('[data-work-frame]');
   const track = $('[data-track]');
   const quest = $('[data-quest]');
+  const questFig = $('[data-quest-fig]');
+  const sun = $('[data-sun]');
   const contact = $('[data-contact]');
   const steps = $$('[data-step]');
   const figs = $$('[data-fig]');
@@ -455,7 +564,7 @@ const migraCss = faces.size
           pin: true,
           scrub: true,
           onUpdate: (self) => {
-            knot?.setProgress(self.progress);
+            calmTo = self.progress;
             scrollHint.style.opacity = String(Math.max(0, 1 - self.progress * 6));
             hint.style.filter = `opacity(${Math.max(0, 1 - self.progress * 5)})`;
           },
@@ -478,8 +587,11 @@ const migraCss = faces.size
       panels.forEach((panel) => ScrollTrigger.create({ trigger: panel, start: 'top 82%', onEnter: () => panel.classList.add('is-in') }));
     }
 
-    // Night turns to day over the side quest, which follows the sun anyway.
-    gsap.fromTo(root, { '--day': 0 }, { '--day': 1, ease: 'none', scrollTrigger: { trigger: quest, start: 'top 75%', end: 'center 45%', scrub: true } });
+    // The sun comes up over the side quest, and the plant grows in its light.
+    if (!still) {
+      gsap.fromTo(sun, { yPercent: 70 }, { yPercent: 0, ease: 'none', scrollTrigger: { trigger: quest, start: 'top 85%', end: 'center 55%', scrub: true } });
+      ScrollTrigger.create({ trigger: questFig, start: 'top 70%', once: true, onEnter: () => questFig.classList.add('is-in') });
+    }
     const questST = ScrollTrigger.create({ trigger: quest, start: 'top 70%', end: 'bottom 70%' });
     const contactST = ScrollTrigger.create({ trigger: contact, start: 'top 90%', end: 'max' });
 
@@ -509,7 +621,8 @@ const migraCss = faces.size
           caps: $$('[data-cap]'),
           also: $('[data-also]'),
           quest,
-          questFig: $('[data-quest-fig]'),
+          sun,
+          plant: $('[data-plant]'),
           questRange: range(questST),
           contact,
           send: visibleEnd(),
@@ -526,37 +639,39 @@ const migraCss = faces.size
     return () => {
       ScrollTrigger.removeEventListener('refresh', make);
       thread = null;
-      root.style.removeProperty('--day');
     };
   });
+  // The shapes' places depend on the size of their box.
+  if (!reduce) ScrollTrigger.addEventListener('refresh', setOrder);
 
-  if (reduce) {
-    // Nothing moves on its own: draw the thread again only when the page does.
-    const redraw = () => thread?.draw();
-    addEventListener('scroll', redraw, { passive: true });
-    addEventListener('resize', () => {
-      placeHero();
-      knot?.resize();
-      knot?.frame(0, 0);
-      redraw();
-    });
-  } else {
-    addEventListener('resize', () => {
-      placeHero();
-      knot?.resize();
-    });
-  }
+  addEventListener('resize', () => {
+    measureCopy();
+    placeEnd();
+    flow.resize();
+    topo.resize();
+    if (reduce) {
+      // Nothing moves on its own: print it again only when the page changes.
+      flow.frame(0, 0);
+      thread?.draw();
+    }
+  });
+  if (reduce) addEventListener('scroll', () => thread?.draw(), { passive: true });
 
   /* ---------- One loop for everything that moves ---------- */
   let prev = performance.now();
+  const born = prev;
   const loop = (now: number) => {
     const dt = Math.min(0.1, (now - prev) / 1000);
     prev = now;
-    // Only while the hero is on screen (checked directly: pinning moves it around).
-    if (knot) {
-      const b = hero.getBoundingClientRect();
-      if (b.bottom > 0 && b.top < innerHeight) knot.frame((now - born) / 1000, dt);
+    // The flow only while the hero is on screen (checked directly: pinning moves it around).
+    const b = hero.getBoundingClientRect();
+    if (b.bottom > 0 && b.top < innerHeight) {
+      calm += (calmTo - calm) * (1 - Math.exp(-dt * 7));
+      flow.setProgress(calm);
+      order?.progress(Math.min(1, calm / 0.85));
+      flow.frame((now - born) / 1000, dt);
     }
+    topo.update();
     thread?.frame(dt);
     requestAnimationFrame(loop);
   };
@@ -584,7 +699,7 @@ const migraCss = faces.size
       }),
     );
 
-    // The statement lights up word by word as it is read.
+    // The statement lights up word by word as it is read, and the highlighter follows.
     SplitText.create('[data-words]', {
       type: 'words',
       autoSplit: true,
@@ -595,6 +710,11 @@ const migraCss = faces.size
           { opacity: 1, ease: 'none', stagger: 0.1, scrollTrigger: { trigger: '[data-words]', start: 'top 78%', end: 'bottom 50%', scrub: 0.5 } },
         ),
     });
+    gsap.fromTo(
+      '[data-mark]',
+      { '--hl': 0 },
+      { '--hl': 1, ease: 'none', scrollTrigger: { trigger: '[data-mark]', start: 'top 62%', end: 'bottom 50%', scrub: 0.5 } },
+    );
 
     gsap.utils.toArray<HTMLElement>('.cap, .also, .quest-copy > :not(.sec-title), .contact-intro > :not(.sec-title), .contact-card').forEach((el) =>
       gsap.from(el, { y: 36, opacity: 0, duration: 1.1, ease: 'expo.out', scrollTrigger: { trigger: el, start: 'top 90%', once: true } }),
@@ -603,21 +723,21 @@ const migraCss = faces.size
     $$<SVGSVGElement>('[data-diagram]').forEach((svg) => svg.pauseAnimations());
   }
 
-  /* ---------- Diagrams: fit each node to its label, light the nodes a decision is about ---------- */
+  /* ---------- Diagrams: fit each chip to its label, light the nodes a decision is about ---------- */
+  /** The glyph's share of a chip, and the padding after the label (as in Diagram.astro). */
+  const GLYPH = 30;
   function fitDiagrams() {
     $$<SVGGElement>('.diagram .node').forEach((node) => {
       const text = node.querySelector('text')!;
-      const rect = node.querySelector('rect')!;
-      const w = Math.ceil(text.getComputedTextLength()) + 28;
-      const cx = Number(node.dataset.cx);
-      const cy = Number(node.dataset.cy);
-      rect.setAttribute('width', String(w));
-      text.setAttribute('x', String(w / 2));
-      node.setAttribute('transform', `translate(${cx - w / 2} ${cy - 15})`);
+      const chip = node.querySelector<SVGRectElement>('.chip')!;
+      const w = Math.ceil(GLYPH + text.getComputedTextLength() + 12);
+      chip.setAttribute('width', String(w));
+      node.setAttribute('transform', `translate(${Number(node.dataset.cx) - w / 2} ${Number(node.dataset.cy) - 15})`);
     });
   }
   document.fonts.ready.then(() => {
     fitDiagrams();
+    measureCopy();
     ScrollTrigger.refresh();
   });
 

@@ -1,6 +1,7 @@
 /**
  * The red thread down the page. It starts at the hero's loose end and runs all the way to the send
- * button, drawn as you scroll, with a glowing tip leading the way.
+ * button, drawn as you scroll, with a pixel tip leading the way and a second print of it (the
+ * [data-echo] path) a hair off register.
  *
  * It passes through waypoints placed relative to elements and measured afresh every frame, so it
  * follows the layout, the pinned sections and anything GSAP moves. Each run of waypoints says how
@@ -85,7 +86,7 @@ export function createThread(opts: ThreadOptions) {
   const { svg } = opts;
   const eye = opts.eye ?? 0.62;
   const line = svg.querySelector<SVGPathElement>('[data-line]')!;
-  const glow = svg.querySelector<SVGPathElement>('[data-glow]');
+  const echo = svg.querySelector<SVGPathElement>('[data-echo]');
   const tip = svg.querySelector<SVGGElement>('[data-tip]');
 
   const ways: Way[] = [];
@@ -213,7 +214,7 @@ export function createThread(opts: ThreadOptions) {
     }
     if (d !== lastD) {
       line.setAttribute('d', d);
-      glow?.setAttribute('d', d);
+      echo?.setAttribute('d', d);
       lastD = d;
     }
     if (tip) {

@@ -3,9 +3,9 @@
  *
  * It runs in the page's margins (the lanes), crossing only where there is room, and draws its
  * figures inside boxes the layout leaves for them: the method's three sketches, a knot for each
- * project on the work rail, a stitch under each capability, a potted plant at the side quest, and
- * finally a loop around the send button with a knot to finish. Built again whenever the layout
- * changes, since loop sizes and lanes are in pixels.
+ * project on the work rail, a stitch under each capability, a ring round the rising sun at the side
+ * quest, and finally a loop around the send button with a knot to finish. Built again whenever the
+ * layout changes, since loop sizes and lanes are in pixels.
  */
 import type { Run, Way } from './thread';
 
@@ -32,7 +32,9 @@ export interface RouteParts {
   caps: Element[];
   also: Element;
   quest: Element;
-  questFig: Element;
+  /** The side quest's sun (it moves as it rises: waypoints are measured every frame) and plant. */
+  sun: Element;
+  plant: Element;
   questRange: () => [number, number];
   contact: Element;
   send: Element;
@@ -118,7 +120,7 @@ export function buildRuns(p: RouteParts): Run[] {
     onProgress: (v) => p.onStep?.(0, v),
     ways: [W(f0, 0.12, 0.5), ...scribble, W(f0, 0.5, 0.1), ...ring(f0, 0.5, 0.5, r0 * 0.4, { steps: 10 }), W(f0, 1, 0.42, 6)],
   });
-  // 2. The system: a hub and four services, each with a knot where it sits.
+  // 2. The system: from the hub out to each part and back, tying a loop round each shape.
   const nodes: [number, number][] = [
     [0.15, 0.5],
     [0.5, 0.5],
@@ -129,11 +131,12 @@ export function buildRuns(p: RouteParts): Run[] {
     [0.5, 0.86],
   ];
   const knotR = Math.max(5, r0 * 0.045);
+  const loopR = Math.max(9, r0 * 0.095);
   const system: Way[] = [];
   nodes.forEach(([x, y], i) => {
     const repeat = i > 1 && x === 0.5 && y === 0.5;
     if (repeat) system.push(W(f1, x, y));
-    else system.push(...ring(f1, x, y, knotR, { from: Math.PI, steps: 6 }));
+    else system.push(...ring(f1, x, y, loopR, { from: Math.PI, steps: 8 }));
   });
   runs.push({
     span: part(p.methodRange, 0.36, 0.66),
@@ -217,36 +220,19 @@ export function buildRuns(p: RouteParts): Run[] {
   if (!side) stitch.push(W(p.range, 0.5, 1, 0, 0), right(p.range, p.range, 1));
   runs.push({ ways: stitch });
 
-  /* The side quest: a potted plant, drawn as the sun comes up. The thread arrives along the ground,
-     goes round the pot, then rises from the bottom of it as the stem, with two leaves and a bud. */
-  const q = p.questFig;
+  /* The side quest: down the right lane to the sun, once round it as it comes up, then down past
+     the plant to a knot on the ground beside it, and back to the lane. */
+  const sun = p.sun.getBoundingClientRect();
+  const sunR = sun.width / 2 + 16;
   runs.push({
     span: p.questRange,
     ways: [
-      right(p.quest, q, 0.94),
-      W(q, 0.64, 0.94),
-      W(q, 0.675, 0.79),
-      W(q, 0.71, 0.64),
-      W(q, 0.29, 0.64),
-      W(q, 0.325, 0.79),
-      W(q, 0.36, 0.94),
-      W(q, 0.5, 0.94),
-      W(q, 0.5, 0.78),
-      W(q, 0.5, 0.6),
-      W(q, 0.5, 0.52),
-      W(q, 0.58, 0.47),
-      W(q, 0.73, 0.37),
-      W(q, 0.61, 0.36),
-      W(q, 0.51, 0.43),
-      W(q, 0.5, 0.35),
-      W(q, 0.41, 0.29),
-      W(q, 0.27, 0.2),
-      W(q, 0.39, 0.19),
-      W(q, 0.49, 0.26),
-      W(q, 0.5, 0.15),
-      ...ring(q, 0.5, 0.1, Math.max(6, q.getBoundingClientRect().width * 0.03), { from: Math.PI / 2, steps: 7 }),
-      W(q, 0.5, 0.04),
-      right(p.quest, q, 0, -10),
+      right(p.quest, p.sun, 0.5),
+      ...ring(p.sun, 0.5, 0.5, sunR, { from: 0, steps: 14 }),
+      W(p.plant, 1, 0.55, 26),
+      ...ring(p.plant, 1, 1, 7, { from: Math.PI, steps: 6 }, { dx: 26, dy: -8 }),
+      W(p.plant, 1, 1, 60, 10),
+      right(p.quest, p.plant, 1, 26),
       right(p.quest, p.quest, 1),
     ],
   });
