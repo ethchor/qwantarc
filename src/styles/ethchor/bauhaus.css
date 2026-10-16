@@ -1,0 +1,528 @@
+/* The Bauhaus exhibition: the work. Primary colours, black rules and heavy geometric type. The
+   section opens with the four shapes the diagrams use, falling into a row on a rule as their key;
+   each project is a poster with a shape of its own; the diagrams are built from the same shapes. */
+
+.vibe-bauhaus {
+  --bg: #f1ece1;
+  --fg: #111111;
+  --fg-2: #3c3934;
+  --fg-3: #5f5a52;
+  --line: #111111;
+  --accent: #d6372b;
+  --b-red: #d6372b;
+  --b-yellow: #f2c230;
+  --b-blue: #22489c;
+  --b-black: #111111;
+  --paper: #fbf9f3;
+}
+.vibe-bauhaus .kicker {
+  font: 800 12px/1 var(--sans);
+  letter-spacing: 0.18em;
+  color: var(--fg);
+}
+.vibe-bauhaus .kicker-n {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  background: var(--fg);
+  color: var(--bg);
+  letter-spacing: 0;
+}
+.vibe-bauhaus .sec-title {
+  font: 900 clamp(54px, 7.4vw, 132px) / 0.9 var(--sans);
+  letter-spacing: -0.05em;
+  text-transform: lowercase;
+}
+.vibe-bauhaus .sec-title em {
+  font-family: var(--sans);
+  font-style: normal;
+  color: var(--accent);
+}
+.vibe-bauhaus .sec-lede {
+  font-weight: 500;
+}
+.vibe-bauhaus .label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: 800 11.5px/1 var(--sans);
+  letter-spacing: 0.14em;
+  color: var(--fg);
+}
+.vibe-bauhaus .label::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  background: var(--fg);
+}
+
+/* ---- Head, with the key ---- */
+.work-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  align-items: end;
+  gap: 4vw;
+  padding: 18vh var(--gutter) 8vh;
+}
+/* The key: shapes placed in shares of the box; the script sets them in a row as the head arrives. */
+.legend {
+  position: relative;
+  width: min(100%, 540px);
+  aspect-ratio: 2 / 1.15;
+  justify-self: end;
+  container-type: inline-size;
+}
+.legend .shape {
+  position: absolute;
+  display: block;
+  will-change: transform;
+}
+.legend .shape svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.shape[data-shape='circle'] {
+  left: 30%;
+  top: 6%;
+  width: 24%;
+  aspect-ratio: 1;
+}
+.shape[data-shape='triangle'] {
+  left: 4%;
+  top: 36%;
+  width: 26%;
+  aspect-ratio: 305 / 265;
+  transform: rotate(-12deg);
+}
+.shape[data-shape='square'] {
+  left: 62%;
+  top: 4%;
+  width: 15%;
+  aspect-ratio: 1;
+  transform: rotate(16deg);
+}
+.shape[data-shape='half'] {
+  left: 67%;
+  top: 52%;
+  width: 24%;
+  aspect-ratio: 2;
+}
+/* The rule is drawn at its full length and shortened while it lies askew. */
+.shape[data-shape='bar'] {
+  left: 7%;
+  top: 70%;
+  width: 78%;
+  height: 2.2cqw;
+  min-height: 8px;
+  background: var(--b-black);
+  transform: rotate(-24deg) scaleX(0.55);
+}
+.shape[data-shape='dot'] {
+  left: 14%;
+  top: 8%;
+  width: 6%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--b-red);
+}
+.legend-label {
+  position: absolute;
+  /* Sized with the key, so the names never run into each other. */
+  font: 800 clamp(8px, 2.05cqw, 11px) / 1 var(--sans);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  translate: -50% 0;
+  opacity: 0;
+}
+:root:not(.motion) .legend-label {
+  opacity: 1;
+}
+.b-red {
+  fill: var(--b-red);
+}
+.b-yellow {
+  fill: var(--b-yellow);
+}
+.b-blue {
+  fill: var(--b-blue);
+}
+.b-black {
+  fill: var(--b-black);
+}
+
+/* ---- The rail of posters ---- */
+.work-frame {
+  position: relative;
+}
+.work.is-rail .work-frame {
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+}
+.track {
+  display: grid;
+  gap: 56px;
+  padding: 40px var(--gutter) 12vh;
+}
+.work.is-rail .track {
+  display: flex;
+  gap: 3vw;
+  width: max-content;
+  height: 100%;
+  padding: 12vh var(--gutter) 15vh;
+  will-change: transform;
+}
+.panel {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px clamp(24px, 3vw, 56px);
+  padding: clamp(22px, 2.8vw, 44px);
+  border: 2px solid var(--fg);
+  border-top: 12px solid var(--c);
+  background: var(--paper);
+}
+.panel:nth-child(4n + 1) {
+  --c: var(--b-red);
+}
+.panel:nth-child(4n + 2) {
+  --c: var(--b-blue);
+}
+.panel:nth-child(4n + 3) {
+  --c: var(--b-yellow);
+}
+.panel:nth-child(4n + 4) {
+  --c: var(--b-black);
+}
+.work.is-rail .panel {
+  width: min(82vw, 1180px);
+  flex: none;
+}
+/* Each poster has a shape of its own, half off its top edge. */
+.panel-shape {
+  position: absolute;
+  top: -42px;
+  right: 44px;
+  width: 64px;
+  height: 64px;
+  background: var(--s);
+}
+.panel:nth-child(1) .panel-shape {
+  --s: var(--b-yellow);
+  border-radius: 50%;
+}
+.panel:nth-child(2) .panel-shape {
+  --s: var(--b-red);
+  rotate: 12deg;
+}
+.panel:nth-child(3) .panel-shape {
+  --s: var(--b-blue);
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+.panel:nth-child(4) .panel-shape {
+  --s: var(--b-yellow);
+  height: 32px;
+  top: -10px;
+  border-radius: 32px 32px 0 0;
+}
+.panel:nth-child(5) .panel-shape {
+  --s: var(--b-blue);
+  border-radius: 50%;
+}
+.panel:nth-child(6) .panel-shape {
+  --s: var(--b-yellow);
+  rotate: -10deg;
+}
+.panel:nth-child(7) .panel-shape {
+  --s: var(--b-red);
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+.panel-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 16px;
+  font: 800 12px/1 var(--sans);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fg-2);
+}
+.panel-n {
+  font: 900 30px/0.8 var(--sans);
+  letter-spacing: -0.04em;
+  color: var(--fg);
+}
+.panel-title {
+  margin-top: 18px;
+  font: 700 clamp(30px, 3vw, 50px) / 1.02 var(--sans);
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+.panel-role {
+  margin-top: 12px;
+  font-size: 14px;
+  color: var(--fg-3);
+}
+.panel-problem {
+  max-width: 46ch;
+  font-size: clamp(17px, 1.3vw, 20px);
+  font-weight: 500;
+  line-height: 1.5;
+}
+.panel-did {
+  max-width: 50ch;
+  font-size: 15.5px;
+  color: var(--fg-2);
+}
+.fig-frame {
+  max-width: 470px;
+  margin: 0;
+  padding: 12px;
+  border: 2px solid var(--fg);
+  background: #fff;
+}
+.decisions {
+  display: grid;
+  gap: 2px;
+  margin: 0 -10px;
+  padding: 0;
+  list-style: none;
+}
+.decisions li {
+  padding: 8px 10px;
+  font-size: 14.5px;
+  line-height: 1.45;
+  color: var(--fg-2);
+  transition: background 0.25s;
+}
+.decisions li:hover,
+.decisions li.is-on {
+  background: var(--b-yellow);
+  color: var(--fg);
+}
+.decisions li:focus-visible {
+  outline-offset: 0;
+}
+.decisions strong {
+  font-weight: 700;
+  color: var(--fg);
+}
+.stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.stack li {
+  padding: 5px 9px;
+  border: 2px solid var(--fg);
+  font: 700 11.5px/1.2 var(--sans);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.rail,
+.rail-count {
+  display: none;
+}
+.work.is-rail .rail {
+  position: absolute;
+  left: var(--gutter);
+  right: var(--gutter);
+  bottom: 7svh;
+  display: block;
+  height: 6px;
+  margin-top: -3px;
+  background: var(--fg);
+}
+.rail-stop {
+  position: absolute;
+  top: 3px;
+  left: calc(3% + var(--i) / var(--n) * 94%);
+  width: 0;
+  height: 0;
+}
+.work.is-rail .rail-count {
+  position: absolute;
+  right: var(--gutter);
+  bottom: calc(7svh + 22px);
+  display: block;
+  font: 900 20px/1 var(--sans);
+  letter-spacing: -0.02em;
+  color: var(--fg-3);
+}
+.rail-count span {
+  color: var(--fg);
+}
+
+/* ---- Diagrams: chips carrying the shapes, black links, packets of colour running along them ---- */
+.diagram {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.diagram .link {
+  fill: none;
+  stroke: var(--fg);
+  stroke-width: 1.5;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+  opacity: 0.7;
+  transition:
+    stroke 0.3s,
+    opacity 0.3s;
+}
+.diagram .node-in {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+/* With motion allowed, a diagram builds itself as its project arrives: links draw, chips pop. */
+.motion .diagram .link {
+  stroke-dashoffset: 1;
+  transition:
+    stroke-dashoffset 1.3s var(--ease) calc(var(--i) * 70ms),
+    stroke 0.3s,
+    opacity 0.3s;
+}
+.motion .diagram .node-in {
+  opacity: 0;
+  scale: 0.6;
+  transition:
+    opacity 0.5s var(--ease) calc(150ms + var(--i) * 60ms),
+    scale 0.8s var(--pop) calc(150ms + var(--i) * 60ms);
+}
+.motion .diagram .packets {
+  opacity: 0;
+  transition: opacity 0.8s 0.9s;
+}
+.motion .is-in .diagram .link {
+  stroke-dashoffset: 0;
+}
+.motion .is-in .diagram .node-in {
+  opacity: 1;
+  scale: 1;
+}
+.motion .is-in .diagram .packets {
+  opacity: 1;
+}
+.diagram .link.is-hot {
+  stroke: var(--b-red);
+  stroke-width: 2.5;
+  opacity: 1;
+}
+.diagram .packet {
+  fill: var(--b-red);
+}
+.diagram .packet.is-back {
+  fill: var(--b-blue);
+}
+.diagram .node {
+  transition: opacity 0.3s;
+}
+.diagram .chip {
+  fill: #fff;
+  stroke: var(--fg);
+  stroke-width: 1.5;
+  transition: fill 0.3s;
+}
+.diagram .node text {
+  fill: var(--fg);
+  font: 600 12.5px var(--sans);
+}
+.diagram .node.is-hot .chip {
+  fill: var(--b-yellow);
+}
+.diagram.is-focus .node:not(.is-hot),
+.diagram.is-focus .link:not(.is-hot) {
+  opacity: 0.28;
+}
+.g-app {
+  fill: var(--b-yellow);
+  stroke: var(--fg);
+  stroke-width: 1;
+}
+.g-service {
+  fill: var(--b-blue);
+}
+.g-data {
+  fill: var(--b-red);
+}
+.g-outside {
+  fill: var(--b-black);
+}
+
+/* ---- Wide screens: posters in two columns ---- */
+@media (min-width: 900px) {
+  .panel {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+/* Short screens: the poster has to fit between the top and the rail. */
+@media (min-width: 900px) and (max-height: 820px) {
+  .work.is-rail .track {
+    padding-top: 11vh;
+    padding-bottom: 14vh;
+  }
+  .work.is-rail .panel {
+    padding: 24px 30px;
+  }
+  .work.is-rail .panel-title {
+    margin-top: 12px;
+    font-size: clamp(26px, 2.5vw, 40px);
+  }
+  .work.is-rail .label {
+    margin: 14px 0 6px;
+  }
+  .work.is-rail .panel-problem {
+    font-size: 16px;
+  }
+  .work.is-rail .panel-did,
+  .work.is-rail .decisions li {
+    font-size: 13.5px;
+    line-height: 1.4;
+  }
+  .work.is-rail .decisions li {
+    padding: 5px 10px;
+  }
+  .work.is-rail .fig-frame {
+    max-width: 330px;
+    padding: 8px;
+  }
+  .work.is-rail .stack {
+    margin-top: 10px;
+  }
+  .work.is-rail .stack li {
+    padding: 3px 7px;
+    font-size: 10.5px;
+  }
+}
+
+/* ---- Phones ---- */
+@media (max-width: 760px) {
+  .work-head {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6vh;
+    padding: 12vh var(--gutter) 6vh calc(var(--gutter) * 1.6);
+  }
+  .legend {
+    justify-self: start;
+  }
+  .track {
+    padding-left: calc(var(--gutter) * 1.6);
+  }
+  .panel-shape {
+    top: -30px;
+    right: 24px;
+    width: 46px;
+    height: 46px;
+  }
+  .panel:nth-child(4) .panel-shape {
+    height: 23px;
+    top: -6px;
+  }
+}

@@ -1,0 +1,171 @@
+/* The pixel-art game: the side quest. A dark screen, a pixel face and Claude orange; a little
+   scene at dawn where the sun comes up as you scroll, the plant grows pixel by pixel, and the spool
+   with the red thread has a quest to give. The text types itself out like a game's dialogue. */
+
+.vibe-pixel {
+  --bg: #151413;
+  --fg: #f0eee6;
+  --fg-2: rgb(240 238 230 / 0.76);
+  --fg-3: rgb(240 238 230 / 0.52);
+  --line: rgb(240 238 230 / 0.14);
+  --accent: #d97757;
+  /* The pixel art's inks (lib/ethchor/pixels.ts). */
+  --ink: #151413;
+  --paper: #f0eee6;
+  --red: #d97757;
+  --green: #63b35a;
+  --yellow: #f2c94c;
+  --blue: #5b8bd6;
+  background-image: radial-gradient(rgb(240 238 230 / 0.07) 1px, transparent 1.5px);
+  background-size: 16px 16px;
+}
+.vibe-pixel .kicker {
+  font: 400 16px/1 var(--pixel);
+  letter-spacing: 0;
+  color: var(--accent);
+}
+.vibe-pixel .kicker-n {
+  color: var(--fg);
+}
+.vibe-pixel .sec-title {
+  margin-top: 18px;
+  font: 400 48px/1.15 var(--pixel);
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.quest {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 6vw;
+  min-height: 100vh;
+  min-height: 100svh;
+  padding: 12vh var(--gutter);
+}
+
+/* ---- The scene, framed like a screen ---- */
+.quest-fig {
+  grid-row: 1;
+  grid-column: 2;
+  justify-self: center;
+  width: min(100%, 580px);
+  border: 4px solid var(--fg);
+  background: #1d1b33;
+  box-shadow: 8px 8px 0 var(--accent);
+}
+.scene {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.star {
+  fill: var(--paper);
+  animation: twinkle 2.4s steps(1) infinite;
+}
+.star:nth-child(3n) {
+  animation-delay: -0.8s;
+}
+.star:nth-child(3n + 1) {
+  animation-delay: -1.6s;
+}
+@keyframes twinkle {
+  50% {
+    opacity: 0.25;
+  }
+}
+.sprite,
+.bang {
+  animation: hop 1.2s steps(1) infinite;
+}
+.bang {
+  animation-duration: 0.8s;
+}
+@keyframes hop {
+  50% {
+    transform: translate(0, -1px);
+  }
+}
+.motion .plant rect {
+  opacity: 0;
+  transition: opacity 0.01s linear calc(var(--i) * 32ms);
+}
+.motion .quest-fig.is-in .plant rect {
+  opacity: 1;
+}
+
+/* ---- The dialogue box ---- */
+.quest-copy {
+  grid-row: 1;
+  grid-column: 1;
+  padding: clamp(28px, 3.2vw, 44px);
+  border: 4px solid var(--fg);
+  background: #1f1d1b;
+  /* A second, finer rule inside the first, as a game draws its dialogue boxes. */
+  box-shadow:
+    inset 0 0 0 4px #1f1d1b,
+    inset 0 0 0 6px rgb(240 238 230 / 0.35);
+}
+.quest-copy .sec-lede {
+  min-height: 4.65em;
+}
+.px-btn {
+  margin-top: 30px;
+  border: 0;
+  background: var(--accent);
+  color: var(--ink);
+  font: 400 16px/1 var(--pixel);
+  text-transform: uppercase;
+  box-shadow: 4px 4px 0 var(--fg);
+  transition: box-shadow 0.15s steps(2);
+}
+.px-btn::before {
+  content: '▶';
+  font-size: 12px;
+  animation: blink 1s steps(1) infinite;
+}
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+.px-btn:hover {
+  box-shadow: 6px 6px 0 var(--fg);
+}
+.px-btn:active {
+  top: 4px;
+  left: 4px;
+  box-shadow: 0 0 0 var(--fg);
+}
+.px-btn svg {
+  display: none;
+}
+
+/* ---- Phones: the scene first ---- */
+@media (max-width: 760px) {
+  .quest {
+    grid-template-columns: minmax(0, 1fr);
+    min-height: auto;
+    padding: 10vh var(--gutter);
+  }
+  .quest-fig {
+    grid-column: 1;
+    width: calc(100% - 8px);
+    justify-self: start;
+  }
+  .quest-copy {
+    grid-row: 2;
+  }
+  .vibe-pixel .sec-title {
+    font-size: 32px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .star,
+  .sprite,
+  .bang,
+  .px-btn::before {
+    animation: none;
+  }
+}

@@ -1,7 +1,7 @@
 /**
- * Pixel art for the portfolio, as bitmaps: one string per row, one character per pixel. The
- * characters name risograph inks (see INKS); a dot is no ink. Pixel.astro turns a bitmap into a
- * crisp SVG at build time.
+ * Pixel art for the side quest, as bitmaps: one string per row, one character per pixel. The
+ * characters name inks (see INKS), which the pixel world sets as CSS variables; a dot is no ink.
+ * Pixel.astro turns a bitmap into a crisp SVG at build time.
  */
 
 export const INKS: Record<string, string> = {
@@ -13,7 +13,7 @@ export const INKS: Record<string, string> = {
   w: 'var(--paper)',
 };
 
-/** A spool of red thread, with the loose end hanging off it: the mark in the bar and the icon. */
+/** A spool of red thread with eyes, the loose end hanging off it: the quest's hero. */
 export const SPOOL = [
   '.kkkkkkkkk..',
   'kkkkkkkkkkk.',
@@ -29,79 +29,7 @@ export const SPOOL = [
   '..........r.',
 ];
 
-/** A pointer, for the hero's hint. */
-export const CURSOR = [
-  'k.......',
-  'kk......',
-  'kwk.....',
-  'kwwk....',
-  'kwwwk...',
-  'kwwwwk..',
-  'kwwwwwk.',
-  'kwwwkkkk',
-  'kwkwk...',
-  'kk.kwk..',
-  'k...kwk.',
-  '.....kk.',
-];
-
-/** One icon per capability: a chip, stacked shapes, a bolt and a window. */
-export const ICONS: Record<string, string[]> = {
-  ai: [
-    '..k.k.k.k..',
-    '.kkkkkkkkk.',
-    'kk.......kk',
-    '.k...b...k.',
-    'kk..bbb..kk',
-    '.k.bbybb.k.',
-    'kk..bbb..kk',
-    '.k...b...k.',
-    'kk.......kk',
-    '.kkkkkkkkk.',
-    '..k.k.k.k..',
-  ],
-  architecture: [
-    '.....y.....',
-    '....yyy....',
-    '...yyyyy...',
-    '..yyyyyyy..',
-    '...rrrrr...',
-    '...rrrrr...',
-    '...rrrrr...',
-    '...rrrrr...',
-    '.bbbbbbbbb.',
-    '.bbbbbbbbb.',
-    '.bbbbbbbbb.',
-  ],
-  performance: [
-    '......kkkk.',
-    '.....kyyyk.',
-    '....kyyyk..',
-    '...kyyyk...',
-    '..kyyyyykk.',
-    '.kkkkyyyk..',
-    '....kyyk...',
-    '...kyyk....',
-    '..kyyk.....',
-    '..kyk......',
-    '..kk.......',
-  ],
-  product: [
-    'kkkkkkkkkkk',
-    'kwrwywbwwwk',
-    'kkkkkkkkkkk',
-    'kwwwwwwwwwk',
-    'kwbbbbbbwwk',
-    'kwwwwwwwwwk',
-    'kwrrrwwwwwk',
-    'kwwwwwwwwwk',
-    'kwyyyyywwwk',
-    'kwwwwwwwwwk',
-    'kkkkkkkkkkk',
-  ],
-};
-
-/** A potted plant for the side quest. It grows pixel by pixel, from the soil up. */
+/** A potted plant. It grows pixel by pixel, from the soil up. */
 export const PLANT = [
   '.......g.......',
   '......ggg......',
@@ -125,6 +53,23 @@ export const PLANT = [
   '....rrrrrrr....',
   '....rrrrrrr....',
 ];
+
+/** The sun, coming up. */
+export const SUN = [
+  '...rrrr...',
+  '.rryyyyrr.',
+  '.ryyyyyyr.',
+  'ryyyyyyyyr',
+  'ryyyyyyyyr',
+  'ryyyyyyyyr',
+  'ryyyyyyyyr',
+  '.ryyyyyyr.',
+  '.rryyyyrr.',
+  '...rrrr...',
+];
+
+/** The marker over someone with a quest to give. */
+export const BANG = ['yy', 'yy', 'yy', 'yy', '..', 'yy'];
 
 export interface Run {
   x: number;

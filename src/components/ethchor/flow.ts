@@ -11,9 +11,8 @@
  * by step, so it writhes slowly instead of whipping about. The cursor pushes it aside and a whirl
  * twists it.
  *
- * Blue, red and the thread are drawn on separate canvases, overprinted with multiply and a hair off
- * register, which is most of what makes it read as print. (The thread has its own so the lines can
- * fade away behind the hero's copy while the thread only lightens.)
+ * The lines are drawn in two inks on two canvases, and the thread on a third, so the lines can fade
+ * away behind the hero's copy while the thread only lightens.
  */
 import { createNoise } from './noise';
 
@@ -26,7 +25,8 @@ export interface FlowOptions {
   /** The thread's loose end, in CSS pixels within the canvas. */
   end: (w: number, h: number) => { x: number; y: number };
   reduce: boolean;
-  colors: { blue: string; red: string };
+  /** The two inks of the lines, and the thread's. */
+  colors: { a: string; b: string; thread: string };
   onTouch?: () => void;
 }
 
@@ -89,7 +89,7 @@ export function createFlow(o: FlowOptions) {
     order.forEach((from, to) => {
       seeds[to * 2] = list[from * 2];
       seeds[to * 2 + 1] = list[from * 2 + 1];
-      reds[to] = r() < 0.1 ? 1 : 0;
+      reds[to] = r() < 0.2 ? 1 : 0;
     });
     drawn = drawn ? Math.min(drawn, n) : n;
   }
@@ -237,14 +237,14 @@ export function createFlow(o: FlowOptions) {
         if (x < -40 || x > w + 40 || y < -40 || y > h + 40) break;
       }
     }
-    // As the flow calms the ink thins, and what is left is the order underneath.
+    // As the flow calms the lines thin out.
     const thin = 1 - 0.5 * smooth(progress);
     blue.globalAlpha = thin;
-    blue.strokeStyle = o.colors.blue;
+    blue.strokeStyle = o.colors.a;
     blue.lineWidth = 1;
     blue.stroke();
     red.globalAlpha = thin;
-    red.strokeStyle = o.colors.red;
+    red.strokeStyle = o.colors.b;
     red.lineWidth = 1;
     red.stroke();
 
@@ -254,7 +254,7 @@ export function createFlow(o: FlowOptions) {
     line.beginPath();
     line.moveTo(pts[0], pts[1]);
     for (let i = 1; i <= count; i++) line.lineTo(pts[i * 2], pts[i * 2 + 1]);
-    line.strokeStyle = o.colors.red;
+    line.strokeStyle = o.colors.thread;
     line.lineWidth = w < 700 ? 2.2 : 2.6;
     line.stroke();
   }

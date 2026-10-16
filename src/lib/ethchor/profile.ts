@@ -412,28 +412,33 @@ export const CASES: Case[] = [
   },
 ];
 
+/** What the work covers. The range prints each as one plate of a risograph, in its own ink. */
 export const CAPABILITIES = [
   {
     area: 'AI and machine learning',
-    icon: 'ai',
+    short: 'AI',
+    ink: 'pink',
     note: 'Models where they earn their place, and everything around them.',
     items: ['LLM integration', 'OpenAI API', 'On-device AI', 'MCP', 'TensorFlow', 'Python', 'FastAPI', 'Predictive models'],
   },
   {
     area: 'Architecture',
-    icon: 'architecture',
+    short: 'Architecture',
+    ink: 'blue',
     note: 'Systems that stay simple as they grow.',
     items: ['System design', 'Modular APIs', 'NestJS', 'Real-time: WebSocket and WebRTC', 'Integration layers', 'FHIR and HL7', 'Docker', 'AWS'],
   },
   {
     area: 'Performance and scale',
-    icon: 'performance',
+    short: 'Performance',
+    ink: 'yellow',
     note: 'Measure first, then make it fast.',
     items: ['Redis', 'PostgreSQL', 'MongoDB', 'Rate limiting', 'Cloudflare Workers', 'WebGL'],
   },
   {
     area: 'Product engineering',
-    icon: 'product',
+    short: 'Product',
+    ink: 'teal',
     note: 'The interface is part of the solution.',
     items: ['React', 'TypeScript', 'Next.js', 'Node.js', 'Astro', 'D3.js', 'GSAP', 'Three.js'],
   },

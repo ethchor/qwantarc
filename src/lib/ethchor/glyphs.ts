@@ -1,7 +1,7 @@
 /**
  * The Bauhaus shape for each kind of diagram node, centred at (15, 15) in a 30 by 30 box: a yellow
  * triangle for an app, a blue circle for a service, a red square for data and a black half-disc for
- * a system outside the build (inks in ethchor.css). The diagrams and their legend both draw these.
+ * a system outside the build (inks in styles/ethchor/bauhaus.css). The diagrams and their legend both draw these.
  */
 import type { NodeKind } from './profile';
 
