@@ -3,15 +3,11 @@ import { existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import Base from '../../layouts/Base.astro';
 import Diagram from '../../components/ethchor/Diagram.astro';
-import Pixel from '../../components/ethchor/Pixel.astro';
 import '../../styles/ethchor/base.css';
-import '../../styles/ethchor/flow.css';
 import '../../styles/ethchor/topo.css';
 import '../../styles/ethchor/bauhaus.css';
-import '../../styles/ethchor/riso.css';
-import '../../styles/ethchor/pixel.css';
 import { KINDS } from '../../lib/ethchor/glyphs';
-import { BANG, PLANT, SPOOL, SUN } from '../../lib/ethchor/pixels';
+import { PICTOGRAMS } from '../../lib/ethchor/pictograms';
 import { ALSO, CAPABILITIES, CASES, FOCUS, METHOD, PERSON, SIDE_QUEST, TOPICS } from '../../lib/ethchor/profile';
 
 const TITLE = 'Vimu Kale · Hard problems, untangled';
@@ -19,9 +15,9 @@ const DESCRIPTION =
   'Vimu Kale is a software engineer for AI systems, software architecture and optimisation: the hard problems, untangled.';
 const pad = (n: number) => String(n).padStart(2, '0');
 const arrow =
-  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>';
+  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"></path></svg>';
 const down =
-  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>';
+  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"></path></svg>';
 
 /** The method's waypoints on the survey map, in percent of the map: one per step. */
 const WAYS = [
@@ -30,38 +26,11 @@ const WAYS = [
   { x: 82, y: 30, mark: 'flag', height: '1,102 m' },
 ];
 
-/* The side quest's scene at dawn, 64 by 40 pixels. The sky comes in bands that dither into one another. */
-const SKY = [
-  { y: 0, h: 9, c: '#1d1b33' },
-  { y: 9, h: 6, c: '#2e2754' },
-  { y: 15, h: 6, c: '#4b3066' },
-  { y: 21, h: 5, c: '#7d3c6e' },
-  { y: 26, h: 4, c: '#b65178' },
-];
-const STARS = [
-  [4, 3],
-  [11, 6],
-  [19, 2],
-  [26, 5],
-  [36, 2],
-  [42, 6],
-  [53, 3],
-  [59, 7],
-  [8, 10],
-  [23, 11],
-];
-/** Darker earth here and there, from a fixed seed so the ground is the same every time. */
-const SPECKS = (() => {
-  let s = 3;
-  const r = () => (s = (s * 16807) % 2147483647) / 2147483647;
-  return Array.from({ length: 26 }, () => [Math.floor(r() * 64), 33 + Math.floor(r() * 7)]);
-})();
-
 /*
- * Migra (Pangram Pangram) is the display face this page was designed around. It is a commercial
- * font, so it isn't bundled: put licensed .woff2 (or .woff, .otf, .ttf) files in
+ * Migra (Pangram Pangram) is a display face this page can use for its map's annotations. It is a
+ * commercial font, so it isn't bundled: put licensed .woff2 (or .woff, .otf, .ttf) files in
  * public/fonts/migra/ and the next build uses them, weights and italics read from the file names.
- * Until then the display face is Boska, a free face in the same spirit.
+ * Until then it is Boska, a free face in the same spirit.
  */
 const migraDir = join(process.cwd(), 'public', 'fonts', 'migra');
 const WEIGHTS: [string, number][] = [
@@ -103,38 +72,13 @@ const migraCss = faces.size
   : '';
 ---
 
-<Base title={TITLE} description={DESCRIPTION} origin={PERSON.origin} themeColor="#0c0e11" fonts="vimu" icon="/vimu-icon.svg" siteName={PERSON.name}>
+<Base title={TITLE} description={DESCRIPTION} origin={PERSON.origin} themeColor="#f1ece1" fonts="vimu" icon="/vimu-icon.svg" siteName={PERSON.name}>
   {migraCss && <style slot="head" is:inline set:html={migraCss} />}
 
-  <!--
-    The risograph's ink: the range's plates go through it, so the ink thins and speckles in places
-    and the edges wander a little, as when a drum lays ink on paper.
-  -->
-  <svg class="defs" width="0" height="0" aria-hidden="true" focusable="false">
-    <filter id="riso" x="-6%" y="-6%" width="112%" height="112%" color-interpolation-filters="sRGB">
-      <feTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="2" seed="4" result="grain"></feTurbulence>
-      <feColorMatrix in="grain" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -4 0 0 0 3.2" result="speckle"></feColorMatrix>
-      <feComposite in="SourceGraphic" in2="speckle" operator="in" result="inked"></feComposite>
-      <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="9" result="warp"></feTurbulence>
-      <feDisplacementMap in="inked" in2="warp" scale="5" xChannelSelector="R" yChannelSelector="G"></feDisplacementMap>
-    </filter>
-  </svg>
-
-  <!-- The thread: one copy per world's style, each clipped to that world's sections (the page script places the zones). -->
+  <!-- The red line: one path, one weight, and its point. Placed by the page script (thread.ts, route.ts). -->
   <svg class="thread" data-thread aria-hidden="true">
-    <defs>
-      <clipPath id="zone-flow"><rect data-zone="0"></rect><rect data-zone="5"></rect></clipPath>
-      <clipPath id="zone-topo"><rect data-zone="1"></rect></clipPath>
-      <clipPath id="zone-bauhaus"><rect data-zone="2"></rect></clipPath>
-      <clipPath id="zone-riso"><rect data-zone="3"></rect></clipPath>
-      <clipPath id="zone-pixel"><rect data-zone="4"></rect></clipPath>
-    </defs>
-    <g class="t-flow" clip-path="url(#zone-flow)"><path class="t-halo" data-line></path><path data-line></path></g>
-    <g class="t-topo" clip-path="url(#zone-topo)"><path data-line></path></g>
-    <g class="t-bauhaus" clip-path="url(#zone-bauhaus)"><path data-line></path></g>
-    <g class="t-riso" clip-path="url(#zone-riso)"><path class="t-echo" data-line></path><path data-line></path></g>
-    <g class="t-pixel" clip-path="url(#zone-pixel)"><path data-line></path></g>
-    <g class="thread-tip" data-tip><rect class="tip-halo" x="-8" y="-8" width="16" height="16"></rect><rect class="tip-dot" x="-4" y="-4" width="8" height="8"></rect></g>
+    <path class="thread-line" data-line></path>
+    <g class="thread-tip" data-tip><circle class="thread-point" r="6.5"></circle></g>
   </svg>
 
   <header class="bar" data-bar>
@@ -144,7 +88,7 @@ const migraCss = faces.size
           d="M3 15c3 0 4-2 5.5-4.5S12 5 15 5s4.5 2.6 3 5.2-5.4 3.2-6.6.6S13 6 16 7.5 19.5 14 21 19"
           fill="none"
           stroke="currentColor"
-          stroke-width="2"
+          stroke-width="2.2"
           stroke-linecap="round"></path>
       </svg>
       Vimu Kale
@@ -158,12 +102,18 @@ const migraCss = faces.size
   </header>
 
   <main id="top">
-    <!-- 1. The flow field -->
-    <section class="hero vibe-flow" data-hero data-vibe="flow" aria-labelledby="hero-title">
-      <canvas class="flow flow-a" data-flow-a aria-hidden="true"></canvas>
-      <canvas class="flow flow-b" data-flow-b aria-hidden="true"></canvas>
-      <canvas class="flow flow-thread" data-flow-thread aria-hidden="true"></canvas>
-      <div class="hero-copy">
+    <!-- The hero: a Bauhaus composition on contour lines; both untangle as the page scrolls -->
+    <section class="hero" data-hero aria-labelledby="hero-title">
+      <canvas class="terrain" data-terrain aria-hidden="true"></canvas>
+      <div class="hero-shapes" data-shapes aria-hidden="true">
+        <span class="shape" data-shape="circle"><svg viewBox="0 0 100 100"><circle class="b-blue" cx="50" cy="50" r="50"></circle></svg></span>
+        <span class="shape" data-shape="triangle"><svg viewBox="0 0 305 265"><path class="b-yellow" d="M152.5 0 305 265H0Z"></path></svg></span>
+        <span class="shape" data-shape="square"><svg viewBox="0 0 100 100"><rect class="b-red" width="100" height="100"></rect></svg></span>
+        <span class="shape" data-shape="half"><svg viewBox="0 0 200 100"><path class="b-black" d="M0 100a100 100 0 0 1 200 0Z"></path></svg></span>
+        <span class="shape" data-shape="bar"><i></i></span>
+        <span class="shape" data-shape="dot" data-origin><i></i></span>
+      </div>
+      <div class="hero-copy" data-hero-copy>
         <p class="kicker" data-fade>{FOCUS.join(' · ')}</p>
         <h1 id="hero-title" class="hero-title"><span>Hard problems,</span> <em>untangled.</em></h1>
         <p class="hero-sub" data-fade>
@@ -175,19 +125,21 @@ const migraCss = faces.size
           <a class="btn" href="#contact" data-magnet><span>Say hello</span></a>
         </div>
       </div>
-      <p class="hero-hint" data-hint aria-hidden="true"><span class="hint-dot"></span><span data-hint-text>Stir the field</span></p>
+      <p class="hero-hint" data-hint aria-hidden="true">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.4"></circle><circle cx="12" cy="12" r="6" fill="none" stroke="currentColor" stroke-width="1.4"></circle><circle cx="12" cy="12" r="2" fill="currentColor"></circle></svg>
+        Move to raise the ground
+      </p>
       <p class="scroll-hint" data-scroll-hint aria-hidden="true">Scroll to untangle</p>
-      <span class="thread-start" data-thread-start aria-hidden="true"></span>
     </section>
 
-    <section class="intro vibe-flow" id="intro" data-intro data-vibe="flow" aria-label="What I do">
+    <section class="intro" id="intro" data-intro aria-label="What I do">
       <p class="intro-text" data-words>
         I work across the whole problem: the model, the architecture, the data and the interface. Give me something tangled, and I’ll <em>find the thread,</em> <mark data-mark>design the simplest system that holds,</mark> and make it fast.
       </p>
     </section>
 
-    <!-- 2. The survey map -->
-    <section class="method vibe-topo" id="method" data-vibe="topo" aria-labelledby="method-title">
+    <!-- The method: a survey map, the red line the route between its waypoints -->
+    <section class="method" id="method" data-method aria-labelledby="method-title">
       <div class="method-frame" data-method-frame>
         <header class="sec-head">
           <p class="kicker"><span class="kicker-n">01</span> Method</p>
@@ -239,8 +191,8 @@ const migraCss = faces.size
       </div>
     </section>
 
-    <!-- 3. The Bauhaus exhibition -->
-    <section class="work vibe-bauhaus" id="work" data-work data-vibe="bauhaus" aria-labelledby="work-title">
+    <!-- The work: Bauhaus posters, the diagrams built from the same shapes -->
+    <section class="work" id="work" data-work aria-labelledby="work-title">
       <header class="sec-head work-head" data-work-head>
         <div>
           <p class="kicker"><span class="kicker-n">02</span> Selected work</p>
@@ -305,103 +257,63 @@ const migraCss = faces.size
             ))
           }
         </div>
-        <div class="rail" data-rail aria-hidden="true">
-          {CASES.map((_, i) => <span class="rail-stop" data-stop style={`--i: ${i}; --n: ${CASES.length - 1}`} />)}
-        </div>
         <p class="rail-count" aria-hidden="true"><span data-count>01</span> / {pad(CASES.length)}</p>
       </div>
     </section>
 
-    <!-- 4. The risograph -->
-    <section class="range vibe-riso" id="range" data-range data-vibe="riso" aria-labelledby="range-title">
+    <!-- The range: four capabilities, each a pictogram built from Bauhaus shapes -->
+    <section class="range" id="range" data-range aria-labelledby="range-title">
       <header class="sec-head" data-range-head>
         <p class="kicker"><span class="kicker-n">03</span> Range</p>
-        <h2 id="range-title" class="sec-title riso-title" data-riso-title>
-          All-rounder, <em>by design.</em><span class="riso-plate" aria-hidden="true">All-rounder, <em>by design.</em></span>
-        </h2>
+        <h2 id="range-title" class="sec-title" data-split>All-rounder, <em>by design.</em></h2>
       </header>
-      <div class="range-grid">
-        <ol class="caps">
-          {
-            CAPABILITIES.map((c, i) => (
-              <li class={`cap ink-${c.ink}`} data-cap={i}>
-                <div class="cap-head">
-                  <span class="cap-swatch" aria-hidden="true" />
-                  <h3 class="cap-title">{c.area}</h3>
-                  <p class="cap-note">{c.note}</p>
-                </div>
-                <ul class="cap-items">
-                  {c.items.map((x) => (
-                    <li>{x}</li>
-                  ))}
-                </ul>
-              </li>
-            ))
-          }
-        </ol>
-        <div class="venn" data-venn aria-hidden="true">
-          {
-            CAPABILITIES.map((c, i) => (
-              <span class={`plate ink-${c.ink}`} data-plate={i}>
-                <svg viewBox="0 0 200 200">
-                  <circle cx="100" cy="100" r="100" filter="url(#riso)" />
-                </svg>
-                <b>{c.short}</b>
-              </span>
-            ))
-          }
-          <span class="venn-core">All<br />four</span>
-        </div>
-      </div>
+      <ol class="caps" data-caps>
+        {
+          CAPABILITIES.map((c) => (
+            <li class="cap" data-cap>
+              <svg class="pict" viewBox="0 0 120 120" aria-hidden="true">
+                <Fragment set:html={PICTOGRAMS[c.key]} />
+              </svg>
+              <h3 class="cap-title">{c.area}</h3>
+              <p class="cap-note">{c.note}</p>
+              <ul class="cap-items">
+                {c.items.map((x) => (
+                  <li>{x}</li>
+                ))}
+              </ul>
+            </li>
+          ))
+        }
+      </ol>
       <p class="also" data-also>{ALSO}</p>
     </section>
 
-    <!-- 5. The pixel game -->
-    <section class="quest vibe-pixel" id="side-quest" data-quest data-vibe="pixel" aria-labelledby="quest-title">
-      <div class="quest-fig" data-quest-fig aria-hidden="true">
-        <svg class="scene" viewBox="0 0 64 40" shape-rendering="crispEdges">
-          <defs>
-            {
-              SKY.slice(0, -1).map((b, i) => (
-                <pattern id={`dither-${i}`} width="2" height="2" patternUnits="userSpaceOnUse">
-                  <rect width="1" height="1" fill={b.c} />
-                  <rect x="1" y="1" width="1" height="1" fill={b.c} />
-                </pattern>
-              ))
-            }
-            <pattern id="dither-grass" width="2" height="2" patternUnits="userSpaceOnUse">
-              <rect width="1" height="1" fill="#63b35a"></rect>
-              <rect x="1" y="1" width="1" height="1" fill="#63b35a"></rect>
-            </pattern>
-          </defs>
-          {SKY.map((b) => <rect x="0" y={b.y} width="64" height={b.h} fill={b.c} />)}
-          {SKY.slice(1).map((b, i) => <rect x="0" y={b.y} width="64" height="2" fill={`url(#dither-${i})`} />)}
-          <g>
-            {STARS.map(([x, y]) => (
-              <rect class="star" x={x} y={y} width="1" height="1" />
-            ))}
-          </g>
-          <g class="sun" data-sun><Pixel map={SUN} x={44} y={7} /></g>
-          <rect x="0" y="30" width="64" height="10" fill="#6b4428"></rect>
-          <rect x="0" y="30" width="64" height="1" fill="#63b35a"></rect>
-          <rect x="0" y="31" width="64" height="2" fill="url(#dither-grass)"></rect>
-          {SPECKS.map(([x, y]) => <rect x={x} y={y} width="1" height="1" fill="#55341f" />)}
-          <g class="plant" data-plant><Pixel map={PLANT} x={30} y={9} /></g>
-          <g class="sprite"><Pixel map={SPOOL} x={10} y={18} /></g>
-          <g class="bang"><Pixel map={BANG} x={15} y={10} /></g>
-        </svg>
-      </div>
+    <!-- The side quest: a plant of shapes that grows, follows the sun and leans to the cursor -->
+    <section class="quest" id="side-quest" data-quest aria-labelledby="quest-title">
       <div class="quest-copy">
         <p class="kicker"><span class="kicker-n">04</span> Side quest</p>
-        <h2 id="quest-title" class="sec-title" data-type>{SIDE_QUEST.name}</h2>
-        <p class="sec-lede" data-type>{SIDE_QUEST.text}</p>
-        <a class="btn px-btn" href={SIDE_QUEST.href} target="_blank" rel="noopener" data-magnet><span>Visit the nursery</span></a>
+        <h2 id="quest-title" class="sec-title" data-split>{SIDE_QUEST.name}</h2>
+        <p class="sec-lede">{SIDE_QUEST.text}</p>
+        <a class="btn" href={SIDE_QUEST.href} target="_blank" rel="noopener" data-magnet><span>Visit the nursery</span><Fragment set:html={arrow} /></a>
       </div>
+      <figure class="garden" data-garden aria-hidden="true">
+        <svg viewBox="0 0 400 400">
+          <circle class="b-yellow" data-sun cx="34" cy="92" r="32"></circle>
+          <g data-plant>
+            <rect class="grow stem b-black" x="196" y="128" width="8" height="160" style="--i: 0"></rect>
+            <path class="grow leaf-r b-blue" d="M204 236a44 44 0 0 1 88 0Z" style="--i: 1"></path>
+            <path class="grow leaf-l b-blue" d="M196 196a38 38 0 0 0-76 0Z" style="--i: 2"></path>
+            <g class="grow bud" style="--i: 3"><circle class="b-yellow" cx="200" cy="118" r="24"></circle><circle class="b-red" cx="200" cy="118" r="9"></circle></g>
+          </g>
+          <path class="b-red" d="M150 300H250L236 356H164Z"></path>
+          <rect class="b-black" x="140" y="288" width="120" height="14"></rect>
+          <rect class="b-black" x="24" y="356" width="352" height="10"></rect>
+        </svg>
+      </figure>
     </section>
 
-    <!-- 6. The flow field again, calm, all of it running to the send button -->
-    <section class="contact vibe-flow" id="contact" data-contact data-vibe="flow" aria-labelledby="contact-title">
-      <canvas class="drain" data-drain aria-hidden="true"></canvas>
+    <!-- The contact: the form is a poster, and the red line comes to rest round the send button -->
+    <section class="contact" id="contact" data-contact aria-labelledby="contact-title">
       <div class="contact-grid">
         <div class="contact-intro">
           <p class="kicker"><span class="kicker-n">05</span> Contact</p>
@@ -422,6 +334,7 @@ const migraCss = faces.size
         </div>
 
         <div class="contact-card">
+          <span class="card-shape" aria-hidden="true"></span>
           <form class="form" data-form novalidate>
             <fieldset>
               <legend class="label">What is it about?</legend>
@@ -459,8 +372,8 @@ const migraCss = faces.size
             </div>
             <div class="submit-row">
               <p class="hint" data-form-hint role="status" aria-live="polite">It goes straight to my inbox.</p>
-              <button class="btn is-primary" type="submit" data-send data-end>
-                <span data-send-label>Send message</span>
+              <button class="send" type="submit" data-send data-end>
+                <span data-send-label>Send</span>
                 <Fragment set:html={arrow} />
               </button>
             </div>
@@ -480,9 +393,9 @@ const migraCss = faces.size
     </section>
   </main>
 
-  <footer class="foot vibe-flow" data-vibe="flow">
+  <footer class="foot">
     <span>© {new Date().getFullYear()} {PERSON.name}</span>
-    <span>Hand-made with Astro and GSAP. One thread, five worlds.</span>
+    <span>Hand-made with Astro and GSAP.</span>
     <span class="foot-links">
       {
         PERSON.links.map((l) => (
@@ -500,10 +413,9 @@ const migraCss = faces.size
   import { gsap } from 'gsap';
   import { ScrollTrigger } from 'gsap/ScrollTrigger';
   import { SplitText } from 'gsap/SplitText';
-  import { createDrain } from '../../components/ethchor/drain';
-  import { createFlow } from '../../components/ethchor/flow';
   import { createMap } from '../../components/ethchor/map';
   import { buildRuns } from '../../components/ethchor/route';
+  import { createTerrain } from '../../components/ethchor/terrain';
   import { createThread, type Thread } from '../../components/ethchor/thread';
 
   gsap.registerPlugin(ScrollTrigger, SplitText);
@@ -514,12 +426,11 @@ const migraCss = faces.size
   const $$ = <T extends Element = HTMLElement>(s: string, el: ParentNode = document) => [...el.querySelectorAll<T>(s)];
   // Styles that animate things in only apply when motion is welcome.
   if (!reduce) root.classList.add('motion');
-  /** A colour from a world's stylesheet. */
-  const ink = (el: Element, name: string) => getComputedStyle(el).getPropertyValue(name).trim();
+  const ink = (name: string) => getComputedStyle(root).getPropertyValue(name).trim();
 
   const hero = $('[data-hero]');
   const intro = $('[data-intro]');
-  const method = $('#method');
+  const method = $('[data-method]');
   const methodFrame = $('[data-method-frame]');
   const work = $('[data-work]');
   const workFrame = $('[data-work-frame]');
@@ -527,46 +438,63 @@ const migraCss = faces.size
   const range = $('[data-range]');
   const quest = $('[data-quest]');
   const contact = $('[data-contact]');
-  const foot = $('.foot');
-  const startMark = $('[data-thread-start]');
   const hint = $('[data-hint]');
-  /** Half the page gutter (--gutter in the stylesheets): where the thread's lanes run. */
-  const lane = () => Math.min(64, Math.max(18, innerWidth * 0.044)) / 2;
+  /** Where the red line runs, in from the right edge (--line-x in base.css). */
+  const lane = () => Math.max(14, Math.min(64, Math.max(18, innerWidth * 0.044)) / 2);
 
-  /* ---------- 1. The hero: a flow field that calms as you scroll ---------- */
-  /** The thread's loose end at the foot of the hero: under the field, or in the right lane on a phone. */
-  const endOf = (w: number, h: number) => (w < 760 ? { x: w - lane(), y: h } : { x: w * 0.71, y: h });
-  const placeEnd = () => {
-    const e = endOf(hero.clientWidth, hero.clientHeight);
-    startMark.style.left = `${e.x}px`;
-    startMark.style.top = `${e.y}px`;
-  };
-  placeEnd();
-  const flow = createFlow({
-    blue: $<HTMLCanvasElement>('[data-flow-a]'),
-    red: $<HTMLCanvasElement>('[data-flow-b]'),
-    thread: $<HTMLCanvasElement>('[data-flow-thread]'),
+  /* ---------- The hero: contour lines and a composition, both untangling as you scroll ---------- */
+  const terrain = createTerrain({
+    canvas: $<HTMLCanvasElement>('[data-terrain]'),
     surface: hero,
-    end: endOf,
+    colors: { line: ink('--contour'), index: ink('--contour-index') },
     reduce,
-    colors: { a: ink(hero, '--flow-a'), b: ink(hero, '--flow-b'), thread: ink(hero, '--accent') },
-    onTouch: () => hint.classList.add('is-done'),
   });
-  if (reduce) {
-    // A still picture: the field caught on its way to calm.
-    flow.setProgress(0.35);
-    flow.frame(0, 0);
-  } else {
-    // The lines draw themselves in.
-    const drawn = { v: 0 };
-    gsap.to(drawn, { v: 1, duration: 2.6, ease: 'power2.out', delay: 0.2, onUpdate: () => flow.setGrow(drawn.v) });
+  if (reduce) terrain.render();
+  hero.addEventListener('pointermove', () => hint.classList.add('is-done'), { once: true });
+
+  const shapesBox = $('[data-shapes]');
+  const shapes = $$('[data-shape]', shapesBox);
+  /**
+   * The composition in order: each shape's centre and width as shares of the box, set down one at a
+   * time (the rule first, the red dot last). Two shapes on a row, two standing on the rule, and the
+   * dot at the end of the rule, where the line leaves it.
+   */
+  const ORDER: Record<string, { x: number; y: number; size: number; at: number }> = {
+    bar: { x: 0.5, y: 0.86, size: 0.84, at: 0 },
+    square: { x: 0.27, y: 0.305, size: 0.3, at: 1 },
+    circle: { x: 0.7, y: 0.295, size: 0.32, at: 2 },
+    triangle: { x: 0.27, y: 0.7, size: 0.34, at: 3 },
+    half: { x: 0.7, y: 0.757, size: 0.36, at: 4 },
+    dot: { x: 0.955, y: 0.86, size: 0.06, at: 5 },
+  };
+  let order: gsap.core.Timeline | null = null;
+  function setOrder() {
+    const at = order ? order.progress() : reduce ? 1 : 0;
+    order?.progress(0).kill();
+    const S = shapesBox.clientWidth;
+    const tl = gsap.timeline({ paused: true, defaults: { duration: 1, ease: 'power3.inOut' } });
+    shapes.forEach((el) => {
+      const t = ORDER[el.dataset.shape!];
+      const w = el.offsetWidth;
+      const h = el.offsetHeight;
+      const move = { x: t.x * S - (el.offsetLeft + w / 2), y: t.y * S - (el.offsetTop + h / 2), rotation: 0 };
+      // The rule only changes length, so its weight stays the same.
+      const size = el.dataset.shape === 'bar' ? { scaleX: (t.size * S) / w, scaleY: 1 } : { scale: (t.size * S) / w };
+      tl.to(el, { ...move, ...size }, t.at * 0.14);
+    });
+    tl.progress(at);
+    order = tl;
   }
-  if (!fine) $('[data-hint-text]').textContent = 'Tap to stir';
-  /** How calm the hero is, from its pinned scroll, and the same eased so wheel steps don't jump. */
+  // On a phone the composition takes the room the copy leaves above it, so the copy is measured.
+  const heroCopy = $('[data-hero-copy]');
+  const measureCopy = () => hero.style.setProperty('--copy', `${heroCopy.offsetHeight}px`);
+  measureCopy();
+  setOrder();
+  /** How untangled the hero is, from its pinned scroll, and the same eased so wheel steps don't jump. */
   let calmTo = 0;
   let calm = 0;
 
-  /* ---------- 2. The method: a survey map ---------- */
+  /* ---------- The method: the survey map ---------- */
   const mapEl = $('[data-map]');
   const ways = $$('[data-way]');
   const map = createMap({
@@ -576,11 +504,11 @@ const migraCss = faces.size
       const w = mapEl.clientWidth;
       return ways.map((el, i) => ({ x: el.offsetLeft - 7, y: el.offsetTop - 7, height: [1, 0.5, 0.78][i], spread: w * [0.13, 0.12, 0.1][i] }));
     },
-    color: ink(mapEl, '--contour'),
-    index: ink(mapEl, '--contour-index'),
+    color: ink('--contour'),
+    index: ink('--contour-index'),
   });
 
-  /* ---------- 3. The work: the key falls into a row ---------- */
+  /* ---------- The work: the key falls into a row ---------- */
   const legend = $('[data-legend]');
   const keyShapes = $$('[data-shape]', legend);
   const keyLabels = $$('[data-label]', legend);
@@ -629,104 +557,57 @@ const migraCss = faces.size
   }
   setKey();
 
-  /* ---------- 4. The range: the plates come into register ---------- */
-  const venn = $('[data-venn]');
-  const plates = $$('[data-plate]');
+  /* ---------- The side quest: the plant follows the sun, or leans to the cursor ---------- */
+  const garden = $('[data-garden]');
+  const sun = $<SVGCircleElement>('[data-sun]');
+  const plant = $<SVGGElement>('[data-plant]');
+  const PIVOT = { x: 200, y: 288 };
+  gsap.set(plant, { svgOrigin: `${PIVOT.x} ${PIVOT.y}` });
+  const lean = gsap.quickTo(plant, 'rotation', { duration: 0.9, ease: 'power3.out' });
+  let sunAt = { x: 34, y: 92 };
+  let cursor: { x: number; y: number } | null = null;
+  const aim = () => {
+    const t = cursor ?? sunAt;
+    const deg = (Math.atan2(t.x - PIVOT.x, PIVOT.y - t.y) * 180) / Math.PI;
+    lean(Math.max(-22, Math.min(22, deg * 0.35)));
+  };
+  /** The sun's way across the sky, 0 to 1. */
+  const placeSun = (t: number) => {
+    const a = ((235 + 70 * t) * Math.PI) / 180;
+    sunAt = { x: 200 + 290 * Math.cos(a), y: 330 + 290 * Math.sin(a) };
+    sun.setAttribute('cx', sunAt.x.toFixed(1));
+    sun.setAttribute('cy', sunAt.y.toFixed(1));
+    if (!cursor) aim();
+  };
+  // A still page shows it in the afternoon, clear of the flower.
+  placeSun(reduce ? 0.85 : 0);
   if (!reduce) {
-    /** How far out of register each plate starts: x, y and a turn. */
-    const OFF = [
-      [-34, -24, -6],
-      [32, -28, 5],
-      [-28, 32, 4],
-      [36, 26, -5],
-    ];
-    const tl = gsap.timeline({ scrollTrigger: { trigger: venn, start: 'top 88%', end: 'center 52%', scrub: 0.6 } });
-    plates.forEach((p, i) => tl.fromTo(p, { x: OFF[i][0], y: OFF[i][1], rotation: OFF[i][2] }, { x: 0, y: 0, rotation: 0, ease: 'power2.out' }, 0));
-    const title = $('[data-riso-title]');
-    gsap.fromTo(
-      title,
-      { '--mx': '16px', '--my': '11px' },
-      { '--mx': '2px', '--my': '1.5px', ease: 'power2.out', scrollTrigger: { trigger: title, start: 'top 92%', end: 'top 45%', scrub: 0.6 } },
-    );
-  }
-  // Pointing at a capability lifts its plate out of the stack.
-  $$('[data-cap]').forEach((cap) => {
-    const plate = plates[Number(cap.dataset.cap)];
-    cap.addEventListener('pointerenter', () => {
-      venn.classList.add('is-focus');
-      plate.classList.add('is-hot');
-    });
-    cap.addEventListener('pointerleave', () => {
-      venn.classList.remove('is-focus');
-      plate.classList.remove('is-hot');
-    });
-  });
-
-  /* ---------- 5. The side quest: sunrise, a plant, and dialogue ---------- */
-  const questFig = $('[data-quest-fig]');
-  const sun = $('[data-sun]');
-  if (!reduce) {
-    // Up a whole pixel at a time.
-    gsap.fromTo(sun, { y: 14 }, { y: 0, ease: 'none', snap: 'y', scrollTrigger: { trigger: quest, start: 'top 85%', end: 'center 55%', scrub: true } });
-    ScrollTrigger.create({ trigger: questFig, start: 'top 72%', once: true, onEnter: () => questFig.classList.add('is-in') });
-    // The words type themselves out, as a game's dialogue does.
-    const typed = $$('[data-type]').map((el) => SplitText.create(el, { type: 'words,chars' }));
-    const chars = typed.flatMap((t) => t.chars);
-    gsap.set(chars, { opacity: 0 });
-    ScrollTrigger.create({
-      trigger: '.quest-copy',
-      start: 'top 78%',
-      once: true,
-      onEnter: () => gsap.to(chars, { opacity: 1, duration: 0.01, stagger: 0.014, ease: 'none' }),
-    });
+    ScrollTrigger.create({ trigger: quest, start: 'top 90%', end: 'bottom 10%', onUpdate: (self) => placeSun(self.progress) });
+    ScrollTrigger.create({ trigger: garden, start: 'top 78%', once: true, onEnter: () => garden.classList.add('is-in') });
+    if (fine) {
+      const svg = $<SVGSVGElement>('svg', garden);
+      garden.addEventListener('pointermove', (e) => {
+        const m = svg.getScreenCTM();
+        if (!m) return;
+        const p = new DOMPoint(e.clientX, e.clientY).matrixTransform(m.inverse());
+        cursor = { x: p.x, y: p.y };
+        aim();
+      });
+      garden.addEventListener('pointerleave', () => {
+        cursor = null;
+        aim();
+      });
+    }
   }
 
-  /* ---------- 6. The contact: every line runs to the send button ---------- */
-  /** The button the thread ends on: Send, or Send another once a message has gone. */
-  const visibleEnd = () => $$('[data-end]').find((b) => b.offsetParent !== null) ?? $('[data-send]');
-  const drainCanvas = $<HTMLCanvasElement>('[data-drain]');
-  const drain = createDrain({
-    canvas: drainCanvas,
-    target: () => {
-      const b = visibleEnd().getBoundingClientRect();
-      const c = drainCanvas.getBoundingClientRect();
-      return { x: b.left + b.width / 2 - c.left, y: b.top + b.height / 2 - c.top };
-    },
-    colors: { a: ink(contact, '--flow-a'), b: ink(contact, '--flow-b') },
-  });
-  if (reduce) drain.frame(0);
-
-  /* ---------- The worlds: the thread takes each one's style, the bar its colours ---------- */
-  const zoneRects = $$<SVGRectElement>('[data-zone]').sort((a, b) => Number(a.dataset.zone) - Number(b.dataset.zone));
-  /** Each zone runs from the top of one element to the bottom of another (pinned sections included). */
-  const zoneSpans: [Element, Element][] = [
-    [hero, intro],
-    [method, method],
-    [work, work],
-    [range, range],
-    [quest, quest],
-    [contact, foot],
-  ];
-  function placeZones() {
-    const vw = String(innerWidth);
-    zoneSpans.forEach(([a, b], i) => {
-      const top = a.getBoundingClientRect().top;
-      const bottom = b.getBoundingClientRect().bottom;
-      const r = zoneRects[i];
-      r.setAttribute('width', vw);
-      r.setAttribute('y', top.toFixed(1));
-      r.setAttribute('height', Math.max(0, bottom - top).toFixed(1));
-    });
-  }
-  root.dataset.vibe = 'flow';
-
-  /* ---------- Scroll: pins, the sideways work rail, the thread ---------- */
+  /* ---------- Scroll: pins, the sideways work rail, the red line ---------- */
   const threadSvg = $<SVGSVGElement>('[data-thread]');
   const steps = $$('[data-step]');
-  const stops = $$('[data-stop]');
   const count = $('[data-count]');
   const panels = $$('[data-panel]');
   const scrollHint = $('[data-scroll-hint]');
+  /** The button the line ends on: Send, or Send another once a message has gone. */
+  const visibleEnd = () => $$('[data-end]').find((b) => b.offsetParent !== null) ?? $('[data-send]');
   let thread: Thread | null = null;
 
   const stepProgress = [0, 0, 0];
@@ -738,8 +619,8 @@ const migraCss = faces.size
     ways[i].classList.toggle('is-done', p >= 0.999);
   };
   const onRail = (p: number) => {
-    const at = p * (stops.length - 1);
-    count.textContent = String(Math.min(stops.length, Math.round(at) + 1)).padStart(2, '0');
+    const at = p * (panels.length - 1);
+    count.textContent = String(Math.min(panels.length, Math.round(at) + 1)).padStart(2, '0');
   };
 
   const mm = gsap.matchMedia();
@@ -783,53 +664,43 @@ const migraCss = faces.size
       panels.forEach((panel) => ScrollTrigger.create({ trigger: panel, start: 'top 82%', onEnter: () => panel.classList.add('is-in') }));
     }
     if (!still) ScrollTrigger.create({ trigger: legend, start: 'top 88%', end: 'bottom 45%', scrub: 0.6, onUpdate: (self) => key?.progress(self.progress) });
+    // The pictograms put themselves together as each capability arrives.
+    $$('[data-cap]').forEach((cap) => ScrollTrigger.create({ trigger: cap, start: 'top 85%', once: true, onEnter: () => cap.classList.add('is-in') }));
 
-    // The bar takes the colours of the world under it.
-    $$('[data-vibe]').forEach((el) =>
-      ScrollTrigger.create({ trigger: el, start: 'top 36px', end: 'bottom 36px', onToggle: (self) => self.isActive && (root.dataset.vibe = el.dataset.vibe) }),
-    );
-
-    const questST = ScrollTrigger.create({ trigger: quest, start: 'top 70%', end: 'bottom 70%' });
-    const contactST = ScrollTrigger.create({ trigger: contact, start: 'top 90%', end: 'max' });
-
-    const span = (st: ScrollTrigger | null) => (): [number, number] => (st ? [st.start, st.end] : [0, 0]);
+    const span = (st: ScrollTrigger | null, fallback: [number, number]) => (): [number, number] => (st ? [st.start, st.end] : fallback);
     const make = () => {
       thread = createThread({
         svg: threadSvg,
         still,
-        start: () => heroPin?.end ?? 0,
+        start: () => -1,
         runs: buildRuns({
           wide: rail,
           lane: lane(),
-          start: startMark,
+          hero,
+          origin: $('[data-origin]'),
+          heroRange: span(heroPin, [0, 1]),
           intro,
+          method,
           methodFrame,
-          methodRange: span(methodPin),
+          methodRange: span(methodPin, [0, 1]),
           map: mapEl,
           ways,
-          workSection: work,
+          work,
           workHead: $('[data-work-head]'),
           workFrame,
-          rail: $('[data-rail]'),
-          stops,
-          workRange: span(workPin),
+          workRange: workPin ? span(workPin, [0, 1]) : undefined,
           panels,
           range,
           rangeHead: $('[data-range-head]'),
-          venn,
+          caps: $('[data-caps]'),
           also: $('[data-also]'),
           quest,
-          sun,
-          plant: $('[data-plant]'),
-          questRange: span(questST),
           contact,
           send: visibleEnd(),
-          contactRange: span(contactST),
           onStep,
           onRail,
         }),
       });
-      placeZones();
       thread.sync();
       thread.draw();
     };
@@ -840,51 +711,37 @@ const migraCss = faces.size
       thread = null;
     };
   });
-  // The key's places depend on the size of its box.
-  ScrollTrigger.addEventListener('refresh', setKey);
+  // The composition and the key are placed in shares of their boxes.
+  ScrollTrigger.addEventListener('refresh', () => {
+    setOrder();
+    setKey();
+  });
 
   addEventListener('resize', () => {
-    placeEnd();
-    flow.resize();
+    measureCopy();
+    terrain.resize();
     map.render();
-    drain.resize();
     if (reduce) {
       // Nothing moves on its own: draw again only when the page changes.
-      flow.frame(0, 0);
-      drain.frame(0);
-      placeZones();
+      terrain.render();
       thread?.draw();
     }
   });
-  if (reduce)
-    addEventListener(
-      'scroll',
-      () => {
-        placeZones();
-        thread?.draw();
-      },
-      { passive: true },
-    );
+  if (reduce) addEventListener('scroll', () => thread?.draw(), { passive: true });
 
   /* ---------- One loop for everything that moves ---------- */
   let prev = performance.now();
-  const born = prev;
-  const onScreen = (el: Element) => {
-    const b = el.getBoundingClientRect();
-    return b.bottom > 0 && b.top < innerHeight;
-  };
   const loop = (now: number) => {
     const dt = Math.min(0.1, (now - prev) / 1000);
     prev = now;
-    const t = (now - born) / 1000;
-    // Each field only while it is on screen (checked directly: pinning moves things around).
-    if (onScreen(hero)) {
+    // The ground only while the hero is on screen (checked directly: pinning moves it around).
+    const b = hero.getBoundingClientRect();
+    if (b.bottom > 0 && b.top < innerHeight) {
       calm += (calmTo - calm) * (1 - Math.exp(-dt * 7));
-      flow.setProgress(calm);
-      flow.frame(t, dt);
+      terrain.setCalm(calm);
+      order?.progress(Math.min(1, calm / 0.85));
+      terrain.frame(dt);
     }
-    if (onScreen(contact)) drain.frame(t);
-    placeZones();
     thread?.frame(dt);
     requestAnimationFrame(loop);
   };
@@ -929,7 +786,7 @@ const migraCss = faces.size
       { '--hl': 1, ease: 'none', scrollTrigger: { trigger: '[data-mark]', start: 'top 62%', end: 'bottom 50%', scrub: 0.5 } },
     );
 
-    gsap.utils.toArray<HTMLElement>('.cap, .also, .contact-intro > :not(.sec-title), .contact-card').forEach((el) =>
+    gsap.utils.toArray<HTMLElement>('.also, .quest-copy > :not(.sec-title), .contact-intro > :not(.sec-title), .contact-card').forEach((el) =>
       gsap.from(el, { y: 36, opacity: 0, duration: 1.1, ease: 'expo.out', scrollTrigger: { trigger: el, start: 'top 90%', once: true } }),
     );
   } else {
@@ -950,6 +807,7 @@ const migraCss = faces.size
   }
   document.fonts.ready.then(() => {
     fitDiagrams();
+    measureCopy();
     ScrollTrigger.refresh();
   });
 
@@ -984,7 +842,7 @@ const migraCss = faces.size
   addEventListener('scroll', onScroll, { passive: true });
   onScroll();
 
-  /* ---------- Buttons lean toward the cursor ---------- */
+  /* ---------- Buttons lean toward the cursor (not the one the line ties round) ---------- */
   if (fine && !reduce) {
     $$('[data-magnet]').forEach((el) => {
       el.addEventListener('pointermove', (e) => {
@@ -1051,7 +909,7 @@ const migraCss = faces.size
       form.hidden = true;
       sent.hidden = false;
       sent.focus();
-      // The thread finds the new button and ties itself round it.
+      // The line finds the new button and ties itself round it.
       ScrollTrigger.refresh();
     } catch (err) {
       const msg = err instanceof Error && err.message !== 'Failed to fetch' ? err.message : 'Couldn’t reach the server. Check your connection and try again.';
@@ -1059,7 +917,7 @@ const migraCss = faces.size
       formHint.textContent = `${msg} You can also reach me on LinkedIn.`;
     } finally {
       send.disabled = false;
-      sendLabel.textContent = 'Send message';
+      sendLabel.textContent = 'Send';
     }
   });
   $('[data-again]').addEventListener('click', () => {

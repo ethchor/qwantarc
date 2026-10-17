@@ -1,62 +1,62 @@
 /**
- * Where the red thread goes, section by section: the waypoints and how the tip travels them.
+ * Where the red line goes. It is one line all the way down, the same weight and colour everywhere,
+ * and it keeps to one column: the page's right margin, which every section leaves free for it. It
+ * leaves the margin only to draw the figures that belong to a section: out of the red dot in the
+ * hero; a route across the method's survey map (casting about for the summit and spiralling in on
+ * it, the legs between three cairns, the straight line to the flag); a knot for each project as the
+ * work goes by; and at the end a loop around the send button, where it comes to rest.
  *
- * It runs in the page's margins (the lanes), crossing only where there is room, and draws its
- * figures where the layout leaves room for them: a route across the method's survey map, a knot for
- * each project on the work rail, a ring round the overlap of the range's four plates, a ring round
- * the rising sun at the side quest, and finally a loop around the send button with a knot to
- * finish. Built again whenever the layout changes, since loop sizes and lanes are in pixels.
+ * Where a part drawn on a pinned section meets a part drawn on the page, the two meet in the margin,
+ * one above the other, so the join stays one straight vertical line while the section is held.
+ * Where the line turns out of the margin or back into it, the turn is a corner (a doubled waypoint):
+ * a curve would swing wide before turning, out past the edge of a phone. Built again whenever the
+ * layout changes, since loop sizes and the margin are in pixels.
  */
+import { rng } from './noise';
 import type { Run, Way } from './thread';
 
 export interface RouteParts {
   wide: boolean;
-  /** Half the page gutter: the lanes run this far in from each edge. */
+  /** How far in from the right edge the margin line runs. */
   lane: number;
-  start: Element;
+  hero: Element;
+  /** The red dot in the hero's composition, where the line starts. */
+  origin: Element;
+  heroRange: () => [number, number];
   intro: Element;
+  /** The method section, and the frame inside it that is held while the map is drawn. */
+  method: Element;
   methodFrame: Element;
   methodRange: () => [number, number];
-  /** The survey map and its three waypoints (the summit, the cairns, the flag). */
   map: Element;
+  /** The map's three waypoints: the summit, the cairns, the flag. */
   ways: Element[];
-  workSection: Element;
+  work: Element;
   workHead: Element;
-  /** Wide: the pinned frame, the rail and its stops, and the pin's scroll range. */
+  /** Wide screens: the frame held while the projects slide past, and its scroll range. */
   workFrame?: Element;
-  rail?: Element;
-  stops?: Element[];
   workRange?: () => [number, number];
-  /** Narrow: the project cards, one under another. */
   panels: Element[];
   range: Element;
   rangeHead: Element;
-  /** The four overprinted plates. */
-  venn: Element;
+  caps: Element;
   also: Element;
   quest: Element;
-  /** The side quest's sun (it moves as it rises: waypoints are measured every frame) and plant. */
-  sun: Element;
-  plant: Element;
-  questRange: () => [number, number];
   contact: Element;
   send: Element;
-  contactRange: () => [number, number];
   onStep?: (i: number, p: number) => void;
   onRail?: (p: number) => void;
 }
 
-type Rand = () => number;
-function rng(seed: number): Rand {
-  let a = seed >>> 0;
-  return () => {
-    a = (a + 0x6d2b79f5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
+/**
+ * The three cairns round the method's second waypoint, as shares of the map's width (the stylesheet
+ * places their markers with the same numbers, in container units).
+ */
+export const CAIRNS: [number, number][] = [
+  [-0.075, 0.045],
+  [0.07, 0.035],
+  [0.005, -0.07],
+];
 
 const W = (el: Element, fx: number, fy: number, dx = 0, dy = 0, ey?: Element): Way => ({ el, fx, fy, dx, dy, ey });
 
@@ -80,26 +80,19 @@ function ring(el: Element, fx: number, fy: number, r: number, o: RingOpts = {}, 
   return out;
 }
 /** Waypoints spiralling in on the middle of an element, from radius r0 to r1 over some turns. */
-function spiral(el: Element, r0: number, r1: number, turns: number, perTurn: number): Way[] {
+function spiral(el: Element, r0: number, r1: number, turns: number, perTurn: number, from = -Math.PI / 2): Way[] {
   const out: Way[] = [];
   const n = Math.round(turns * perTurn);
   for (let i = 0; i <= n; i++) {
     const t = i / n;
-    const a = -Math.PI / 2 + t * turns * Math.PI * 2;
+    const a = from + t * turns * Math.PI * 2;
     const r = r0 + (r1 - r0) * t;
     out.push(W(el, 0.5, 0.5, Math.cos(a) * r, Math.sin(a) * r));
   }
   return out;
 }
-/**
- * The three cairns round the method's second waypoint, as shares of the map's width (the stylesheet
- * places their markers with the same numbers, in container units).
- */
-export const CAIRNS: [number, number][] = [
-  [-0.075, 0.045],
-  [0.07, 0.035],
-  [0.005, -0.07],
-];
+/** A corner: the same waypoint twice, so the line runs straight into it and straight out. */
+const corner = (w: Way): Way[] => [w, { ...w }];
 /** A share of a scroll range. */
 const part = (range: () => [number, number], a: number, b: number) => (): [number, number] => {
   const [s0, s1] = range();
@@ -108,149 +101,108 @@ const part = (range: () => [number, number], a: number, b: number) => (): [numbe
 
 export function buildRuns(p: RouteParts): Run[] {
   const L = p.lane;
-  const left = (el: Element, ey: Element, fy: number, dy = 0) => W(el, 0, fy, L, dy, ey);
-  const right = (el: Element, ey: Element, fy: number, dy = 0) => W(el, 1, fy, -L, dy, ey);
+  const vh = window.innerHeight;
+  /** A point in the margin: x from an element's right edge, y from that or another element. */
+  const M = (el: Element, ey: Element, fy: number, dy = 0) => W(el, 1, fy, -L, dy, ey);
   const runs: Run[] = [];
 
-  /* Hero to the method: down the right lane past the intro, then a long swoop under it to the left. */
+  /* The hero. The line hangs from the red dot from the start; scrolling draws it out to the margin
+     and down it, while the composition puts itself in order. */
+  runs.push({ span: () => [-1, -1], ways: [W(p.origin, 0.5, 0.5)] });
   runs.push({
-    ways: [
-      W(p.start, 0.5, 0.5),
-      right(p.intro, p.intro, 0.24),
-      right(p.intro, p.intro, 0.66),
-      W(p.intro, 0.55, 0.95),
-      left(p.intro, p.intro, 1, 6),
-    ],
+    span: p.heroRange,
+    ways: [W(p.origin, 0.5, 0.5, 24, 46), ...corner(M(p.hero, p.origin, 0.5, 70)), M(p.hero, p.hero, 0.94)],
   });
 
-  /* The method, pinned: the thread surveys the map while the page holds still. It casts about for
-     the summit and spirals in on it (the shape), walks the legs between three cairns (the simplest
-     system that holds), then takes the straight line to the flag (fast). Corners are doubled
-     waypoints, which keep the legs straight. */
+  /* The intro, down the margin. */
+  runs.push({ ways: [M(p.intro, p.intro, 0.2), M(p.intro, p.intro, 0.85)] });
+
+  /* The method, held while the line surveys the map. Offsets inside the frame are measured now: the
+     frame and the map move together, held or not. */
+  const frameBox = p.methodFrame.getBoundingClientRect();
+  const mapBox = p.map.getBoundingClientRect();
+  const mw = mapBox.width;
+  const above = mapBox.top - frameBox.top - 18;
+  const below = mapBox.bottom - frameBox.top + 18;
   const [w0, w1, w2] = p.ways;
-  const mw = p.map.getBoundingClientRect().width;
+  // Down the margin on the page, on into the same margin on the frame, then across above the map.
+  runs.push({ ways: [M(p.method, p.method, 0, -40)] });
+  runs.push({
+    span: part(p.methodRange, 0, 0.07),
+    ways: [...corner(W(p.methodFrame, 1, 0, -L, above)), ...corner(W(p.map, 1, 0, -8, -18))],
+  });
+  // 1. The shape: casting about for the summit, then spiralling in on it.
   const rand = rng(5);
-  runs.push({
-    span: part(p.methodRange, 0, 0.06),
-    ways: [left(p.methodFrame, p.map, 0.62)],
-  });
-  const cast: Way[] = [];
-  for (let i = 0; i < 5; i++) {
-    const a = Math.PI * (0.9 + i * 0.37) + (rand() - 0.5) * 0.6;
+  const cast: Way[] = [-0.3, 0.2, 0.7, 1.15, 1.55].map((t, i) => {
+    const a = Math.PI * t + (rand() - 0.5) * 0.3;
     const d = mw * (0.2 - i * 0.025);
-    cast.push(W(w0, 0.5, 0.5, Math.cos(a) * d, Math.sin(a) * d * 0.7));
-  }
-  runs.push({
-    span: part(p.methodRange, 0.06, 0.36),
-    onProgress: (v) => p.onStep?.(0, v),
-    ways: [W(p.map, 0, 0.62), ...cast, ...spiral(w0, mw * 0.11, mw * 0.022, 2.25, 10)],
+    return W(w0, 0.5, 0.5, Math.cos(a) * d, Math.sin(a) * d * 0.7);
   });
+  runs.push({
+    span: part(p.methodRange, 0.07, 0.36),
+    onProgress: (v) => p.onStep?.(0, v),
+    ways: [...cast, ...spiral(w0, mw * 0.11, mw * 0.022, 2.25, 10)],
+  });
+  // 2. The system: the legs between the three cairns, a closed triangle. Doubled points keep the
+  // legs straight.
   const cairn = (k: number) => W(w1, 0.5, 0.5, CAIRNS[k][0] * mw, CAIRNS[k][1] * mw);
   runs.push({
     span: part(p.methodRange, 0.36, 0.66),
     onProgress: (v) => p.onStep?.(1, v),
     ways: [cairn(0), cairn(0), cairn(1), cairn(1), cairn(2), cairn(2), cairn(0), cairn(0)],
   });
+  // 3. The speed: the straight line to the flag, and a knot there.
   runs.push({
     span: part(p.methodRange, 0.66, 0.92),
     onProgress: (v) => p.onStep?.(2, v),
-    ways: [W(w2, 0.5, 0.5), W(w2, 0.5, 0.5), ...ring(w2, 0.5, 0.5, Math.max(8, mw * 0.014), { steps: 7 })],
+    ways: [W(w2, 0.5, 0.5), W(w2, 0.5, 0.5), ...ring(w2, 0.5, 0.5, Math.max(8, mw * 0.014), { from: Math.PI / 2, steps: 7 })],
   });
-  // Out of the method. Wide: under the map and back to the left lane. Narrow (the steps sit under
-  // the map): out to the right lane and down past the steps.
+  // Out: due south off the map, then along under it to the margin.
   runs.push({
     span: part(p.methodRange, 0.92, 1),
-    ways: p.wide
-      ? [W(p.map, 0.7, 1, 0, 26), left(p.methodFrame, p.methodFrame, 1, -4)]
-      : [W(p.map, 1, 0.3, L - 2), right(p.methodFrame, p.map, 1, 24), right(p.methodFrame, p.methodFrame, 1, -4)],
+    ways: [...corner(W(w2, 0.5, 1, 0, 18, p.map)), ...corner(W(p.methodFrame, 1, 0, -L, below))],
   });
 
-  /* Work. */
-  if (p.wide && p.workFrame && p.rail && p.stops && p.workRange) {
-    const range = p.workRange;
-    runs.push({ ways: [left(p.workSection, p.workHead, 0.5)] });
-    runs.push({
-      span: () => {
-        const [a] = range();
-        return [a - window.innerHeight * 0.3, a];
-      },
-      ways: [W(p.rail, 0, 0.5, -L, -60), W(p.rail, 0, 0.5)],
+  /* The work. */
+  runs.push({ ways: [M(p.work, p.work, 0, 30), M(p.work, p.workHead, 0.5)] });
+  if (p.wide && p.workFrame && p.workRange) {
+    // Held: on down the margin of the frame as the projects slide by, a knot for each.
+    const frame = p.workFrame;
+    const top = vh * 0.17;
+    const bottom = vh * 0.82;
+    const knots: Way[] = [];
+    p.panels.forEach((_, k) => {
+      const y = top + ((bottom - top) * k) / Math.max(1, p.panels.length - 1);
+      knots.push(W(frame, 1, 0, -L, y - 16));
+      knots.push(...ring(frame, 1, 0, 7, { steps: 7 }, { dx: -L - 7, dy: y }));
+      knots.push(W(frame, 1, 0, -L, y + 16));
     });
-    // Along the rail, tying a knot at each project as it passes.
-    const rail: Way[] = [];
-    p.stops.forEach((stop) => {
-      rail.push(W(stop, 0.5, 0.5, -26));
-      rail.push(...ring(stop, 0.5, 0.5, 8, { from: Math.PI, steps: 7 }));
-      rail.push(W(stop, 0.5, 0.5, 26));
-    });
-    runs.push({ span: range, onProgress: p.onRail, ways: [...rail, W(p.rail, 1, 0.5)] });
-    runs.push({
-      span: () => {
-        const [, b] = range();
-        return [b, b + window.innerHeight * 0.25];
-      },
-      ways: [right(p.workFrame, p.workFrame, 1, -8)],
-    });
+    runs.push({ span: p.workRange, onProgress: p.onRail, ways: [...knots, W(frame, 1, 0, -L, vh * 0.92)] });
   } else {
-    // Narrow: down the right lane past the heading, across above the first card, then down the
-    // left lane with a knot by each project card.
-    const first = p.panels[0];
-    const ways: Way[] = [right(p.workSection, p.workHead, 0.5), W(p.workSection, 0.5, 0, 0, -26, first), left(p.workSection, first, 0, -10)];
+    // One under another: a knot by the top of each project.
+    const ways: Way[] = [];
     p.panels.forEach((card) => {
-      ways.push(left(p.workSection, card, 0, 10));
-      ways.push(...ring(p.workSection, 0, 0, 7, { steps: 7 }, { dx: L, dy: 34, ey: card }));
-      ways.push(left(p.workSection, card, 1, -10));
+      ways.push(M(p.work, card, 0, 20));
+      ways.push(...ring(p.work, 1, 0, 7, { steps: 7 }, { dx: -L - 7, dy: 48, ey: card }));
+      ways.push(M(p.work, card, 0, 76), M(p.work, card, 1, -12));
     });
-    // Then across to the right lane for what follows.
-    const last = p.panels[p.panels.length - 1];
-    ways.push(W(p.workSection, 0.5, 1, 0, 0, last), W(p.workSection, 1, 1, -L, 30, last));
     runs.push({ ways });
   }
 
-  /* Range: from the lane over to where all four plates overlap, once round it, and back. */
-  const vr = p.venn.getBoundingClientRect().width;
-  runs.push({
-    ways: [
-      right(p.range, p.rangeHead, 0.5),
-      W(p.venn, 1, 0.3, 10),
-      ...ring(p.venn, 0.5, 0.5, vr * 0.13, { from: -Math.PI / 4, steps: 10 }),
-      W(p.venn, 1, 0.75, 14),
-      right(p.range, p.venn, 1, 24),
-      right(p.range, p.also, 1, 30),
-      right(p.range, p.range, 1),
-    ],
-  });
+  /* The range and the side quest, down the margin. */
+  runs.push({ ways: [M(p.range, p.range, 0, 30), M(p.range, p.rangeHead, 0.5), M(p.range, p.caps, 0.5), M(p.range, p.also, 1, 24)] });
+  runs.push({ ways: [M(p.quest, p.quest, 0.15), M(p.quest, p.quest, 0.85)] });
 
-  /* The side quest: down the right lane to the sun, once round it as it comes up, then down past
-     the plant to a knot on the ground beside it, and back to the lane. */
-  const sun = p.sun.getBoundingClientRect();
-  const sunR = sun.width / 2 + 16;
-  runs.push({
-    span: p.questRange,
-    ways: [
-      right(p.quest, p.sun, 0.5),
-      ...ring(p.sun, 0.5, 0.5, sunR, { from: 0, steps: 14 }),
-      W(p.plant, 1, 0.55, 26),
-      ...ring(p.plant, 1, 1, 7, { from: Math.PI, steps: 6 }, { dx: 26, dy: -8 }),
-      W(p.plant, 1, 1, 60, 10),
-      right(p.quest, p.plant, 1, 26),
-      right(p.quest, p.quest, 1),
-    ],
-  });
-
-  /* Contact: down to the send button, once round it, and a knot to finish. */
+  /* The contact: down the margin, once round the send button, and there it rests. */
   const b = p.send.getBoundingClientRect();
   const around = b.width / 2 + 16;
   // An ellipse that clears the button by about the same margin all round.
   const squash = (b.height / 2 + 16) / around;
   runs.push({
-    span: p.contactRange,
     ways: [
-      right(p.contact, p.contact, 0.02),
-      right(p.contact, p.send, 0.5, -around - 30),
-      ...ring(p.send, 0.5, 0.5, around, { from: -0.35, steps: 12, squash }),
-      ...ring(p.send, 1, 0.5, 6, { from: Math.PI, steps: 6 }, { dx: 34 }),
-      W(p.send, 1, 0.5, 52, 22),
+      M(p.contact, p.contact, 0.04),
+      ...corner(M(p.contact, p.send, 0.5, -around - 30)),
+      ...ring(p.send, 0.5, 0.5, around, { from: -0.45, turns: 1.06, steps: 16, squash }),
     ],
   });
 

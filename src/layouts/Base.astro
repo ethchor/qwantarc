@@ -28,12 +28,9 @@ const { stylesheets, hosts } = {
     hosts: google,
   },
   vimu: {
-    stylesheets: [
-      // Satoshi and Boska come from Fontshare (ITF Free Font License), the pixel face from Google Fonts.
-      'https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&f[]=boska@400,401,500,501&display=swap',
-      'https://fonts.googleapis.com/css2?family=Silkscreen&display=swap',
-    ],
-    hosts: ['https://api.fontshare.com', 'https://cdn.fontshare.com', ...google],
+    // Satoshi and Boska come from Fontshare (ITF Free Font License).
+    stylesheets: ['https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&f[]=boska@400,401&display=swap'],
+    hosts: ['https://api.fontshare.com', 'https://cdn.fontshare.com'],
   },
 }[fonts];
 /** The hosts that serve the font files themselves, which are fetched with CORS. */
