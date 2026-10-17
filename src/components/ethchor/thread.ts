@@ -1,7 +1,9 @@
 /**
- * The red thread down the page. It starts at the hero's loose end and runs all the way to the send
- * button, drawn as you scroll, with a tip leading the way. The overlay holds a copy of the path for
- * each section's style (every [data-line] gets the same curve), each clipped to its own sections.
+ * The red line down the page: a point that moves as you scroll, and the line it leaves behind (a
+ * line is a point in motion, as Kandinsky taught at the Bauhaus). It starts at the red dot in the
+ * hero and runs all the way to the send button, one line of one weight, with the point always on
+ * screen: wherever the line is going, the point is never let slip off the top of the screen, and on
+ * the page it stays at or above the reader's eye line.
  *
  * It passes through waypoints placed relative to elements and measured afresh every frame, so it
  * follows the layout, the pinned sections and anything GSAP moves. Each run of waypoints says how
@@ -81,11 +83,13 @@ function controls(p0: P, p1: P, p2: P, p3: P): [P, P] {
 }
 
 const f1 = (n: number) => n.toFixed(1);
+/** The highest the point may ride on the page, as a share of the screen: clear of the bar. */
+const TOP = 0.14;
 
 export function createThread(opts: ThreadOptions) {
   const { svg } = opts;
   const eye = opts.eye ?? 0.62;
-  const lines = [...svg.querySelectorAll<SVGPathElement>('[data-line]')];
+  const line = svg.querySelector<SVGPathElement>('[data-line]')!;
   const tip = svg.querySelector<SVGGElement>('[data-tip]');
 
   const ways: Way[] = [];
@@ -141,9 +145,13 @@ export function createThread(opts: ThreadOptions) {
       } else {
         for (let j = first; j <= last; j++) {
           if (j === 0) continue;
-          // Follow the eye line, but never faster than the thread can be drawn: a loop or a long
-          // sideways stretch takes its share of scrolling.
-          reach[j] = Math.max(pts[j][1] + sy - vh * eye, reach[j - 1] + len(j) * 0.5, reach[j - 1] + 0.01);
+          const y = pts[j][1] + sy;
+          // Follow the eye line, but never faster than the line can be drawn: a loop or a sideways
+          // stretch takes its share of scrolling...
+          let r = Math.max(y - vh * eye, reach[j - 1] + len(j) * 0.5, reach[j - 1] + 0.01);
+          // ...and never so slowly that the point rides up off the top of the screen meanwhile.
+          r = Math.min(r, Math.max(y - vh * TOP, reach[j - 1] + 0.01));
+          reach[j] = r;
         }
       }
       k = last + 1;
@@ -182,7 +190,7 @@ export function createThread(opts: ThreadOptions) {
     const pts: P[] = [];
     const end = Math.min(n - 1, k + 2);
     for (let j = 0; j <= end; j++) pts.push(at(j));
-    // The thread arrives from above, out of the hero's straight line.
+    // The line hangs from the dot it starts at: it leaves it heading down.
     const before: P = [pts[0][0], pts[0][1] - 80];
     const get = (j: number): P => (j < 0 ? before : j < pts.length ? pts[j] : pts[pts.length - 1]);
     let d = '';
@@ -212,12 +220,12 @@ export function createThread(opts: ThreadOptions) {
       pen = true;
     }
     if (d !== lastD) {
-      for (const l of lines) l.setAttribute('d', d);
+      line.setAttribute('d', d);
       lastD = d;
     }
+    // The point: on screen from the first frame to the last, where it comes to rest.
     if (tip) {
-      const on = !!tipAt && !opts.still && shown > reach[0] && shown < reach[n - 1] + 1;
-      tip.style.opacity = on ? '1' : '0';
+      tip.style.opacity = tipAt && !opts.still ? '1' : '0';
       if (tipAt) tip.setAttribute('transform', `translate(${f1(tipAt[0])} ${f1(tipAt[1])})`);
     }
     // Tell each run how far through it the tip is.

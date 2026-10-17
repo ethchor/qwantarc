@@ -1,69 +1,216 @@
-/* The Bauhaus exhibition: the work. Primary colours, black rules and heavy geometric type. The
-   section opens with the four shapes the diagrams use, falling into a row on a rule as their key;
-   each project is a poster with a shape of its own; the diagrams are built from the same shapes. */
+/* Bauhaus shapes: the hero's composition, the work (posters, the diagrams' key and the diagrams),
+   the range's pictograms, the side quest's plant and the contact form. Primary colours, black
+   rules and heavy geometric type, on the same paper as the map. */
 
-.vibe-bauhaus {
-  --bg: #f1ece1;
-  --fg: #111111;
-  --fg-2: #3c3934;
-  --fg-3: #5f5a52;
-  --line: #111111;
-  --accent: #d6372b;
-  --b-red: #d6372b;
-  --b-yellow: #f2c230;
-  --b-blue: #22489c;
-  --b-black: #111111;
-  --paper: #fbf9f3;
+/* ---- Hero ---- */
+.hero {
+  /* The side of the composition's square box. */
+  --S: min(40vw, 72vh, 680px);
+  position: relative;
+  height: 100vh;
+  height: 100svh;
+  min-height: 620px;
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--paper);
 }
-.vibe-bauhaus .kicker {
-  font: 800 12px/1 var(--sans);
-  letter-spacing: 0.18em;
-  color: var(--fg);
+/* The composition: shapes placed in shares of the box, tangled; the script moves each (with
+   transforms only) into its place in an ordered composition as the page scrolls. */
+.hero-shapes {
+  position: absolute;
+  top: 47%;
+  right: calc(var(--pad-r) + 12px);
+  width: var(--S);
+  height: var(--S);
+  translate: 0 -50%;
+  pointer-events: none;
 }
-.vibe-bauhaus .kicker-n {
-  display: inline-grid;
-  place-items: center;
-  width: 30px;
-  height: 30px;
-  background: var(--fg);
-  color: var(--bg);
-  letter-spacing: 0;
+.hero-shapes .shape {
+  position: absolute;
+  display: block;
+  will-change: transform;
 }
-.vibe-bauhaus .sec-title {
-  font: 900 clamp(54px, 7.4vw, 132px) / 0.9 var(--sans);
-  letter-spacing: -0.05em;
+.hero-shapes .shape > * {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.hero-shapes .shape[data-shape='circle'] {
+  left: 20%;
+  top: 18%;
+  width: 54%;
+  aspect-ratio: 1;
+}
+.hero-shapes .shape[data-shape='triangle'] {
+  left: 6%;
+  top: 46%;
+  width: 46%;
+  aspect-ratio: 305 / 265;
+  transform: rotate(-16deg);
+}
+.hero-shapes .shape[data-shape='square'] {
+  left: 56%;
+  top: 8%;
+  width: 26%;
+  aspect-ratio: 1;
+  transform: rotate(18deg);
+}
+.hero-shapes .shape[data-shape='half'] {
+  left: 50%;
+  top: 60%;
+  width: 40%;
+  aspect-ratio: 2;
+  transform: rotate(-24deg);
+}
+/* The rule is drawn at full length and shortened while it lies askew. */
+.hero-shapes .shape[data-shape='bar'] {
+  left: 4%;
+  top: 52%;
+  width: 92%;
+  height: 2.2%;
+  transform: rotate(32deg) scaleX(0.72);
+}
+.hero-shapes .shape[data-shape='bar'] > i {
+  background: var(--ink);
+}
+/* The red dot: where the line starts. */
+.hero-shapes .shape[data-shape='dot'] {
+  left: 44%;
+  top: 44%;
+  width: 7%;
+  aspect-ratio: 1;
+}
+.hero-shapes .shape[data-shape='dot'] > i {
+  border-radius: 50%;
+  background: var(--red);
+}
+/* Each shape is set down in turn as the page opens. */
+.motion .hero-shapes .shape > * {
+  animation: set-down 0.9s var(--pop) both;
+}
+.motion .hero-shapes .shape:nth-child(2) > * {
+  animation-delay: 0.12s;
+}
+.motion .hero-shapes .shape:nth-child(3) > * {
+  animation-delay: 0.24s;
+}
+.motion .hero-shapes .shape:nth-child(4) > * {
+  animation-delay: 0.36s;
+}
+.motion .hero-shapes .shape:nth-child(5) > * {
+  animation-delay: 0.48s;
+}
+.motion .hero-shapes .shape:nth-child(6) > * {
+  animation-delay: 0.6s;
+}
+@keyframes set-down {
+  from {
+    scale: 0;
+  }
+  to {
+    scale: 1;
+  }
+}
+.hero-copy {
+  position: absolute;
+  left: var(--gutter);
+  bottom: clamp(44px, 9vh, 110px);
+  z-index: 2;
+  width: min(820px, 52vw);
+}
+.hero-title {
+  margin-top: 22px;
+  font: 900 clamp(54px, 6.8vw, 124px) / 0.88 var(--sans);
+  letter-spacing: -0.055em;
   text-transform: lowercase;
 }
-.vibe-bauhaus .sec-title em {
-  font-family: var(--sans);
-  font-style: normal;
-  color: var(--accent);
+.hero-title > span,
+.hero-title > em {
+  display: block;
 }
-.vibe-bauhaus .sec-lede {
+.hero-sub {
+  max-width: 44ch;
+  margin-top: 26px;
+  font-size: clamp(16px, 1.25vw, 19px);
   font-weight: 500;
+  color: var(--ink-2);
 }
-.vibe-bauhaus .label {
+.actions {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  font: 800 11.5px/1 var(--sans);
-  letter-spacing: 0.14em;
-  color: var(--fg);
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 30px;
 }
-.vibe-bauhaus .label::before {
-  content: '';
-  width: 8px;
-  height: 8px;
-  background: var(--fg);
+.hero-hint,
+.scroll-hint {
+  position: absolute;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font: 800 11px/1 var(--sans);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  pointer-events: none;
+}
+.hero-hint {
+  top: 96px;
+  right: var(--pad-r);
+  transition: opacity 0.8s var(--ease);
+}
+.hero-hint svg {
+  width: 22px;
+  height: 22px;
+  color: var(--contour-index);
+}
+.hero-hint.is-done {
+  opacity: 0 !important;
+}
+.scroll-hint {
+  left: 50%;
+  bottom: 22px;
+  translate: -50% 0;
+  color: var(--ink-3);
+}
+/* A still page can't be shaped, and scrolling doesn't untangle it. */
+:root:not(.motion) .hero-hint,
+:root:not(.motion) .scroll-hint {
+  display: none;
 }
 
+/* ---- Intro ---- */
+.intro {
+  padding: 24vh var(--pad-r) 30vh var(--gutter);
+}
+.intro-text {
+  max-width: min(1120px, 80vw);
+  font: 500 clamp(30px, 3.9vw, 66px) / 1.12 var(--sans);
+  letter-spacing: -0.03em;
+  text-wrap: pretty;
+}
+.intro-text em {
+  font-style: normal;
+  color: var(--red);
+}
+/* Underlined in red as it is read. */
+.intro-text mark {
+  --hl: 1;
+  background: linear-gradient(var(--red), var(--red)) no-repeat 0 96% / calc(var(--hl) * 100%) 0.07em;
+  color: inherit;
+}
+.motion .intro-text mark {
+  --hl: 0;
+}
+
+/* ---- Work ---- */
 /* ---- Head, with the key ---- */
 .work-head {
   display: grid;
   grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
   align-items: end;
   gap: 4vw;
-  padding: 18vh var(--gutter) 8vh;
+  padding: 18vh var(--pad-r) 8vh var(--gutter);
 }
 /* The key: shapes placed in shares of the box; the script sets them in a row as the head arrives. */
 .legend {
@@ -83,49 +230,49 @@
   width: 100%;
   height: 100%;
 }
-.shape[data-shape='circle'] {
+.legend .shape[data-shape='circle'] {
   left: 30%;
   top: 6%;
   width: 24%;
   aspect-ratio: 1;
 }
-.shape[data-shape='triangle'] {
+.legend .shape[data-shape='triangle'] {
   left: 4%;
   top: 36%;
   width: 26%;
   aspect-ratio: 305 / 265;
   transform: rotate(-12deg);
 }
-.shape[data-shape='square'] {
+.legend .shape[data-shape='square'] {
   left: 62%;
   top: 4%;
   width: 15%;
   aspect-ratio: 1;
   transform: rotate(16deg);
 }
-.shape[data-shape='half'] {
+.legend .shape[data-shape='half'] {
   left: 67%;
   top: 52%;
   width: 24%;
   aspect-ratio: 2;
 }
 /* The rule is drawn at its full length and shortened while it lies askew. */
-.shape[data-shape='bar'] {
+.legend .shape[data-shape='bar'] {
   left: 7%;
   top: 70%;
   width: 78%;
   height: 2.2cqw;
   min-height: 8px;
-  background: var(--b-black);
+  background: var(--ink);
   transform: rotate(-24deg) scaleX(0.55);
 }
-.shape[data-shape='dot'] {
+.legend .shape[data-shape='dot'] {
   left: 14%;
   top: 8%;
   width: 6%;
   aspect-ratio: 1;
   border-radius: 50%;
-  background: var(--b-red);
+  background: var(--red);
 }
 .legend-label {
   position: absolute;
@@ -140,39 +287,28 @@
 :root:not(.motion) .legend-label {
   opacity: 1;
 }
-.b-red {
-  fill: var(--b-red);
-}
-.b-yellow {
-  fill: var(--b-yellow);
-}
-.b-blue {
-  fill: var(--b-blue);
-}
-.b-black {
-  fill: var(--b-black);
-}
-
 /* ---- The rail of posters ---- */
 .work-frame {
   position: relative;
 }
+/* Held, the stage ends where the red line runs: the posters slide out from beside it. */
 .work.is-rail .work-frame {
   height: 100vh;
   height: 100svh;
   overflow: hidden;
+  clip-path: inset(0 calc(var(--line-x) + 14px) 0 0);
 }
 .track {
   display: grid;
   gap: 56px;
-  padding: 40px var(--gutter) 12vh;
+  padding: 40px var(--pad-r) 12vh var(--gutter);
 }
 .work.is-rail .track {
   display: flex;
   gap: 3vw;
   width: max-content;
   height: 100%;
-  padding: 12vh var(--gutter) 15vh;
+  padding: 12vh var(--gutter) 12vh;
   will-change: transform;
 }
 .panel {
@@ -181,21 +317,21 @@
   grid-template-columns: minmax(0, 1fr);
   gap: 8px clamp(24px, 3vw, 56px);
   padding: clamp(22px, 2.8vw, 44px);
-  border: 2px solid var(--fg);
+  border: 2px solid var(--ink);
   border-top: 12px solid var(--c);
-  background: var(--paper);
+  background: var(--card);
 }
 .panel:nth-child(4n + 1) {
-  --c: var(--b-red);
+  --c: var(--red);
 }
 .panel:nth-child(4n + 2) {
-  --c: var(--b-blue);
+  --c: var(--blue);
 }
 .panel:nth-child(4n + 3) {
-  --c: var(--b-yellow);
+  --c: var(--yellow);
 }
 .panel:nth-child(4n + 4) {
-  --c: var(--b-black);
+  --c: var(--ink);
 }
 .work.is-rail .panel {
   width: min(82vw, 1180px);
@@ -211,33 +347,33 @@
   background: var(--s);
 }
 .panel:nth-child(1) .panel-shape {
-  --s: var(--b-yellow);
+  --s: var(--yellow);
   border-radius: 50%;
 }
 .panel:nth-child(2) .panel-shape {
-  --s: var(--b-red);
+  --s: var(--red);
   rotate: 12deg;
 }
 .panel:nth-child(3) .panel-shape {
-  --s: var(--b-blue);
+  --s: var(--blue);
   clip-path: polygon(50% 0, 100% 100%, 0 100%);
 }
 .panel:nth-child(4) .panel-shape {
-  --s: var(--b-yellow);
+  --s: var(--yellow);
   height: 32px;
   top: -10px;
   border-radius: 32px 32px 0 0;
 }
 .panel:nth-child(5) .panel-shape {
-  --s: var(--b-blue);
+  --s: var(--blue);
   border-radius: 50%;
 }
 .panel:nth-child(6) .panel-shape {
-  --s: var(--b-yellow);
+  --s: var(--yellow);
   rotate: -10deg;
 }
 .panel:nth-child(7) .panel-shape {
-  --s: var(--b-red);
+  --s: var(--red);
   clip-path: polygon(50% 0, 100% 100%, 0 100%);
 }
 .panel-meta {
@@ -248,12 +384,12 @@
   font: 800 12px/1 var(--sans);
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--fg-2);
+  color: var(--ink-2);
 }
 .panel-n {
   font: 900 30px/0.8 var(--sans);
   letter-spacing: -0.04em;
-  color: var(--fg);
+  color: var(--ink);
 }
 .panel-title {
   margin-top: 18px;
@@ -264,7 +400,7 @@
 .panel-role {
   margin-top: 12px;
   font-size: 14px;
-  color: var(--fg-3);
+  color: var(--ink-3);
 }
 .panel-problem {
   max-width: 46ch;
@@ -275,13 +411,13 @@
 .panel-did {
   max-width: 50ch;
   font-size: 15.5px;
-  color: var(--fg-2);
+  color: var(--ink-2);
 }
 .fig-frame {
   max-width: 470px;
   margin: 0;
   padding: 12px;
-  border: 2px solid var(--fg);
+  border: 2px solid var(--ink);
   background: #fff;
 }
 .decisions {
@@ -295,20 +431,20 @@
   padding: 8px 10px;
   font-size: 14.5px;
   line-height: 1.45;
-  color: var(--fg-2);
+  color: var(--ink-2);
   transition: background 0.25s;
 }
 .decisions li:hover,
 .decisions li.is-on {
-  background: var(--b-yellow);
-  color: var(--fg);
+  background: var(--yellow);
+  color: var(--ink);
 }
 .decisions li:focus-visible {
   outline-offset: 0;
 }
 .decisions strong {
   font-weight: 700;
-  color: var(--fg);
+  color: var(--ink);
 }
 .stack {
   display: flex;
@@ -320,43 +456,26 @@
 }
 .stack li {
   padding: 5px 9px;
-  border: 2px solid var(--fg);
+  border: 2px solid var(--ink);
   font: 700 11.5px/1.2 var(--sans);
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
-.rail,
 .rail-count {
   display: none;
 }
-.work.is-rail .rail {
-  position: absolute;
-  left: var(--gutter);
-  right: var(--gutter);
-  bottom: 7svh;
-  display: block;
-  height: 6px;
-  margin-top: -3px;
-  background: var(--fg);
-}
-.rail-stop {
-  position: absolute;
-  top: 3px;
-  left: calc(3% + var(--i) / var(--n) * 94%);
-  width: 0;
-  height: 0;
-}
+/* Under the posters, by the foot of the line's knots. */
 .work.is-rail .rail-count {
   position: absolute;
-  right: var(--gutter);
-  bottom: calc(7svh + 22px);
+  right: calc(var(--line-x) + 30px);
+  bottom: 4.5vh;
   display: block;
   font: 900 20px/1 var(--sans);
   letter-spacing: -0.02em;
-  color: var(--fg-3);
+  color: var(--ink-3);
 }
 .rail-count span {
-  color: var(--fg);
+  color: var(--ink);
 }
 
 /* ---- Diagrams: chips carrying the shapes, black links, packets of colour running along them ---- */
@@ -368,7 +487,7 @@
 }
 .diagram .link {
   fill: none;
-  stroke: var(--fg);
+  stroke: var(--ink);
   stroke-width: 1.5;
   stroke-dasharray: 1;
   stroke-dashoffset: 0;
@@ -411,49 +530,437 @@
   opacity: 1;
 }
 .diagram .link.is-hot {
-  stroke: var(--b-red);
+  stroke: var(--red);
   stroke-width: 2.5;
   opacity: 1;
 }
 .diagram .packet {
-  fill: var(--b-red);
+  fill: var(--red);
 }
 .diagram .packet.is-back {
-  fill: var(--b-blue);
+  fill: var(--blue);
 }
 .diagram .node {
   transition: opacity 0.3s;
 }
 .diagram .chip {
   fill: #fff;
-  stroke: var(--fg);
+  stroke: var(--ink);
   stroke-width: 1.5;
   transition: fill 0.3s;
 }
 .diagram .node text {
-  fill: var(--fg);
+  fill: var(--ink);
   font: 600 12.5px var(--sans);
 }
 .diagram .node.is-hot .chip {
-  fill: var(--b-yellow);
+  fill: var(--yellow);
 }
 .diagram.is-focus .node:not(.is-hot),
 .diagram.is-focus .link:not(.is-hot) {
   opacity: 0.28;
 }
 .g-app {
-  fill: var(--b-yellow);
-  stroke: var(--fg);
+  fill: var(--yellow);
+  stroke: var(--ink);
   stroke-width: 1;
 }
 .g-service {
-  fill: var(--b-blue);
+  fill: var(--blue);
 }
 .g-data {
-  fill: var(--b-red);
+  fill: var(--red);
 }
 .g-outside {
-  fill: var(--b-black);
+  fill: var(--ink);
+}
+
+/* ---- Range: four pictograms that put themselves together ---- */
+.range {
+  padding: 20vh var(--pad-r) 14vh var(--gutter);
+}
+.caps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 8vh 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 2px solid var(--ink);
+  border-bottom: 2px solid var(--ink);
+}
+.cap {
+  padding: 30px 26px 34px;
+  border-left: 2px solid var(--ink);
+}
+.cap:first-child {
+  padding-left: 0;
+  border-left: 0;
+}
+.cap:last-child {
+  padding-right: 0;
+}
+.pict {
+  display: block;
+  width: clamp(84px, 8vw, 116px);
+  height: auto;
+  overflow: visible;
+}
+.pict .p {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition:
+    transform 0.9s var(--pop) calc(var(--i, 0) * 90ms),
+    opacity 0.4s var(--ease) calc(var(--i, 0) * 90ms);
+}
+.motion .cap:not(.is-in) .pict .p {
+  opacity: 0;
+  transform: translate(var(--x, 0px), var(--y, 0px)) rotate(var(--r, 0deg)) scale(var(--s, 1));
+}
+.cap:hover .p-orbit {
+  transform: rotate(20deg);
+}
+.cap:hover .p-roof {
+  transform: translateY(-8px);
+}
+.cap:hover .p-arrow {
+  transform: translateX(6px);
+}
+.cap:hover .p-lines {
+  transform: translateX(-6px);
+}
+.cap:hover .p-ui {
+  transform: translateX(6px);
+}
+.cap-title {
+  margin-top: 26px;
+  font: 800 clamp(22px, 1.9vw, 30px) / 1.08 var(--sans);
+  letter-spacing: -0.03em;
+}
+.cap-note {
+  margin-top: 10px;
+  font-size: 15px;
+  color: var(--ink-3);
+}
+.cap-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 20px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.cap-items li {
+  padding: 5px 9px;
+  border: 2px solid var(--ink);
+  background: var(--card);
+  font: 700 11.5px/1.2 var(--sans);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: background 0.2s;
+}
+.cap-items li:hover {
+  background: var(--yellow);
+}
+.also {
+  max-width: 60ch;
+  margin-top: 7vh;
+  font-size: clamp(17px, 1.3vw, 20px);
+  font-weight: 500;
+  color: var(--ink-2);
+}
+
+/* ---- Side quest: a plant of shapes that grows, follows the sun and leans to the cursor ---- */
+.quest {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 6vw;
+  min-height: 100vh;
+  min-height: 100svh;
+  padding: 12vh var(--pad-r) 12vh var(--gutter);
+}
+.quest-copy {
+  grid-row: 1;
+  grid-column: 1;
+}
+.quest .btn {
+  margin-top: 34px;
+}
+.garden {
+  grid-row: 1;
+  grid-column: 2;
+  justify-self: center;
+  width: min(100%, 520px);
+  margin: 0;
+}
+.garden svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.garden .grow {
+  transform-box: fill-box;
+  transition: transform 0.9s var(--pop) calc(var(--i, 0) * 140ms);
+}
+.garden .stem {
+  transform-origin: 50% 100%;
+}
+.garden .leaf-r {
+  transform-origin: 0% 100%;
+}
+.garden .leaf-l {
+  transform-origin: 100% 100%;
+}
+.garden .bud {
+  transform-origin: 50% 50%;
+}
+.motion .garden:not(.is-in) .stem {
+  transform: scaleY(0);
+}
+.motion .garden:not(.is-in) .leaf-r,
+.motion .garden:not(.is-in) .leaf-l,
+.motion .garden:not(.is-in) .bud {
+  transform: scale(0);
+}
+
+/* ---- Contact ---- */
+.contact {
+  padding: 16vh var(--pad-r) 14vh var(--gutter);
+}
+.contact-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  align-items: start;
+  gap: clamp(32px, 6vw, 96px);
+  max-width: 1320px;
+}
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 24px;
+  margin: 30px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  border-bottom: 2px solid var(--ink);
+  transition:
+    color 0.25s,
+    border-color 0.25s;
+}
+.links a:hover {
+  color: var(--red);
+  border-color: var(--red);
+}
+.links svg {
+  width: 14px;
+  height: 14px;
+}
+/* The form is a poster too: a band of colour along the top and a shape half off it. */
+.contact-card {
+  position: relative;
+  border: 2px solid var(--ink);
+  border-top: 12px solid var(--yellow);
+  background: var(--card);
+}
+.card-shape {
+  position: absolute;
+  top: -42px;
+  left: 40px;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--blue);
+}
+.form,
+.sent {
+  padding: clamp(24px, 3vw, 40px);
+}
+.form fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.form .label {
+  margin: 0 0 12px;
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.chip input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.chip span {
+  display: inline-block;
+  padding: 8px 13px;
+  border: 2px solid var(--ink);
+  font: 700 13.5px/1.2 var(--sans);
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+.chip span:hover {
+  background: var(--yellow);
+}
+.chip input:checked + span {
+  background: var(--ink);
+  color: var(--paper);
+}
+.chip input:focus-visible + span {
+  outline: 2px solid var(--blue);
+  outline-offset: 3px;
+}
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.field {
+  margin-top: 24px;
+}
+.field .label {
+  margin: 0 0 10px;
+}
+.field input,
+.field textarea {
+  width: 100%;
+  padding: 13px 15px;
+  border: 2px solid var(--ink);
+  border-radius: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
+}
+.field textarea {
+  min-height: 130px;
+  resize: vertical;
+}
+.field input:focus,
+.field textarea:focus {
+  outline: none;
+  border-color: var(--blue);
+  background: #fff;
+}
+.field input::placeholder,
+.field textarea::placeholder {
+  color: var(--ink-3);
+}
+.field [aria-invalid='true'] {
+  border-color: var(--red);
+}
+.error {
+  display: none;
+  margin-top: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--red);
+}
+.error.is-on {
+  display: block;
+}
+.trap {
+  position: absolute;
+  left: -9999px;
+}
+.submit-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 30px;
+}
+.hint {
+  max-width: 30ch;
+  font-size: 14px;
+  color: var(--ink-3);
+}
+.hint.is-error {
+  color: var(--red);
+}
+/* Send: a red circle, where the line comes to rest. */
+.send {
+  display: grid;
+  flex: none;
+  place-content: center;
+  justify-items: center;
+  gap: 4px;
+  width: 104px;
+  height: 104px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--red);
+  color: #fff;
+  font: 800 15px/1 var(--sans);
+  cursor: pointer;
+  transition: background 0.25s;
+}
+.send svg {
+  width: 20px;
+  height: 20px;
+  transition: transform 0.4s var(--ease);
+}
+.send:hover {
+  background: var(--ink);
+}
+.send:hover svg {
+  transform: translate(2px, -2px);
+}
+.send:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+.sent .kicker {
+  color: var(--red);
+}
+.sent-title {
+  margin-top: 14px;
+  font: 900 clamp(34px, 4vw, 56px) / 1 var(--sans);
+  letter-spacing: -0.04em;
+  text-transform: lowercase;
+}
+
+/* ---- Footer ---- */
+.foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 26px var(--pad-r) 32px var(--gutter);
+  border-top: 2px solid var(--ink);
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--ink-2);
+}
+.foot-links {
+  display: inline-flex;
+  gap: 18px;
+}
+.foot-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: color 0.25s;
+}
+.foot-links a:hover {
+  color: var(--red);
+}
+.foot-links svg {
+  width: 12px;
+  height: 12px;
 }
 
 /* ---- Wide screens: posters in two columns ---- */
@@ -466,7 +973,7 @@
 @media (min-width: 900px) and (max-height: 820px) {
   .work.is-rail .track {
     padding-top: 11vh;
-    padding-bottom: 14vh;
+    padding-bottom: 10vh;
   }
   .work.is-rail .panel {
     padding: 24px 30px;
@@ -502,18 +1009,68 @@
   }
 }
 
+
+/* ---- Tablets: the range in two rows ---- */
+@media (max-width: 1100px) {
+  .caps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .cap:nth-child(odd) {
+    padding-left: 0;
+    border-left: 0;
+  }
+  .cap:nth-child(even) {
+    padding-right: 0;
+  }
+  .cap:nth-child(n + 3) {
+    border-top: 2px solid var(--ink);
+  }
+}
+
 /* ---- Phones ---- */
 @media (max-width: 760px) {
+  /* The composition over the copy, in whatever room the copy leaves (measured as --copy). */
+  .hero {
+    --S: clamp(150px, min(80vw, 100svh - var(--copy, 360px) - 8svh - 100px), 80vw);
+  }
+  .hero-shapes {
+    top: calc(76px + 2svh);
+    right: auto;
+    left: calc(50% - var(--line-x) / 2);
+    translate: -50% 0;
+  }
+  .hero-copy {
+    right: var(--pad-r);
+    bottom: 6vh;
+    width: auto;
+  }
+  .hero-title {
+    font-size: 13vw;
+  }
+  .actions {
+    gap: 10px;
+  }
+  .actions .btn {
+    padding: 0 18px;
+  }
+  .hero-hint,
+  .scroll-hint {
+    display: none;
+  }
+  .intro {
+    padding: 16vh var(--pad-r) 22vh var(--gutter);
+  }
+  .intro-text {
+    max-width: none;
+    font-size: 7.4vw;
+  }
   .work-head {
     grid-template-columns: minmax(0, 1fr);
     gap: 6vh;
-    padding: 12vh var(--gutter) 6vh calc(var(--gutter) * 1.6);
+    padding: 12vh var(--pad-r) 6vh var(--gutter);
   }
   .legend {
     justify-self: start;
-  }
-  .track {
-    padding-left: calc(var(--gutter) * 1.6);
   }
   .panel-shape {
     top: -30px;
@@ -524,5 +1081,68 @@
   .panel:nth-child(4) .panel-shape {
     height: 23px;
     top: -6px;
+  }
+  .range {
+    padding: 14vh var(--pad-r) 10vh var(--gutter);
+  }
+  .caps {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .cap,
+  .cap:nth-child(odd),
+  .cap:nth-child(even) {
+    display: grid;
+    grid-template-columns: 64px minmax(0, 1fr);
+    column-gap: 18px;
+    padding: 26px 0;
+    border-left: 0;
+  }
+  .cap + .cap {
+    border-top: 2px solid var(--ink);
+  }
+  .pict {
+    grid-row: span 2;
+    width: 64px;
+  }
+  .cap-title {
+    margin-top: 2px;
+  }
+  .cap-items {
+    grid-column: 1 / -1;
+  }
+  .quest {
+    grid-template-columns: minmax(0, 1fr);
+    min-height: auto;
+    padding: 10vh var(--pad-r) 10vh var(--gutter);
+  }
+  .garden {
+    grid-column: 1;
+    width: 78%;
+  }
+  .quest-copy {
+    grid-row: 2;
+  }
+  .contact {
+    padding: 12vh var(--pad-r) 12vh var(--gutter);
+  }
+  .contact-grid,
+  .row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .card-shape {
+    top: -30px;
+    left: 24px;
+    width: 46px;
+    height: 46px;
+  }
+  .foot {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .diagram .packet {
+    display: none;
   }
 }

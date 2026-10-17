@@ -1,22 +1,27 @@
-/* The topographic survey map: the method. A printed map sheet with contour lines, a graticule, a
-   north arrow and a scale bar; the three steps are waypoints, and the thread is the route between
-   them, drawn as the page holds still. */
+/* Topographic lines: the hero's ground, and the method's survey map. The map is a printed sheet
+   with contour lines, a graticule, a north arrow and a scale bar; the three steps are waypoints on
+   it, and the red line is the route between them, drawn while the page holds still. */
 
-.vibe-topo {
-  --bg: #e7e0c9;
-  --fg: #2a251f;
-  --fg-2: #5b5246;
-  --fg-3: #6e6457;
-  --line: rgb(42 37 31 / 0.16);
-  --accent: #c0392b;
-  --sheet: #f1ebd7;
-  --contour: #a06e46;
-  --contour-index: #7b4f2f;
-}
-.vibe-topo .kicker {
-  font-weight: 600;
+:root {
+  --map-ink: #2a251f;
+  --map-ink-2: #5b5246;
+  --map-ink-3: #6e6457;
 }
 
+/* ---- The hero's ground (components/ethchor/terrain.ts) ---- */
+.terrain {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  /* Faint behind the words, so they read. */
+  -webkit-mask-image: radial-gradient(ellipse 70% 62% at 0% 100%, rgb(0 0 0 / 0.18) 40%, #000 88%);
+  mask-image: radial-gradient(ellipse 70% 62% at 0% 100%, rgb(0 0 0 / 0.18) 40%, #000 88%);
+}
+
+/* ---- The method ---- */
 .method-frame {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
@@ -24,14 +29,14 @@
   column-gap: 5vw;
   height: 100vh;
   height: 100svh;
-  padding: 13vh var(--gutter) 7vh;
-  background: var(--bg);
+  padding: 13vh var(--pad-r) 7vh var(--gutter);
+  background: var(--tan);
 }
 .method .sec-head {
   grid-column: 1 / -1;
 }
 
-/* ---- The map sheet ---- */
+/* The map sheet. */
 .map {
   position: relative;
   grid-column: 1;
@@ -41,7 +46,7 @@
   max-height: 100%;
   aspect-ratio: 16 / 10.5;
   margin: 0;
-  border: 1.5px solid var(--fg);
+  border: 1.5px solid var(--map-ink);
   background: var(--sheet);
   /* A double rule round the sheet, as on a printed map. */
   box-shadow:
@@ -93,7 +98,7 @@
   width: 14px;
   height: 12px;
   margin: -8px 0 0 -7px;
-  background: var(--fg);
+  background: var(--map-ink);
   clip-path: polygon(50% 0, 100% 100%, 0 100%);
 }
 /* The cairns sit where the route expects them (CAIRNS in route.ts, in shares of the map's width). */
@@ -108,7 +113,7 @@
   margin: -5px 0 0 -5px;
   border: 2px solid var(--sheet);
   border-radius: 50%;
-  background: var(--fg);
+  background: var(--map-ink);
 }
 .cairn:nth-child(1) {
   left: -7.5cqw;
@@ -126,7 +131,7 @@
   width: 2px;
   height: 22px;
   margin: -22px 0 0 -1px;
-  background: var(--fg);
+  background: var(--map-ink);
 }
 .way-flag .way-mark::after {
   content: '';
@@ -135,7 +140,7 @@
   top: 0;
   width: 14px;
   height: 10px;
-  background: var(--accent);
+  background: var(--red);
   clip-path: polygon(0 0, 100% 50%, 0 100%);
 }
 .way-label {
@@ -147,7 +152,7 @@
   font: 600 10.5px/1 var(--sans);
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--fg-2);
+  color: var(--map-ink-2);
   transition:
     background 0.4s,
     color 0.4s,
@@ -155,15 +160,16 @@
 }
 .way-label b {
   margin-right: 4px;
-  color: var(--accent);
+  color: var(--red);
   transition: color 0.4s;
 }
 .way-summit .way-label {
   left: 14px;
   top: -30px;
 }
+/* To the left of the cairns, clear of the route south from the flag. */
 .way-cairns .way-label {
-  left: 9cqw;
+  right: 9cqw;
   top: 6cqw;
 }
 .way-flag .way-label {
@@ -172,8 +178,8 @@
 }
 /* A waypoint reached is stamped. */
 .way.is-done .way-label {
-  border-color: var(--fg);
-  background: var(--fg);
+  border-color: var(--map-ink);
+  background: var(--map-ink);
   color: var(--sheet);
 }
 .way.is-done .way-label b {
@@ -184,7 +190,7 @@
   top: 18px;
   right: 18px;
   width: 26px;
-  color: var(--fg);
+  color: var(--map-ink);
 }
 .map-north svg {
   display: block;
@@ -199,14 +205,14 @@
   row-gap: 3px;
   font: 600 9.5px/1 var(--sans);
   letter-spacing: 0.08em;
-  color: var(--fg-2);
+  color: var(--map-ink-2);
 }
 .map-scale i {
   height: 5px;
-  border: 1px solid var(--fg);
+  border: 1px solid var(--map-ink);
 }
 .map-scale i:nth-child(odd) {
-  background: var(--fg);
+  background: var(--map-ink);
 }
 .map-scale span:first-of-type {
   grid-column: 1;
@@ -217,16 +223,16 @@
 }
 .map-title {
   position: absolute;
-  right: 18px;
-  bottom: 14px;
+  top: 18px;
+  left: 20px;
   font: italic 400 15px/1 var(--serif);
-  color: var(--fg-2);
+  color: var(--map-ink-2);
 }
 .map-coord {
   position: absolute;
   font: 600 9.5px/1 var(--sans);
   letter-spacing: 0.08em;
-  color: var(--fg-3);
+  color: var(--map-ink-3);
 }
 .map-coord.c-top {
   top: -16px;
@@ -247,13 +253,13 @@
   margin: 0;
   padding: 0;
   list-style: none;
-  border-top: 1.5px solid var(--fg);
+  border-top: 1.5px solid var(--map-ink);
 }
 .step {
   display: grid;
   grid-template-columns: 46px 1fr;
   padding: 18px 0;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid rgb(42 37 31 / 0.16);
   opacity: 0.38;
   transition: opacity 0.6s var(--ease);
 }
@@ -268,14 +274,14 @@
   margin-top: 8px;
 }
 .step:nth-child(1) .step-sym {
-  background: var(--fg);
+  background: var(--map-ink);
   clip-path: polygon(50% 0, 100% 100%, 0 100%);
 }
 .step:nth-child(2) .step-sym {
   background:
-    radial-gradient(circle, var(--fg) 3px, transparent 3.5px) 0 8px / 8px 8px no-repeat,
-    radial-gradient(circle, var(--fg) 3px, transparent 3.5px) 8px 8px / 8px 8px no-repeat,
-    radial-gradient(circle, var(--fg) 3px, transparent 3.5px) 4px 0 / 8px 8px no-repeat;
+    radial-gradient(circle, var(--map-ink) 3px, transparent 3.5px) 0 8px / 8px 8px no-repeat,
+    radial-gradient(circle, var(--map-ink) 3px, transparent 3.5px) 8px 8px / 8px 8px no-repeat,
+    radial-gradient(circle, var(--map-ink) 3px, transparent 3.5px) 4px 0 / 8px 8px no-repeat;
 }
 .step:nth-child(3) .step-sym::before {
   content: '';
@@ -284,7 +290,7 @@
   top: 0;
   width: 2px;
   height: 16px;
-  background: var(--fg);
+  background: var(--map-ink);
 }
 .step:nth-child(3) .step-sym::after {
   content: '';
@@ -293,24 +299,24 @@
   top: 0;
   width: 11px;
   height: 8px;
-  background: var(--accent);
+  background: var(--red);
   clip-path: polygon(0 0, 100% 50%, 0 100%);
 }
 .step-n {
   display: block;
   margin-bottom: 6px;
-  font: 600 11px/1 var(--sans);
+  font: 800 11px/1 var(--sans);
   letter-spacing: 0.14em;
-  color: var(--accent);
+  color: var(--red);
 }
 .step h3 {
-  font: 400 clamp(26px, 2.4vw, 40px) / 1.04 var(--serif);
-  letter-spacing: -0.02em;
+  font: 700 clamp(24px, 2.2vw, 36px) / 1.06 var(--sans);
+  letter-spacing: -0.03em;
 }
 .step p {
   max-width: 44ch;
   margin-top: 8px;
-  color: var(--fg-2);
+  color: var(--map-ink-2);
 }
 
 @media (max-width: 1100px) {
@@ -326,7 +332,7 @@
     grid-template-rows: auto auto 1fr;
     row-gap: 3vh;
     align-content: start;
-    padding: 11vh var(--gutter) 3vh calc(var(--gutter) * 1.4);
+    padding: 11vh var(--pad-r) 3vh var(--gutter);
   }
   .map {
     grid-row: 2;
@@ -351,7 +357,7 @@
     padding: 10px 0;
   }
   .step h3 {
-    font-size: 23px;
+    font-size: 21px;
   }
   .step p {
     max-height: 0;
@@ -367,5 +373,12 @@
   :root:not(.motion) .step p {
     max-height: 9em;
     margin-top: 6px;
+  }
+}
+
+@media (max-width: 760px) {
+  .terrain {
+    -webkit-mask-image: linear-gradient(to top, rgb(0 0 0 / 0.18) 34%, #000 62%);
+    mask-image: linear-gradient(to top, rgb(0 0 0 / 0.18) 34%, #000 62%);
   }
 }
