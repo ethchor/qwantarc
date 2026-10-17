@@ -2,10 +2,10 @@
  * Where the red thread goes, section by section: the waypoints and how the tip travels them.
  *
  * It runs in the page's margins (the lanes), crossing only where there is room, and draws its
- * figures inside boxes the layout leaves for them: the method's three sketches, a knot for each
- * project on the work rail, a stitch under each capability, a potted plant at the side quest, and
- * finally a loop around the send button with a knot to finish. Built again whenever the layout
- * changes, since loop sizes and lanes are in pixels.
+ * figures where the layout leaves room for them: a route across the method's survey map, a knot for
+ * each project on the work rail, a ring round the overlap of the range's four plates, a ring round
+ * the rising sun at the side quest, and finally a loop around the send button with a knot to
+ * finish. Built again whenever the layout changes, since loop sizes and lanes are in pixels.
  */
 import type { Run, Way } from './thread';
 
@@ -17,7 +17,9 @@ export interface RouteParts {
   intro: Element;
   methodFrame: Element;
   methodRange: () => [number, number];
-  figs: Element[];
+  /** The survey map and its three waypoints (the summit, the cairns, the flag). */
+  map: Element;
+  ways: Element[];
   workSection: Element;
   workHead: Element;
   /** Wide: the pinned frame, the rail and its stops, and the pin's scroll range. */
@@ -29,10 +31,13 @@ export interface RouteParts {
   panels: Element[];
   range: Element;
   rangeHead: Element;
-  caps: Element[];
+  /** The four overprinted plates. */
+  venn: Element;
   also: Element;
   quest: Element;
-  questFig: Element;
+  /** The side quest's sun (it moves as it rises: waypoints are measured every frame) and plant. */
+  sun: Element;
+  plant: Element;
   questRange: () => [number, number];
   contact: Element;
   send: Element;
@@ -74,6 +79,27 @@ function ring(el: Element, fx: number, fy: number, r: number, o: RingOpts = {}, 
   }
   return out;
 }
+/** Waypoints spiralling in on the middle of an element, from radius r0 to r1 over some turns. */
+function spiral(el: Element, r0: number, r1: number, turns: number, perTurn: number): Way[] {
+  const out: Way[] = [];
+  const n = Math.round(turns * perTurn);
+  for (let i = 0; i <= n; i++) {
+    const t = i / n;
+    const a = -Math.PI / 2 + t * turns * Math.PI * 2;
+    const r = r0 + (r1 - r0) * t;
+    out.push(W(el, 0.5, 0.5, Math.cos(a) * r, Math.sin(a) * r));
+  }
+  return out;
+}
+/**
+ * The three cairns round the method's second waypoint, as shares of the map's width (the stylesheet
+ * places their markers with the same numbers, in container units).
+ */
+export const CAIRNS: [number, number][] = [
+  [-0.075, 0.045],
+  [0.07, 0.035],
+  [0.005, -0.07],
+];
 /** A share of a scroll range. */
 const part = (range: () => [number, number], a: number, b: number) => (): [number, number] => {
   const [s0, s1] = range();
@@ -97,68 +123,46 @@ export function buildRuns(p: RouteParts): Run[] {
     ],
   });
 
-  /* The method, pinned: the thread sketches each step in its box while the page holds still. */
-  const [f0, f1, f2] = p.figs;
-  const box = f0.getBoundingClientRect();
-  const r0 = box.width;
+  /* The method, pinned: the thread surveys the map while the page holds still. It casts about for
+     the summit and spirals in on it (the shape), walks the legs between three cairns (the simplest
+     system that holds), then takes the straight line to the flag (fast). Corners are doubled
+     waypoints, which keep the legs straight. */
+  const [w0, w1, w2] = p.ways;
+  const mw = p.map.getBoundingClientRect().width;
   const rand = rng(5);
-  // 1. The shape: a scribble, then the circle that finally contains it.
-  const scribble: Way[] = [];
-  for (let i = 0; i < 16; i++) {
-    const a = rand() * Math.PI * 2;
-    const d = Math.sqrt(rand()) * 0.2;
-    scribble.push(W(f0, 0.5 + Math.cos(a) * d, 0.5 + Math.sin(a) * d));
-  }
   runs.push({
     span: part(p.methodRange, 0, 0.06),
-    ways: [left(p.methodFrame, f0, 0.5)],
+    ways: [left(p.methodFrame, p.map, 0.62)],
   });
+  const cast: Way[] = [];
+  for (let i = 0; i < 5; i++) {
+    const a = Math.PI * (0.9 + i * 0.37) + (rand() - 0.5) * 0.6;
+    const d = mw * (0.2 - i * 0.025);
+    cast.push(W(w0, 0.5, 0.5, Math.cos(a) * d, Math.sin(a) * d * 0.7));
+  }
   runs.push({
     span: part(p.methodRange, 0.06, 0.36),
     onProgress: (v) => p.onStep?.(0, v),
-    ways: [W(f0, 0.12, 0.5), ...scribble, W(f0, 0.5, 0.1), ...ring(f0, 0.5, 0.5, r0 * 0.4, { steps: 10 }), W(f0, 1, 0.42, 6)],
+    ways: [W(p.map, 0, 0.62), ...cast, ...spiral(w0, mw * 0.11, mw * 0.022, 2.25, 10)],
   });
-  // 2. The system: a hub and four services, each with a knot where it sits.
-  const nodes: [number, number][] = [
-    [0.15, 0.5],
-    [0.5, 0.5],
-    [0.5, 0.14],
-    [0.5, 0.5],
-    [0.85, 0.5],
-    [0.5, 0.5],
-    [0.5, 0.86],
-  ];
-  const knotR = Math.max(5, r0 * 0.045);
-  const system: Way[] = [];
-  nodes.forEach(([x, y], i) => {
-    const repeat = i > 1 && x === 0.5 && y === 0.5;
-    if (repeat) system.push(W(f1, x, y));
-    else system.push(...ring(f1, x, y, knotR, { from: Math.PI, steps: 6 }));
-  });
+  const cairn = (k: number) => W(w1, 0.5, 0.5, CAIRNS[k][0] * mw, CAIRNS[k][1] * mw);
   runs.push({
     span: part(p.methodRange, 0.36, 0.66),
     onProgress: (v) => p.onStep?.(1, v),
-    ways: [W(f1, 0, 0.5, -4), ...system, W(f1, 1, 0.8, 6)],
+    ways: [cairn(0), cairn(0), cairn(1), cairn(1), cairn(2), cairn(2), cairn(0), cairn(0)],
   });
-  // 3. The speed: a cost curve falling fast, the noise settling, ending in a ring at its minimum.
-  const curve: Way[] = [];
-  for (let i = 0; i <= 12; i++) {
-    const x = 0.06 + (i / 12) * 0.86;
-    const jitter = (rand() - 0.5) * 0.16 * Math.exp(-i * 0.35);
-    curve.push(W(f2, x, 0.12 + 0.72 * (1 - Math.exp(-5.2 * (x - 0.06))) + jitter));
-  }
   runs.push({
     span: part(p.methodRange, 0.66, 0.92),
     onProgress: (v) => p.onStep?.(2, v),
-    ways: [...curve, ...ring(f2, 0.92, 0.84, knotR * 1.6, { from: Math.PI })],
+    ways: [W(w2, 0.5, 0.5), W(w2, 0.5, 0.5), ...ring(w2, 0.5, 0.5, Math.max(8, mw * 0.014), { steps: 7 })],
   });
-  // Out of the method. Wide: under the sketches and back to the left lane. Narrow (the steps sit
-  // under the sketches): out to the right lane and down past the steps.
+  // Out of the method. Wide: under the map and back to the left lane. Narrow (the steps sit under
+  // the map): out to the right lane and down past the steps.
   runs.push({
     span: part(p.methodRange, 0.92, 1),
     ways: p.wide
-      ? [W(f2, 0.6, 1.32), left(p.methodFrame, p.methodFrame, 1, -4)]
-      : [W(f2, 1, 0.84, L + 4), right(p.methodFrame, f2, 1.3), right(p.methodFrame, p.methodFrame, 1, -4)],
+      ? [W(p.map, 0.7, 1, 0, 26), left(p.methodFrame, p.methodFrame, 1, -4)]
+      : [W(p.map, 1, 0.3, L - 2), right(p.methodFrame, p.map, 1, 24), right(p.methodFrame, p.methodFrame, 1, -4)],
   });
 
   /* Work. */
@@ -203,50 +207,33 @@ export function buildRuns(p: RouteParts): Run[] {
     runs.push({ ways });
   }
 
-  /* Range: a stitch under each capability, crossing the page from lane to lane. */
-  const stitch: Way[] = [right(p.range, p.rangeHead, 0.5)];
-  let side = 1;
-  p.caps.forEach((cap) => {
-    // Along the rule under each capability, from one lane to the other.
-    stitch.push(side ? right(p.range, cap, 1) : left(p.range, cap, 1));
-    for (const f of side ? [0.75, 0.5, 0.25] : [0.25, 0.5, 0.75]) stitch.push(W(p.range, f, 1, 0, 0, cap));
-    side = 1 - side;
-    stitch.push(side ? right(p.range, cap, 1) : left(p.range, cap, 1));
+  /* Range: from the lane over to where all four plates overlap, once round it, and back. */
+  const vr = p.venn.getBoundingClientRect().width;
+  runs.push({
+    ways: [
+      right(p.range, p.rangeHead, 0.5),
+      W(p.venn, 1, 0.3, 10),
+      ...ring(p.venn, 0.5, 0.5, vr * 0.13, { from: -Math.PI / 4, steps: 10 }),
+      W(p.venn, 1, 0.75, 14),
+      right(p.range, p.venn, 1, 24),
+      right(p.range, p.also, 1, 30),
+      right(p.range, p.range, 1),
+    ],
   });
-  stitch.push(side ? right(p.range, p.also, 1, 30) : left(p.range, p.also, 1, 30));
-  if (!side) stitch.push(W(p.range, 0.5, 1, 0, 0), right(p.range, p.range, 1));
-  runs.push({ ways: stitch });
 
-  /* The side quest: a potted plant, drawn as the sun comes up. The thread arrives along the ground,
-     goes round the pot, then rises from the bottom of it as the stem, with two leaves and a bud. */
-  const q = p.questFig;
+  /* The side quest: down the right lane to the sun, once round it as it comes up, then down past
+     the plant to a knot on the ground beside it, and back to the lane. */
+  const sun = p.sun.getBoundingClientRect();
+  const sunR = sun.width / 2 + 16;
   runs.push({
     span: p.questRange,
     ways: [
-      right(p.quest, q, 0.94),
-      W(q, 0.64, 0.94),
-      W(q, 0.675, 0.79),
-      W(q, 0.71, 0.64),
-      W(q, 0.29, 0.64),
-      W(q, 0.325, 0.79),
-      W(q, 0.36, 0.94),
-      W(q, 0.5, 0.94),
-      W(q, 0.5, 0.78),
-      W(q, 0.5, 0.6),
-      W(q, 0.5, 0.52),
-      W(q, 0.58, 0.47),
-      W(q, 0.73, 0.37),
-      W(q, 0.61, 0.36),
-      W(q, 0.51, 0.43),
-      W(q, 0.5, 0.35),
-      W(q, 0.41, 0.29),
-      W(q, 0.27, 0.2),
-      W(q, 0.39, 0.19),
-      W(q, 0.49, 0.26),
-      W(q, 0.5, 0.15),
-      ...ring(q, 0.5, 0.1, Math.max(6, q.getBoundingClientRect().width * 0.03), { from: Math.PI / 2, steps: 7 }),
-      W(q, 0.5, 0.04),
-      right(p.quest, q, 0, -10),
+      right(p.quest, p.sun, 0.5),
+      ...ring(p.sun, 0.5, 0.5, sunR, { from: 0, steps: 14 }),
+      W(p.plant, 1, 0.55, 26),
+      ...ring(p.plant, 1, 1, 7, { from: Math.PI, steps: 6 }, { dx: 26, dy: -8 }),
+      W(p.plant, 1, 1, 60, 10),
+      right(p.quest, p.plant, 1, 26),
       right(p.quest, p.quest, 1),
     ],
   });

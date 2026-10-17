@@ -39,9 +39,17 @@ export const METHOD = [
   },
 ];
 
+/**
+ * What a node is, drawn as a Bauhaus shape in its chip (Kandinsky's pairing of shape and colour):
+ * people and the apps they use as yellow triangles, services as blue circles, data as red squares,
+ * and systems outside the build as black half-discs.
+ */
+export type NodeKind = 'app' | 'service' | 'data' | 'outside';
+
 export interface DiagramNode {
   id: string;
   label: string;
+  kind: NodeKind;
   x: number;
   y: number;
 }
@@ -107,13 +115,13 @@ export const CASES: Case[] = [
     stack: ['React', 'Node.js', 'PostgreSQL', 'Machine learning', 'FHIR'],
     diagram: {
       nodes: [
-        { id: 'devices', label: 'Devices', x: 46, y: 60 },
-        { id: 'ingest', label: 'Ingest', x: 146, y: 60 },
-        { id: 'db', label: 'PostgreSQL', x: 258, y: 60 },
-        { id: 'dash', label: 'Dashboard', x: 372, y: 60 },
-        { id: 'ehr', label: 'EHR · FHIR', x: 136, y: 170 },
-        { id: 'model', label: 'Risk model', x: 258, y: 170 },
-        { id: 'alerts', label: 'Alerts', x: 372, y: 170 },
+        { id: 'devices', label: 'Devices', kind: 'outside', x: 46, y: 60 },
+        { id: 'ingest', label: 'Ingest', kind: 'service', x: 146, y: 60 },
+        { id: 'db', label: 'PostgreSQL', kind: 'data', x: 258, y: 60 },
+        { id: 'dash', label: 'Dashboard', kind: 'app', x: 372, y: 60 },
+        { id: 'ehr', label: 'EHR · FHIR', kind: 'outside', x: 136, y: 170 },
+        { id: 'model', label: 'Risk model', kind: 'service', x: 258, y: 170 },
+        { id: 'alerts', label: 'Alerts', kind: 'service', x: 372, y: 170 },
       ],
       edges: [
         ['devices', 'ingest'],
@@ -155,11 +163,11 @@ export const CASES: Case[] = [
     stack: ['Python', 'TensorFlow', 'FastAPI', 'React', 'PostgreSQL'],
     diagram: {
       nodes: [
-        { id: 'history', label: 'Past outcomes', x: 70, y: 60 },
-        { id: 'train', label: 'TensorFlow', x: 210, y: 60 },
-        { id: 'api', label: 'FastAPI', x: 352, y: 60 },
-        { id: 'pipeline', label: 'Secure pipeline', x: 210, y: 176 },
-        { id: 'app', label: 'React app', x: 352, y: 176 },
+        { id: 'history', label: 'Past outcomes', kind: 'data', x: 70, y: 60 },
+        { id: 'train', label: 'TensorFlow', kind: 'service', x: 210, y: 60 },
+        { id: 'api', label: 'FastAPI', kind: 'service', x: 352, y: 60 },
+        { id: 'pipeline', label: 'Secure pipeline', kind: 'service', x: 210, y: 176 },
+        { id: 'app', label: 'React app', kind: 'app', x: 352, y: 176 },
       ],
       edges: [
         ['history', 'train'],
@@ -199,12 +207,12 @@ export const CASES: Case[] = [
     stack: ['React', 'OpenAI API', 'NestJS', 'MongoDB', 'WebRTC'],
     diagram: {
       nodes: [
-        { id: 'patient', label: 'Patient app', x: 66, y: 58 },
-        { id: 'api', label: 'NestJS API', x: 210, y: 58 },
-        { id: 'llm', label: 'Language model', x: 352, y: 58 },
-        { id: 'video', label: 'WebRTC', x: 66, y: 176 },
-        { id: 'mongo', label: 'MongoDB', x: 210, y: 176 },
-        { id: 'therapist', label: 'Therapist', x: 352, y: 176 },
+        { id: 'patient', label: 'Patient app', kind: 'app', x: 66, y: 58 },
+        { id: 'api', label: 'NestJS API', kind: 'service', x: 210, y: 58 },
+        { id: 'llm', label: 'Language model', kind: 'outside', x: 352, y: 58 },
+        { id: 'video', label: 'WebRTC', kind: 'service', x: 66, y: 176 },
+        { id: 'mongo', label: 'MongoDB', kind: 'data', x: 210, y: 176 },
+        { id: 'therapist', label: 'Therapist', kind: 'app', x: 352, y: 176 },
       ],
       edges: [
         ['patient', 'api', true],
@@ -245,13 +253,13 @@ export const CASES: Case[] = [
     stack: ['React', 'NestJS', 'TypeScript', 'Medplum', 'FHIR', 'SMART on FHIR', 'OAuth2'],
     diagram: {
       nodes: [
-        { id: 'patient', label: 'Patient app', x: 130, y: 30 },
-        { id: 'team', label: 'Team app', x: 290, y: 30 },
-        { id: 'smart', label: 'SMART on FHIR', x: 210, y: 90 },
-        { id: 'sched', label: 'Scheduling', x: 80, y: 150 },
-        { id: 'docs', label: 'Documentation', x: 210, y: 150 },
-        { id: 'plans', label: 'Care plans', x: 340, y: 150 },
-        { id: 'fhir', label: 'Medplum', x: 210, y: 205 },
+        { id: 'patient', label: 'Patient app', kind: 'app', x: 130, y: 30 },
+        { id: 'team', label: 'Team app', kind: 'app', x: 290, y: 30 },
+        { id: 'smart', label: 'SMART on FHIR', kind: 'service', x: 210, y: 90 },
+        { id: 'sched', label: 'Scheduling', kind: 'service', x: 80, y: 150 },
+        { id: 'docs', label: 'Documentation', kind: 'service', x: 210, y: 150 },
+        { id: 'plans', label: 'Care plans', kind: 'service', x: 340, y: 150 },
+        { id: 'fhir', label: 'Medplum', kind: 'data', x: 210, y: 205 },
       ],
       edges: [
         ['patient', 'smart', true],
@@ -293,13 +301,13 @@ export const CASES: Case[] = [
     stack: ['React', 'Redux Toolkit', 'D3.js', 'WebSocket', 'Material UI'],
     diagram: {
       nodes: [
-        { id: 'a', label: 'Editor', x: 40, y: 52 },
-        { id: 'b', label: 'Editor', x: 40, y: 178 },
-        { id: 'ws', label: 'WebSocket', x: 142, y: 115 },
-        { id: 'store', label: 'Redux', x: 258, y: 115 },
-        { id: 'charts', label: 'D3 charts', x: 370, y: 40 },
-        { id: 'builder', label: 'Builder', x: 370, y: 115 },
-        { id: 'perms', label: 'Sharing', x: 370, y: 190 },
+        { id: 'a', label: 'Editor', kind: 'app', x: 40, y: 52 },
+        { id: 'b', label: 'Editor', kind: 'app', x: 40, y: 178 },
+        { id: 'ws', label: 'WebSocket', kind: 'service', x: 142, y: 115 },
+        { id: 'store', label: 'Redux', kind: 'data', x: 258, y: 115 },
+        { id: 'charts', label: 'D3 charts', kind: 'app', x: 370, y: 40 },
+        { id: 'builder', label: 'Builder', kind: 'app', x: 370, y: 115 },
+        { id: 'perms', label: 'Sharing', kind: 'service', x: 370, y: 190 },
       ],
       edges: [
         ['a', 'ws', true],
@@ -340,12 +348,12 @@ export const CASES: Case[] = [
     stack: ['FHIR', 'HL7', 'Epic APIs', 'SMART on FHIR', 'Medplum', 'Node.js'],
     diagram: {
       nodes: [
-        { id: 'platform', label: 'Platform', x: 58, y: 115 },
-        { id: 'smart', label: 'SMART on FHIR', x: 200, y: 36 },
-        { id: 'layer', label: 'Integration layer', x: 200, y: 115 },
-        { id: 'hipaa', label: 'HIPAA controls', x: 200, y: 194 },
-        { id: 'fhirapi', label: 'Epic FHIR', x: 360, y: 64 },
-        { id: 'hl7', label: 'Epic HL7', x: 360, y: 166 },
+        { id: 'platform', label: 'Platform', kind: 'app', x: 58, y: 115 },
+        { id: 'smart', label: 'SMART on FHIR', kind: 'service', x: 200, y: 36 },
+        { id: 'layer', label: 'Integration layer', kind: 'service', x: 200, y: 115 },
+        { id: 'hipaa', label: 'HIPAA controls', kind: 'service', x: 200, y: 194 },
+        { id: 'fhirapi', label: 'Epic FHIR', kind: 'outside', x: 360, y: 64 },
+        { id: 'hl7', label: 'Epic HL7', kind: 'outside', x: 360, y: 166 },
       ],
       edges: [
         ['platform', 'layer', true],
@@ -385,12 +393,12 @@ export const CASES: Case[] = [
     stack: ['Next.js', 'Stripe', 'PostgreSQL', 'Redis', 'Docker'],
     diagram: {
       nodes: [
-        { id: 'client', label: 'Customers', x: 52, y: 115 },
-        { id: 'api', label: 'Next.js API', x: 172, y: 115 },
-        { id: 'redis', label: 'Redis', x: 305, y: 40 },
-        { id: 'data', label: 'Credit data', x: 305, y: 115 },
-        { id: 'stripe', label: 'Stripe', x: 305, y: 190 },
-        { id: 'pg', label: 'PostgreSQL', x: 172, y: 200 },
+        { id: 'client', label: 'Customers', kind: 'app', x: 52, y: 115 },
+        { id: 'api', label: 'Next.js API', kind: 'service', x: 172, y: 115 },
+        { id: 'redis', label: 'Redis', kind: 'data', x: 305, y: 40 },
+        { id: 'data', label: 'Credit data', kind: 'data', x: 305, y: 115 },
+        { id: 'stripe', label: 'Stripe', kind: 'outside', x: 305, y: 190 },
+        { id: 'pg', label: 'PostgreSQL', kind: 'data', x: 172, y: 200 },
       ],
       edges: [
         ['client', 'api', true],
@@ -404,24 +412,33 @@ export const CASES: Case[] = [
   },
 ];
 
+/** What the work covers. The range prints each as one plate of a risograph, in its own ink. */
 export const CAPABILITIES = [
   {
     area: 'AI and machine learning',
+    short: 'AI',
+    ink: 'pink',
     note: 'Models where they earn their place, and everything around them.',
     items: ['LLM integration', 'OpenAI API', 'On-device AI', 'MCP', 'TensorFlow', 'Python', 'FastAPI', 'Predictive models'],
   },
   {
     area: 'Architecture',
+    short: 'Architecture',
+    ink: 'blue',
     note: 'Systems that stay simple as they grow.',
     items: ['System design', 'Modular APIs', 'NestJS', 'Real-time: WebSocket and WebRTC', 'Integration layers', 'FHIR and HL7', 'Docker', 'AWS'],
   },
   {
     area: 'Performance and scale',
+    short: 'Performance',
+    ink: 'yellow',
     note: 'Measure first, then make it fast.',
     items: ['Redis', 'PostgreSQL', 'MongoDB', 'Rate limiting', 'Cloudflare Workers', 'WebGL'],
   },
   {
     area: 'Product engineering',
+    short: 'Product',
+    ink: 'teal',
     note: 'The interface is part of the solution.',
     items: ['React', 'TypeScript', 'Next.js', 'Node.js', 'Astro', 'D3.js', 'GSAP', 'Three.js'],
   },

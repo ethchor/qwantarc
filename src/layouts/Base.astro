@@ -20,14 +20,24 @@ const {
   siteName = 'Qwantarc',
 } = Astro.props;
 const canonical = new URL(Astro.url.pathname.replace(/\/$/, '') || '/', origin).href;
-const stylesheet = {
-  inter: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap',
-  brand: 'https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&family=Instrument+Serif:ital@0;1&display=swap',
-  // Satoshi and Boska come from Fontshare (ITF Free Font License).
-  vimu: 'https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&f[]=boska@400,401,500,501&display=swap',
+const google = ['https://fonts.googleapis.com', 'https://fonts.gstatic.com'];
+const { stylesheets, hosts } = {
+  inter: { stylesheets: ['https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap'], hosts: google },
+  brand: {
+    stylesheets: ['https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&family=Instrument+Serif:ital@0;1&display=swap'],
+    hosts: google,
+  },
+  vimu: {
+    stylesheets: [
+      // Satoshi and Boska come from Fontshare (ITF Free Font License), the pixel face from Google Fonts.
+      'https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&f[]=boska@400,401,500,501&display=swap',
+      'https://fonts.googleapis.com/css2?family=Silkscreen&display=swap',
+    ],
+    hosts: ['https://api.fontshare.com', 'https://cdn.fontshare.com', ...google],
+  },
 }[fonts];
-const fontHosts =
-  fonts === 'vimu' ? ['https://api.fontshare.com', 'https://cdn.fontshare.com'] : ['https://fonts.googleapis.com', 'https://fonts.gstatic.com'];
+/** The hosts that serve the font files themselves, which are fetched with CORS. */
+const fileHosts = new Set(['https://cdn.fontshare.com', 'https://fonts.gstatic.com']);
 ---
 
 <!doctype html>
@@ -47,9 +57,8 @@ const fontHosts =
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta name="twitter:card" content="summary" />
-    <link rel="preconnect" href={fontHosts[0]} />
-    <link rel="preconnect" href={fontHosts[1]} crossorigin />
-    <link rel="stylesheet" href={stylesheet} />
+    {hosts.map((h) => (fileHosts.has(h) ? <link rel="preconnect" href={h} crossorigin /> : <link rel="preconnect" href={h} />))}
+    {stylesheets.map((href) => <link rel="stylesheet" href={href} />)}
     <slot name="head" />
   </head>
   <body>

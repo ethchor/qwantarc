@@ -1,6 +1,7 @@
 /**
  * The red thread down the page. It starts at the hero's loose end and runs all the way to the send
- * button, drawn as you scroll, with a glowing tip leading the way.
+ * button, drawn as you scroll, with a tip leading the way. The overlay holds a copy of the path for
+ * each section's style (every [data-line] gets the same curve), each clipped to its own sections.
  *
  * It passes through waypoints placed relative to elements and measured afresh every frame, so it
  * follows the layout, the pinned sections and anything GSAP moves. Each run of waypoints says how
@@ -84,8 +85,7 @@ const f1 = (n: number) => n.toFixed(1);
 export function createThread(opts: ThreadOptions) {
   const { svg } = opts;
   const eye = opts.eye ?? 0.62;
-  const line = svg.querySelector<SVGPathElement>('[data-line]')!;
-  const glow = svg.querySelector<SVGPathElement>('[data-glow]');
+  const lines = [...svg.querySelectorAll<SVGPathElement>('[data-line]')];
   const tip = svg.querySelector<SVGGElement>('[data-tip]');
 
   const ways: Way[] = [];
@@ -212,8 +212,7 @@ export function createThread(opts: ThreadOptions) {
       pen = true;
     }
     if (d !== lastD) {
-      line.setAttribute('d', d);
-      glow?.setAttribute('d', d);
+      for (const l of lines) l.setAttribute('d', d);
       lastD = d;
     }
     if (tip) {
